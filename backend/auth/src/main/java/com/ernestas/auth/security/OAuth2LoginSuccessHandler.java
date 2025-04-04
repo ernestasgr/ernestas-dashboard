@@ -53,6 +53,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             String token = jwtTokenUtil.generateToken(user);
 
             response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
             response.getWriter().write("{\"token\": \"" + token + "\"}");
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
