@@ -16,8 +16,8 @@ public class JwtTokenUtil {
 
     @Value("${jwt.secret.key}")
     private String secretKey;
-    private static final long EXPIRATION_TIME = 86400000L;
-
+    @Value("${jwt.expiration.time}")
+    private long expirationTime;
     /**
      * Generates a JWT token for the given user.
      *
