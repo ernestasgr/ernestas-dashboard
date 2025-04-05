@@ -1,6 +1,9 @@
 package com.ernestas.auth.controller;
 
-import org.springframework.security.core.Authentication;
+import java.util.Map;
+import java.util.Objects;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,13 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthController {
     /**
-     * Endpoint for authentication.
+     * Endpoint to retrieve user information.
      *
-     * @param authentication the authentication object containing user details
-     * @return a greeting message with the authenticated user's name
+     * @param principal the authenticated user's OAuth2User object
+     * @return a map containing user information
      */
-    @GetMapping("/auth")
-    public String authenticate(Authentication authentication) {
-        return "Hello, " + authentication.getName();
+    @GetMapping("/me")
+    public Map<String, Object> getUserInfo(@AuthenticationPrincipal OAuth2User principal) {
+        return Map.of(
+            "name", Objects.requireNonNull(principal.getAttribute("name")),
+            "email", Objects.requireNonNull(principal.getAttribute("email")),
+            "picture", Objects.requireNonNull(principal.getAttribute("picture"))
+        );
     }
 }
