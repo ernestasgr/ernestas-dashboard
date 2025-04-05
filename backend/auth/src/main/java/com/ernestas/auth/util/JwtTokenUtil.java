@@ -18,6 +18,7 @@ public class JwtTokenUtil {
     private String secretKey;
     @Value("${jwt.expiration.time}")
     private long expirationTime;
+    
     /**
      * Generates a JWT token for the given user.
      *
@@ -30,7 +31,7 @@ public class JwtTokenUtil {
             .builder()
             .subject(user.getEmail())
             .issuedAt(new Date())
-            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+            .expiration(new Date(System.currentTimeMillis() + expirationTime))
             .signWith(key)
             .compact();
     }

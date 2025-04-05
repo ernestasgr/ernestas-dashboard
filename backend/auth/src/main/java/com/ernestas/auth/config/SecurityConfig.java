@@ -21,7 +21,10 @@ public class SecurityConfig {
      *
      * @param successHandler the OAuth2LoginSuccessHandler instance for handling successful logins
      */
-    public SecurityConfig(OAuth2LoginSuccessHandler successHandler, ClientRegistrationRepository clientRegistrationRepository) {
+    public SecurityConfig(
+        OAuth2LoginSuccessHandler successHandler,
+        ClientRegistrationRepository clientRegistrationRepository
+    ) {
         this.successHandler = successHandler;
         this.clientRegistrationRepository = clientRegistrationRepository;
     }

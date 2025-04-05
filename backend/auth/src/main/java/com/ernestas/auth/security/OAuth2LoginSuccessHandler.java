@@ -47,22 +47,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      */
     @Override
     public void onAuthenticationSuccess(
-            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-            throws IOException {
+        HttpServletRequest request, HttpServletResponse response, Authentication authentication
+    ) throws IOException {
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oauth2User = oauthToken.getPrincipal();
             User user = userService.registerOrUpdateUser(oauth2User);
             String token = jwtTokenUtil.generateToken(user);
-
-            String redirectUri = request.getSession().getAttribute("redirectUri").toString();
 
             Cookie cookie = new Cookie("token", token);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(60 * 60); // 1 hour
-
             response.addCookie(cookie);
+
+            String redirectUri = request.getSession().getAttribute("redirectUri").toString();
             response.sendRedirect(redirectUri);
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
