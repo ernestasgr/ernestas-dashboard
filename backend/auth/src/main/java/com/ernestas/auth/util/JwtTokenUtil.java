@@ -26,12 +26,13 @@ public class JwtTokenUtil {
      */
     public String generateToken(User user) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        return Jwts.builder()
-                .subject(user.getEmail())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key)
-                .compact();
+        return Jwts
+            .builder()
+            .subject(user.getEmail())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+            .signWith(key)
+            .compact();
     }
 
     /**
@@ -54,12 +55,13 @@ public class JwtTokenUtil {
      */
     public String getUsernameFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+        return Jwts
+            .parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .getSubject();
     }
 
     private boolean isTokenExpired(String token) {
@@ -68,11 +70,12 @@ public class JwtTokenUtil {
 
     private Date getExpirationDateFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
+        return Jwts
+            .parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .getExpiration();
     }
 }
