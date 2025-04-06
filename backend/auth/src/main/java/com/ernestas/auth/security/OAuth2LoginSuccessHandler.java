@@ -2,8 +2,8 @@ package com.ernestas.auth.security;
 
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
+import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Custom success handler for OAuth2 login authentication.
@@ -24,6 +23,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
+    private final CookieGenerator cookieGenerator;
 
     /**
      * Constructor for OAuth2LoginSuccessHandler.
@@ -31,9 +31,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      * @param userService  the UserService instance for user management
      * @param jwtTokenUtil the JwtTokenUtil instance for JWT token generation
      */
-    public OAuth2LoginSuccessHandler(UserService userService, JwtTokenUtil jwtTokenUtil) {
+    public OAuth2LoginSuccessHandler(
+            UserService userService,
+            JwtTokenUtil jwtTokenUtil,
+            CookieGenerator cookieGenerator
+    ) {
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.cookieGenerator = cookieGenerator;
     }
 
     /**
@@ -47,22 +52,34 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      */
     @Override
     public void onAuthenticationSuccess(
-        HttpServletRequest request, HttpServletResponse response, Authentication authentication
-    ) throws IOException {
+            HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException {
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oauth2User = oauthToken.getPrincipal();
             User user = userService.registerOrUpdateUser(oauth2User);
-            String token = jwtTokenUtil.generateToken(user);
 
-            Cookie cookie = new Cookie("token", token);
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(60 * 60); // 1 hour
-            response.addCookie(cookie);
+            String accessToken = jwtTokenUtil.generateAccessToken(user);
+            String refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
-            String redirectUri = request.getSession().getAttribute("redirectUri").toString();
-            response.sendRedirect(redirectUri);
+            response.addCookie(cookieGenerator.createCookie(
+                    "accessToken",
+                    accessToken,
+                    "/",
+                    (int) jwtTokenUtil.getAccessTokenExpiration())
+            );
+            response.addCookie(cookieGenerator.createCookie(
+                    "refreshToken",
+                    refreshToken,
+                    "/refresh/",
+                    (int) jwtTokenUtil.getRefreshTokenExpiration())
+            );
+
+            String redirectUri = (String) request.getSession().getAttribute("redirectUri");
+            if (redirectUri != null) {
+                response.sendRedirect(redirectUri);
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
+            }
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
         }
