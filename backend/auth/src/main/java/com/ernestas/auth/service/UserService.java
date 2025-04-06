@@ -39,4 +39,16 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email the email address of the user
+     * @return the User entity if found
+     * @throws RuntimeException if the user is not found
+     */
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }

@@ -131,6 +131,9 @@
 							<version>1.18.38</version>
 						</path>
 					</annotationProcessorPaths>
+					<source>24</source>
+					<target>24</target>
+					<compilerArgs>--enable-preview</compilerArgs>
 				</configuration>
 			</plugin>
 			<plugin>

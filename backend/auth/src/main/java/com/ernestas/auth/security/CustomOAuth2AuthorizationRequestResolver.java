@@ -1,4 +1,4 @@
-package com.ernestas.auth.resolver;
+package com.ernestas.auth.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
