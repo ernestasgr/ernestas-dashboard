@@ -8,7 +8,7 @@ const Login: React.FC = () => {
 
     const redirectTo = (provider: string) => {
         const frontendUrl = window.location.origin;
-        window.location.href = `${AUTH_URL}${provider}?redirect_uri=${encodeURIComponent(frontendUrl)}/dashboard`;
+        window.location.href = `${AUTH_URL}${provider}?redirect_uri=${encodeURIComponent(`${frontendUrl}/dashboard`)}`;
     };
 
     return (
