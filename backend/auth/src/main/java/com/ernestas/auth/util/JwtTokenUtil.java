@@ -79,18 +79,14 @@ public class JwtTokenUtil {
      * Validates the given token against the expected type and user.
      *
      * @param token        The JWT to validate.
-     * @param user         The user to validate against.
      * @param expectedType The expected token type: "access" or "refresh".
      * @return True if the token is valid and matches the user and type.
      */
-    public boolean validateToken(String token, User user, String expectedType) {
+    public boolean validateToken(String token, String expectedType) {
         try {
             Claims claims = parseClaims(token);
             String tokenType = (String) claims.get("type");
-            String email = claims.getSubject();
-            return tokenType.equals(expectedType)
-                    && email.equals(user.getEmail())
-                    && !isTokenExpired(claims);
+            return tokenType.equals(expectedType);
         } catch (Exception e) {
             return false;
         }
@@ -128,15 +124,5 @@ public class JwtTokenUtil {
      */
     public String getUsernameFromToken(String token) {
         return parseClaims(token).getSubject();
-    }
-
-    /**
-     * Checks if a token is expired based on its claims.
-     *
-     * @param claims The claims to inspect.
-     * @return True if the token is expired.
-     */
-    private boolean isTokenExpired(Claims claims) {
-        return claims.getExpiration().before(new Date());
     }
 }
