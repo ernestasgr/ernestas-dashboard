@@ -1,16 +1,20 @@
 package com.ernestas.auth.controller;
 
+import java.io.IOException;
+import java.util.Map;
+
+import io.jsonwebtoken.ClaimsBuilder;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
+
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller for authentication-related endpoints.
@@ -29,8 +33,7 @@ public class AuthController {
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
             UserService userService,
-            CookieGenerator cookieGenerator
-    ) {
+            CookieGenerator cookieGenerator) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
         this.cookieGenerator = cookieGenerator;
@@ -43,16 +46,23 @@ public class AuthController {
      * @return a map containing user information
      */
     @GetMapping("/me/")
-    public Map<String, Object> getUserInfo(@CookieValue ("accessToken") String accessToken) {
+    public Map<String, Object> getUserInfo(
+            @CookieValue("accessToken") String accessToken,
+            HttpServletResponse response
+    ) throws IOException {
+        if (!jwtTokenUtil.validateToken(accessToken, "access")) {
+            response.sendRedirect("/refresh/");
+            return Map.of("message", "Invalid access token");
+        }
+
         if (!jwtTokenUtil.getTokenType(accessToken).equals("access")) {
             return Map.of("message", "Invalid token type");
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
         return Map.of(
-        "email", claims.getSubject(),
-        "name", claims.get("name")
-        );
+                "email", claims.getSubject(),
+                "name", claims.get("name"));
     }
 
     /**
@@ -60,10 +70,9 @@ public class AuthController {
      *
      * @return a map indicating the success of the token refresh
      */
-    @GetMapping("/refresh")
+    @GetMapping("/refresh/")
     public Map<String, Object> refresh(
-            @CookieValue("refreshToken") String refreshToken, HttpServletResponse response
-    ) {
+            @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
         if (!jwtTokenUtil.getTokenType(refreshToken).equals("refresh")) {
             return Map.of("message", "Invalid token type");
         }
@@ -71,7 +80,7 @@ public class AuthController {
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);
         User user = userService.findUserByEmail(email);
 
-        if (!jwtTokenUtil.validateToken(refreshToken, user, "refresh")) {
+        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
             return Map.of("message", "Invalid refresh token");
         }
 
@@ -81,8 +90,7 @@ public class AuthController {
                 "accessToken",
                 newAccessToken,
                 "/",
-                (int) jwtTokenUtil.getAccessTokenExpiration() / 1000
-        ));
+                (int) jwtTokenUtil.getAccessTokenExpiration()));
 
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
 
@@ -90,8 +98,7 @@ public class AuthController {
                 "refreshToken",
                 newRefreshToken,
                 "/refresh/",
-                (int) jwtTokenUtil.getRefreshTokenExpiration() / 1000
-        ));
+                (int) jwtTokenUtil.getRefreshTokenExpiration()));
 
         return Map.of("message", "Access token refreshed");
     }
