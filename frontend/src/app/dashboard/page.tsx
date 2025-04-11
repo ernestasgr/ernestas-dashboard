@@ -1,4 +1,4 @@
-import DashboardWelcomeMessage from '../../../components/DashboardWelcomeMessage';
+import DashboardWelcomeMessage from '../../components/dashboard/WelcomeMessage';
 
 export default function Dashboard() {
     return (
