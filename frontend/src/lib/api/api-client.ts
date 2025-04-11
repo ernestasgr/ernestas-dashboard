@@ -25,7 +25,7 @@ apiClient.interceptors.response.use(
                 );
             } catch (refreshError) {
                 console.error('Refresh token failed:', refreshError);
-                redirect('login');
+                redirect('/login');
             }
         }
         return Promise.reject(error);
