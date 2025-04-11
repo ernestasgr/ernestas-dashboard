@@ -4,6 +4,8 @@ import axios, {
     AxiosRequestConfig,
     AxiosResponse,
 } from 'axios';
+import { redirect } from 'next/navigation';
+import { AUTH_URLS } from '../constants/urls/auth';
 
 const apiClient: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -15,7 +17,7 @@ apiClient.interceptors.response.use(
     async (error: AxiosError) => {
         if (error.response?.status === 401) {
             try {
-                await axios.get('http://localhost:8080/refresh/', {
+                await axios.get(AUTH_URLS.REFRESH, {
                     withCredentials: true,
                 });
                 return await apiClient.request(
@@ -23,7 +25,7 @@ apiClient.interceptors.response.use(
                 );
             } catch (refreshError) {
                 console.error('Refresh token failed:', refreshError);
-                window.location.href = '/login';
+                redirect('login');
             }
         }
         return Promise.reject(error);
