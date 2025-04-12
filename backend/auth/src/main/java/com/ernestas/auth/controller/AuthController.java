@@ -1,20 +1,19 @@
 package com.ernestas.auth.controller;
 
-import java.io.IOException;
-import java.util.Map;
-
-import io.jsonwebtoken.ClaimsBuilder;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
-
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller for authentication-related endpoints.
@@ -24,6 +23,7 @@ public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserService userService;
     private final CookieGenerator cookieGenerator;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
      * Constructor for AuthController.
@@ -50,16 +50,21 @@ public class AuthController {
             @CookieValue("accessToken") String accessToken,
             HttpServletResponse response
     ) throws IOException {
+        logger.info("Getting user info...");
+
         if (!jwtTokenUtil.validateToken(accessToken, "access")) {
+            logger.warn("Invalid access token");
             response.sendRedirect("/refresh/");
             return Map.of("message", "Invalid access token");
         }
 
         if (!jwtTokenUtil.getTokenType(accessToken).equals("access")) {
+            logger.warn("Invalid token type");
             return Map.of("message", "Invalid token type");
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
+        logger.info("User: {}", claims.getSubject());
         return Map.of(
                 "email", claims.getSubject(),
                 "name", claims.get("name"));
@@ -72,8 +77,13 @@ public class AuthController {
      */
     @GetMapping("/refresh/")
     public Map<String, Object> refresh(
-            @CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+            @CookieValue("refreshToken") String refreshToken,
+            HttpServletResponse response
+    ) {
+        logger.info("Refreshing user info");
+
         if (!jwtTokenUtil.getTokenType(refreshToken).equals("refresh")) {
+            logger.warn("Invalid token type");
             return Map.of("message", "Invalid token type");
         }
 
@@ -81,6 +91,7 @@ public class AuthController {
         User user = userService.findUserByEmail(email);
 
         if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
+            logger.warn("Invalid refresh token");
             return Map.of("message", "Invalid refresh token");
         }
 
@@ -99,6 +110,8 @@ public class AuthController {
                 newRefreshToken,
                 "/refresh/",
                 (int) jwtTokenUtil.getRefreshTokenExpiration()));
+
+        logger.info("New access token: {}", newAccessToken);
 
         return Map.of("message", "Access token refreshed");
     }
