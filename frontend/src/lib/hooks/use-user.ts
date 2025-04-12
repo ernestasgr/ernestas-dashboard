@@ -13,5 +13,6 @@ export const useUser = () => {
             );
             return userSchema.parse(data);
         },
+        refetchOnWindowFocus: false,
     });
 };
