@@ -1,5 +1,4 @@
 # ernestas-dashboard
 
 To run:
-docker buildx bake
-docker compose watch
+```docker compose up --build --watch```
