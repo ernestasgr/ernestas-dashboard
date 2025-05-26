@@ -9,8 +9,14 @@ const WelcomeMessage: React.FC = () => {
     if (isLoading) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <Skeleton className='mb-4 h-8 w-60' />
-                <Skeleton className='h-6 w-80' />
+                <Skeleton
+                    className='mb-4 h-8 w-60'
+                    data-testid='skeleton-title'
+                />
+                <Skeleton
+                    className='h-6 w-80'
+                    data-testid='skeleton-subtitle'
+                />
             </div>
         );
     }
