@@ -8,6 +8,6 @@ RUN mvn dependency:go-offline
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 8080 5841
 
 CMD ["mvn", "spring-boot:run"]

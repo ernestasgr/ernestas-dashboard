@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 /**
  * Controller for authentication-related endpoints.
@@ -76,43 +78,45 @@ public class AuthController {
      * @return a map indicating the success of the token refresh
      */
     @GetMapping("/refresh/")
-    public Map<String, Object> refresh(
+    public ResponseEntity<Map<String, Object>> refresh(
             @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response
     ) {
         logger.info("Refreshing user info");
 
-        if (!jwtTokenUtil.getTokenType(refreshToken).equals("refresh")) {
+        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
+            logger.warn("Invalid refresh token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid refresh token"));
+        }
+
+        if (!"refresh".equals(jwtTokenUtil.getTokenType(refreshToken))) {
             logger.warn("Invalid token type");
-            return Map.of("message", "Invalid token type");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid token type"));
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);
         User user = userService.findUserByEmail(email);
 
-        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
-            logger.warn("Invalid refresh token");
-            return Map.of("message", "Invalid refresh token");
-        }
-
         String newAccessToken = jwtTokenUtil.generateAccessToken(user);
-
         response.addCookie(cookieGenerator.createCookie(
                 "accessToken",
                 newAccessToken,
                 "/",
-                (int) jwtTokenUtil.getAccessTokenExpiration()));
+                (int) jwtTokenUtil.getAccessTokenExpiration()
+        ));
 
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
-
         response.addCookie(cookieGenerator.createCookie(
                 "refreshToken",
                 newRefreshToken,
                 "/refresh/",
-                (int) jwtTokenUtil.getRefreshTokenExpiration()));
+                (int) jwtTokenUtil.getRefreshTokenExpiration()
+        ));
 
-        logger.info("New access token: {}", newAccessToken);
+        logger.info("New access token issued for user: {}", email);
 
-        return Map.of("message", "Access token refreshed");
+        return ResponseEntity.ok(Map.of("message", "Access token refreshed"));
     }
 }

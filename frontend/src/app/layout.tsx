@@ -1,3 +1,4 @@
+import { AuthRedirectListener } from '@/lib/listeners/AuthRedirectListener';
 import { AuthProvider } from '@/lib/providers/auth-provider';
 import ReactQueryProvider from '@/lib/providers/react-query-client';
 import type { Metadata } from 'next';
@@ -31,6 +32,7 @@ export default function RootLayout({
             >
                 <ReactQueryProvider>
                     <AuthProvider>
+                        <AuthRedirectListener />
                         <main>{children}</main>
                     </AuthProvider>
                 </ReactQueryProvider>
