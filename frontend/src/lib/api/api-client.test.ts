@@ -1,27 +1,24 @@
-// eslint-disable-next-line no-var
-var capturedRejected: (
-    error: import('axios').AxiosError,
-) => Promise<import('axios').AxiosResponse>;
-
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AUTH_URLS } from '../constants/urls/auth';
+import * as authEvents from '../events/auth';
+import apiClient from './api-client';
+
+// eslint-disable-next-line no-var
+var capturedRejected: (error: AxiosError) => Promise<AxiosResponse>;
 
 vi.mock('axios', () => {
     const mockUse = (
-        onFulfilled: ((value: unknown) => unknown) | null,
-        onRejected: (
-            error: import('axios').AxiosError,
-        ) => Promise<import('axios').AxiosResponse>,
+        _onFulfilled: ((value: unknown) => unknown) | null,
+        onRejected: (error: AxiosError) => Promise<AxiosResponse>,
     ) => {
         capturedRejected = onRejected;
-        return 0;
     };
-    const mockInterceptors = { response: { use: mockUse } };
     const mockApiClient = {
-        interceptors: mockInterceptors,
+        interceptors: { response: { use: mockUse } },
         request: vi.fn(),
     };
     return {
-        __esModule: true,
         default: {
             create: vi.fn(() => mockApiClient),
             get: vi.fn(),
@@ -30,39 +27,23 @@ vi.mock('axios', () => {
     };
 });
 
-import type { AxiosError, AxiosResponse } from 'axios';
-import axios from 'axios';
-import { AUTH_URLS } from '../constants/urls/auth';
-import * as authEvents from '../events/auth';
-import apiClient from './api-client';
-
 const mockedAxios = axios as unknown as {
     create: typeof axios.create;
     get: typeof axios.get;
     request: typeof axios.request;
 };
 
-function getRejectedInterceptor(): (
-    error: AxiosError,
-) => Promise<AxiosResponse> {
-    return capturedRejected;
-}
-
 describe('apiClient', () => {
     let triggerAuthFailureSpy: ReturnType<typeof vi.spyOn>;
-    let originalEnv: NodeJS.ProcessEnv;
 
     beforeEach(() => {
         triggerAuthFailureSpy = vi
             .spyOn(authEvents, 'triggerAuthFailure')
             .mockImplementation(() => undefined);
-        originalEnv = { ...process.env };
-        process.env.NEXT_PUBLIC_API_URL = 'http://localhost/api';
     });
 
     afterEach(() => {
         vi.clearAllMocks();
-        process.env = originalEnv;
     });
 
     it('should return response on success', () => {
@@ -78,13 +59,11 @@ describe('apiClient', () => {
         } as unknown as AxiosError;
 
         mockedAxios.get = vi.fn().mockResolvedValue({ data: 'ok' });
-
         const requestSpy = vi
             .spyOn(apiClient, 'request')
             .mockResolvedValue({ data: 'retried' });
 
-        const interceptor = getRejectedInterceptor();
-        const result = await interceptor(error);
+        const result = await capturedRejected(error);
 
         expect(mockedAxios.get).toHaveBeenCalledWith(AUTH_URLS.REFRESH, {
             withCredentials: true,
@@ -104,9 +83,8 @@ describe('apiClient', () => {
             .fn()
             .mockResolvedValue({ data: 'Invalid refresh token' });
 
-        const interceptor = getRejectedInterceptor();
         try {
-            await interceptor(error);
+            await capturedRejected(error);
         } catch {}
 
         expect(triggerAuthFailureSpy).toHaveBeenCalled();
@@ -123,9 +101,8 @@ describe('apiClient', () => {
             .fn()
             .mockRejectedValue(new Error('Refresh failed'));
 
-        const interceptor = getRejectedInterceptor();
         try {
-            await interceptor(error);
+            await capturedRejected(error);
         } catch {}
 
         expect(triggerAuthFailureSpy).toHaveBeenCalled();
@@ -138,9 +115,8 @@ describe('apiClient', () => {
             response: { status: 401 },
         } as unknown as AxiosError;
 
-        const interceptor = getRejectedInterceptor();
         try {
-            await interceptor(error);
+            await capturedRejected(error);
         } catch {}
 
         expect(triggerAuthFailureSpy).toHaveBeenCalled();
