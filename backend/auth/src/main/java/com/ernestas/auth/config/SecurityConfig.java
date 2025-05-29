@@ -26,6 +26,8 @@ public class SecurityConfig {
      * Constructor for SecurityConfig.
      *
      * @param successHandler the OAuth2LoginSuccessHandler instance for handling successful logins
+     * @param clientRegistrationRepository the ClientRegistrationRepository instance for managing
+     *                                     OAuth2 client registrations
      */
     public SecurityConfig(
         OAuth2LoginSuccessHandler successHandler,
