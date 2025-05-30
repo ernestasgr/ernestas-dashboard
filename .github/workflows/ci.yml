@@ -34,6 +34,8 @@ jobs:
               with:
                   distribution: "temurin"
                   java-version: "21"
+            - name: Make mvnw executable
+              run: chmod +x mvnw
             - name: Run auth unit tests
               run: ./mvnw test
 
@@ -41,7 +43,7 @@ jobs:
         runs-on: ubuntu-latest
         defaults:
             run:
-                working-directory: frontend
+                working-directory: e2e
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
@@ -53,5 +55,3 @@ jobs:
               run: pnpm exec playwright install --with-deps
             - name: Run Playwright tests
               run: pnpm exec playwright test
-            - name: Run E2E tests
-              run: pnpm test:e2e
