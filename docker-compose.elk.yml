@@ -1,0 +1,10 @@
+services:
+  auth:
+    depends_on:
+      db:
+        condition: service_started
+      logstash:
+        condition: service_healthy
+    environment:
+      LOGGING_LOGSTASH_SERVER: logstash:5044
+      SPRING_PROFILES_ACTIVE: elk

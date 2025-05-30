@@ -1,130 +1,133 @@
 services:
-    frontend:
-        build:
-            context: ./frontend
-        container_name: frontend
-        ports:
-            - "3000:3000"
-        restart: always
-        environment:
-            - NODE_ENV=development
-            - WATCHPACK_POLLING=true
-        depends_on:
-            - auth
-        networks:
-            - elk
-        develop:
-            watch:
-                - action: sync
-                  path: ./frontend
-                  target: /app
-                  ignore:
-                    - node_modules/
-                - action: rebuild
-                  path: ./frontend/package.json
-    auth:
-        build:
-            context: ./backend/auth
-            dockerfile: Dockerfile
-        container_name: auth
-        ports:
-            - "8080:8080"
-            - "5841:5841"
-        volumes:
-            - ./backend/auth:/app
-        networks:
-            - elk
-        environment:
-            SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/personal_dashboard_auth
-            SPRING_DATASOURCE_USERNAME: postgres
-            SPRING_DATASOURCE_PASSWORD: password
-            JWT_SECRET: j20dfVx8xokTmxheH2kohSUW7b8+p+ObBvFoKMRV8Yvnpb4m1HrzrH+NFsy4sRmywNzc4FxqsJjoTS40TMSOTT1ALKmk5RxUq4hVtIGRNOQ+Z82TwUwozdIS3SquzACNRzjkvh71Ct0wCjuwdRQO+RbAabxPJWvS0R5B9QQolyq5LpqBUbPpxVDjpVhGBkNmBwu5ZO+/HkAvMp/d5yOQCH6vgp1NTZSXfECb8dyQxFz8fnVwvfx9aFlTDIubNvfwZaSwUPew/YLwvo8j6LXiNS3O8la3a8xfpOuegtXGBlGoosfPglPaxhMDCBsvazhbrjEBo4BUTH39CJGF7jU35M8sFzUfbkN5RCf2fV7dDho=
-            JWT_ACCESS_EXPIRATION: 10000
-            JWT_REFRESH_EXPIRATION: 30000
-            LOGGING_LOGSTASH_SERVER: logstash:5044
-        depends_on:
-            db:
-                condition: service_started
-            logstash:
-                condition: service_healthy
-    db:
-        image: postgres:latest
-        container_name: db
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: password
-            POSTGRES_DB: personal_dashboard_auth
-        networks:
-            - elk
-        ports:
-            - "5432:5432"
-        volumes:
-            - db_data:/var/lib/postgresql/data
-    elasticsearch:
-        container_name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.16.6
-        environment:
-            - discovery.type=single-node
-            - ELASTIC_PASSWORD=changeme
-            - xpack.security.enabled=false
-        ports:
-            - "9200:9200"
-        networks:
-            - elk
-        volumes:
-            - esdata:/usr/share/elasticsearch/data
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s"]
-            interval: 30s
-            retries: 3
-            start_period: 20s
-            timeout: 20s
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - auth
+    networks:
+      - elk
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/package.json
 
-    logstash:
-        container_name: logstash
-        image: docker.elastic.co/logstash/logstash:8.16.6
-        environment:
-            - LOGSTASH_HTTP_HOST=0.0.0.0
-        ports:
-            - "5044:5044"
-        networks:
-            - elk
-        volumes:
-            - ./logstash/config:/usr/share/logstash/config
-            - ./logstash/pipeline:/usr/share/logstash/pipeline
-        depends_on:
-            - elasticsearch
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:9600/_node/stats"]
-            interval: 30s
-            retries: 3
-            start_period: 20s
-            timeout: 20s
+  auth:
+    build:
+      context: ./backend/auth
+      dockerfile: Dockerfile
+    container_name: auth
+    ports:
+      - "8080:8080"
+      - "5841:5841"
+    volumes:
+      - ./backend/auth:/app
+    networks:
+      - elk
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/personal_dashboard_auth
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      JWT_SECRET: j20dfVx8xokTmxheH2kohSUW7b8+p+ObBvFoKMRV8Yvnpb4m1HrzrH+NFsy4sRmywNzc4FxqsJjoTS40TMSOTT1ALKmk5RxUq4hVtIGRNOQ+Z82TwUwozdIS3SquzACNRzjkvh71Ct0wCjuwdRQO+RbAabxPJWvS0R5B9QQolyq5LpqBUbPpxVDjpVhGBkNmBwu5ZO+/HkAvMp/d5yOQCH6vgp1NTZSXfECb8dyQxFz8fnVwvfx9aFlTDIubNvfwZaSwUPew/YLwvo8j6LXiNS3O8la3a8xfpOuegtXGBlGoosfPglPaxhMDCBsvazhbrjEBo4BUTH39CJGF7jU35M8sFzUfbkN5RCf2fV7dDho=
+      JWT_ACCESS_EXPIRATION: 10000
+      JWT_REFRESH_EXPIRATION: 30000
+    depends_on:
+      db:
+        condition: service_started
 
-    kibana:
-        container_name: kibana
-        image: docker.elastic.co/kibana/kibana:8.16.6
-        environment:
-            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-        ports:
-            - "5601:5601"
-        networks:
-            - elk
-        depends_on:
-            - elasticsearch
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:5601"]
-            interval: 30s
-            retries: 3
-            start_period: 20s
-            timeout: 20s
+  db:
+    image: postgres:latest
+    container_name: db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: personal_dashboard_auth
+    networks:
+      - elk
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  elasticsearch:
+    profiles: ["elk"]
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.16.6
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=changeme
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s"]
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      timeout: 20s
+
+  logstash:
+    profiles: ["elk"]
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:8.16.6
+    environment:
+      - LOGSTASH_HTTP_HOST=0.0.0.0
+    ports:
+      - "5044:5044"
+    networks:
+      - elk
+    volumes:
+      - ./logstash/config:/usr/share/logstash/config
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/_node/stats"]
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      timeout: 20s
+
+  kibana:
+    profiles: ["elk"]
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.16.6
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601"]
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      timeout: 20s
 
 networks:
-    elk:
-        driver: bridge
+  elk:
+    driver: bridge
 
 volumes:
-    db_data:
-        driver: local
-    esdata:
-        driver: local
+  db_data:
+    driver: local
+  esdata:
+    driver: local

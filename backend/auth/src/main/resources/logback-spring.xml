@@ -1,11 +1,4 @@
 <configuration>
-    <springProperty scope="context" name="logstashServer" source="logging.logstash.server"/>
-
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${logstashServer}</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-        <includeCallerData>true</includeCallerData>
-    </appender>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -13,9 +6,25 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="LOGSTASH" />
-    </root>
+    <springProfile name="elk">
+        <springProperty scope="context" name="logstashServer" source="logging.logstash.server"/>
+
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>${logstashServer}</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+            <includeCallerData>true</includeCallerData>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="LOGSTASH" />
+        </root>
+    </springProfile>
+
+    <springProfile name="!elk">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
 
 </configuration>
