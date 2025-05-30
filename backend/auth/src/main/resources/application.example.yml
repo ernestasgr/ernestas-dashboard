@@ -31,4 +31,8 @@ spring:
 jwt:
     secret:
         key: <JWT_SECRET_KEY>
-    expiration: 3600000 # 1 hour in ms
+    access:
+        expiration: 10000 # 10 seconds
+    refresh:
+        expiration: 30000 # 30 seconds
+

@@ -42,12 +42,9 @@ services:
       JWT_SECRET: j20dfVx8xokTmxheH2kohSUW7b8+p+ObBvFoKMRV8Yvnpb4m1HrzrH+NFsy4sRmywNzc4FxqsJjoTS40TMSOTT1ALKmk5RxUq4hVtIGRNOQ+Z82TwUwozdIS3SquzACNRzjkvh71Ct0wCjuwdRQO+RbAabxPJWvS0R5B9QQolyq5LpqBUbPpxVDjpVhGBkNmBwu5ZO+/HkAvMp/d5yOQCH6vgp1NTZSXfECb8dyQxFz8fnVwvfx9aFlTDIubNvfwZaSwUPew/YLwvo8j6LXiNS3O8la3a8xfpOuegtXGBlGoosfPglPaxhMDCBsvazhbrjEBo4BUTH39CJGF7jU35M8sFzUfbkN5RCf2fV7dDho=
       JWT_ACCESS_EXPIRATION: 10000
       JWT_REFRESH_EXPIRATION: 30000
-      LOGGING_LOGSTASH_SERVER: logstash:5044
     depends_on:
       db:
         condition: service_started
-      logstash:
-        condition: service_healthy
 
   db:
     image: postgres:latest
