@@ -1,30 +1,29 @@
 package com.ernestas.auth.controller;
 
-
-import com.ernestas.auth.model.User;
-import com.ernestas.auth.service.UserService;
-import com.ernestas.auth.util.CookieGenerator;
-import com.ernestas.auth.util.JwtTokenUtil;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.stereotype.Controller;
+
+import com.ernestas.auth.graphql.AuthError;
+import com.ernestas.auth.graphql.AuthPayload;
+import com.ernestas.auth.graphql.AuthResult;
+import com.ernestas.auth.graphql.RefreshResult;
+import com.ernestas.auth.model.User;
+import com.ernestas.auth.service.UserService;
+import com.ernestas.auth.util.JwtTokenUtil;
+
+import io.jsonwebtoken.Claims;
 
 /**
  * Controller for authentication-related endpoints.
  */
-@RestController
+@Controller
 public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserService userService;
-    private final CookieGenerator cookieGenerator;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
@@ -34,89 +33,38 @@ public class AuthController {
      */
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
-            UserService userService,
-            CookieGenerator cookieGenerator) {
+            UserService userService) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
-        this.cookieGenerator = cookieGenerator;
     }
 
-    /**
-     * Endpoint to get user information.
-     *
-     * @param accessToken the access token from the request cookie
-     * @return a map containing user information
-     */
-    @GetMapping("/me/")
-    public Map<String, Object> getUserInfo(
-            @CookieValue("accessToken") String accessToken,
-            HttpServletResponse response
-    ) throws IOException {
-        logger.info("Getting user info...");
-
+    @QueryMapping
+    public AuthResult me(@Argument String accessToken) {
         if (!jwtTokenUtil.validateToken(accessToken, "access")) {
-            logger.warn("Invalid access token");
-            response.sendRedirect("/refresh/");
-            return Map.of("message", "Invalid access token");
+            return new AuthError("Invalid access token");
         }
 
-        if (!jwtTokenUtil.getTokenType(accessToken).equals("access")) {
-            logger.warn("Invalid token type");
-            return Map.of("message", "Invalid token type");
+        if (!"access".equals(jwtTokenUtil.getTokenType(accessToken))) {
+            return new AuthError("Invalid token type");
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
-        logger.info("User: {}", claims.getSubject());
-        return Map.of(
-                "email", claims.getSubject(),
-                "name", claims.get("name"));
+        return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 
-    /**
-     * Endpoint to refresh the authentication token.
-     *
-     * @return a map indicating the success of the token refresh
-     */
-    @GetMapping("/refresh/")
-    public ResponseEntity<Map<String, Object>> refresh(
-            @CookieValue("refreshToken") String refreshToken,
-            HttpServletResponse response
-    ) {
-        logger.info("Refreshing user info");
-
-        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
-            logger.warn("Invalid refresh token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid refresh token"));
-        }
-
-        if (!"refresh".equals(jwtTokenUtil.getTokenType(refreshToken))) {
-            logger.warn("Invalid token type");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid token type"));
+    @MutationMapping
+    public RefreshResult refresh(@Argument String refreshToken) {
+        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")
+                || !"refresh".equals(jwtTokenUtil.getTokenType(refreshToken))) {
+            return new RefreshResult(null, null, "Invalid refresh token");
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);
         User user = userService.findUserByEmail(email);
 
         String newAccessToken = jwtTokenUtil.generateAccessToken(user);
-        response.addCookie(cookieGenerator.createCookie(
-                "accessToken",
-                newAccessToken,
-                "/",
-                (int) jwtTokenUtil.getAccessTokenExpiration()
-        ));
-
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
-        response.addCookie(cookieGenerator.createCookie(
-                "refreshToken",
-                newRefreshToken,
-                "/refresh/",
-                (int) jwtTokenUtil.getRefreshTokenExpiration()
-        ));
 
-        logger.info("New access token issued for user: {}", email);
-
-        return ResponseEntity.ok(Map.of("message", "Access token refreshed"));
+        return new RefreshResult(newAccessToken, newRefreshToken, "Access token refreshed");
     }
 }

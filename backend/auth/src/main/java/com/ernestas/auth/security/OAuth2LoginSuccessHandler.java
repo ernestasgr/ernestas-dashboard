@@ -1,17 +1,23 @@
 package com.ernestas.auth.security;
 
-import com.ernestas.auth.model.User;
-import com.ernestas.auth.service.UserService;
-import com.ernestas.auth.util.CookieGenerator;
-import com.ernestas.auth.util.JwtTokenUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+
+import com.ernestas.auth.model.User;
+import com.ernestas.auth.service.UserService;
+import com.ernestas.auth.util.JwtTokenUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Custom success handler for OAuth2 login authentication.
@@ -23,7 +29,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
-    private final CookieGenerator cookieGenerator;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Constructor for OAuth2LoginSuccessHandler.
@@ -33,17 +39,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      */
     public OAuth2LoginSuccessHandler(
             UserService userService,
-            JwtTokenUtil jwtTokenUtil,
-            CookieGenerator cookieGenerator
-    ) {
+            JwtTokenUtil jwtTokenUtil) {
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
-        this.cookieGenerator = cookieGenerator;
     }
 
     /**
      * Handles successful authentication by generating a JWT token and sending it in
-     * the response.
+     * the response body as JSON.
      *
      * @param request        the HTTP request
      * @param response       the HTTP response
@@ -61,25 +64,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             String accessToken = jwtTokenUtil.generateAccessToken(user);
             String refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
-            response.addCookie(cookieGenerator.createCookie(
-                    "accessToken",
-                    accessToken,
-                    "/",
-                    (int) jwtTokenUtil.getAccessTokenExpiration())
-            );
-            response.addCookie(cookieGenerator.createCookie(
-                    "refreshToken",
-                    refreshToken,
-                    "/refresh/",
-                    (int) jwtTokenUtil.getRefreshTokenExpiration())
-            );
-
-            String redirectUri = (String) request.getSession().getAttribute("redirectUri");
-            if (redirectUri != null) {
-                response.sendRedirect(redirectUri);
-            } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
-            }
+            // Return tokens in JSON response
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("accessToken", accessToken);
+            tokens.put("refreshToken", refreshToken);
+            PrintWriter out = response.getWriter();
+            objectMapper.writeValue(out, tokens);
+            out.flush();
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
         }

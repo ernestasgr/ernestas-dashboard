@@ -1,18 +1,21 @@
 package com.ernestas.auth.config;
 
-import com.ernestas.auth.security.CustomOAuth2AuthorizationRequestResolver;
-import com.ernestas.auth.security.OAuth2LoginSuccessHandler;
 import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import com.ernestas.auth.security.CustomOAuth2AuthorizationRequestResolver;
+import com.ernestas.auth.security.OAuth2LoginSuccessHandler;
 
 /**
  * Security configuration class.
@@ -25,14 +28,15 @@ public class SecurityConfig {
     /**
      * Constructor for SecurityConfig.
      *
-     * @param successHandler the OAuth2LoginSuccessHandler instance for handling successful logins
-     * @param clientRegistrationRepository the ClientRegistrationRepository instance for managing
+     * @param successHandler               the OAuth2LoginSuccessHandler instance
+     *                                     for handling successful logins
+     * @param clientRegistrationRepository the ClientRegistrationRepository instance
+     *                                     for managing
      *                                     OAuth2 client registrations
      */
     public SecurityConfig(
-        OAuth2LoginSuccessHandler successHandler,
-        ClientRegistrationRepository clientRegistrationRepository
-    ) {
+            OAuth2LoginSuccessHandler successHandler,
+            ClientRegistrationRepository clientRegistrationRepository) {
         this.successHandler = successHandler;
         this.clientRegistrationRepository = clientRegistrationRepository;
     }
@@ -40,32 +44,34 @@ public class SecurityConfig {
     /**
      * Configures the security filter chain for the application.
      *
-     * <p>This method sets up the security configuration using {@link HttpSecurity}.
-     * It ensures that all incoming requests are authenticated and enables OAuth2 login
-     * with default settings. It also configures the authorization endpoint to use a custom
-     * request resolver for handling authorization requests.</p>
+     * <p>
+     * This method sets up the security configuration using {@link HttpSecurity}.
+     * It ensures that all incoming requests are authenticated and enables OAuth2
+     * login
+     * with default settings. It also configures the authorization endpoint to use a
+     * custom
+     * request resolver for handling authorization requests.
+     * </p>
      *
-     * @param http the {@link HttpSecurity} object used to configure security settings
+     * @param http the {@link HttpSecurity} object used to configure security
+     *             settings
      * @return the configured {@link SecurityFilterChain} instance
-     * @throws Exception if an error occurs while building the security configuration
+     * @throws Exception if an error occurs while building the security
+     *                   configuration
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults())
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                .anyRequest().permitAll()
-            )
-            .oauth2Login(oauth2Login -> oauth2Login
-                .authorizationEndpoint(authEndpoint -> authEndpoint
-                    .authorizationRequestResolver(
-                        new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository))
-                    )
-                .successHandler(successHandler)
-            );
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs/GraphQL
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .anyRequest().permitAll())
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .authorizationEndpoint(authEndpoint -> authEndpoint
+                                .authorizationRequestResolver(
+                                        new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository)))
+                        .successHandler(successHandler));
 
         return http.build();
     }
@@ -76,7 +82,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization")); // Expose Authorization header if needed
+        configuration.setAllowCredentials(false); // No cookies, so credentials not needed
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

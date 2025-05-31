@@ -1,0 +1,24 @@
+type Query {
+	me(accessToken: String!): AuthPayloadOrError!
+}
+
+type Mutation {
+	refresh(refreshToken: String!): RefreshResult!
+}
+
+type AuthPayload {
+	email: String!
+	name: String
+}
+
+type AuthError {
+	message: String!
+}
+
+union AuthPayloadOrError = AuthPayload | AuthError
+
+type RefreshResult {
+	accessToken: String
+	refreshToken: String
+	message: String!
+}

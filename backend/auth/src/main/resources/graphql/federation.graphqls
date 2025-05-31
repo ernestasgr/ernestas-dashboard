@@ -1,0 +1,9 @@
+# Federation support for Apollo Gateway
+# Add the following to your schema to support Apollo Federation
+
+directive @key(fields: String!) repeatable on OBJECT | INTERFACE
+
+type User @key(fields: "email") {
+	email: String!
+	name: String
+}
