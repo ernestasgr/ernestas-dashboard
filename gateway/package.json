@@ -1,0 +1,14 @@
+{
+	"scripts": {
+		"start": "npx tsx src/gateway.ts",
+		"dev": "nodemon --watch src --ext ts --exec npx tsx src/gateway.ts"
+	},
+	"dependencies": {
+		"@apollo/gateway": "^2.10.2",
+		"@apollo/server": "^4.12.1",
+		"graphql": "^16.11.0",
+		"node-fetch": "^3.3.2",
+		"nodemon": "^3.1.10",
+		"zod": "^3.25.42"
+	}
+}

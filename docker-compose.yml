@@ -122,6 +122,21 @@ services:
       start_period: 20s
       timeout: 20s
 
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "4000:4000"
+    networks:
+      - elk
+    environment:
+      - AUTH_URL=http://auth:8080/graphql
+    depends_on:
+      auth:
+        condition: service_started
+
 networks:
   elk:
     driver: bridge
