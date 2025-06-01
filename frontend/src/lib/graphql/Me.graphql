@@ -1,0 +1,11 @@
+query Me {
+    me {
+        ... on AuthPayload {
+            email
+            name
+        }
+        ... on AuthError {
+            message
+        }
+    }
+}

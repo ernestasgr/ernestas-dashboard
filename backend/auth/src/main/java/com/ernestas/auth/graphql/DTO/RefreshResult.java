@@ -1,4 +1,4 @@
-package com.ernestas.auth.graphql;
+package com.ernestas.auth.graphql.DTO;
 
 public class RefreshResult {
     private String accessToken;

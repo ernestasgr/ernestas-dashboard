@@ -1,12 +1,13 @@
 'use client';
 
-import { useUser } from '@/lib/hooks/use-user';
+import { useMeQuery } from '@/generated/graphql';
+import { triggerAuthFailure } from '@/lib/events/auth';
 import { Skeleton } from '../ui/skeleton';
 
 const WelcomeMessage: React.FC = () => {
-    const { data, isLoading, isError } = useUser();
+    const { data, loading, error } = useMeQuery();
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
                 <Skeleton
@@ -21,20 +22,21 @@ const WelcomeMessage: React.FC = () => {
         );
     }
 
-    if (isError) {
+    if (error) {
+        triggerAuthFailure();
+        return null;
+    }
+
+    if (data?.me.__typename === 'AuthPayload') {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <h1 className='text-3xl font-bold'>Error loading user data</h1>
+                <h1 className='text-3xl font-bold'>Dashboard</h1>
+                <p className='mt-4'>
+                    Welcome to the dashboard {data.me.name ?? data.me.email}!
+                </p>
             </div>
         );
     }
-
-    return (
-        <div className='flex min-h-screen flex-col items-center justify-center'>
-            <h1 className='text-3xl font-bold'>Dashboard</h1>
-            <p className='mt-4'>Welcome to the dashboard {data?.name}!</p>
-        </div>
-    );
 };
 
 export default WelcomeMessage;

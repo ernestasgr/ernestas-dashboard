@@ -1,10 +1,9 @@
 package com.ernestas.auth.security;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -13,8 +12,8 @@ import org.springframework.stereotype.Component;
 
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
+import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +28,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CookieGenerator cookieGenerator;
+    private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class);
 
     /**
      * Constructor for OAuth2LoginSuccessHandler.
@@ -39,9 +39,11 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
      */
     public OAuth2LoginSuccessHandler(
             UserService userService,
-            JwtTokenUtil jwtTokenUtil) {
+            JwtTokenUtil jwtTokenUtil,
+            CookieGenerator cookieGenerator) {
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.cookieGenerator = cookieGenerator;
     }
 
     /**
@@ -64,15 +66,24 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             String accessToken = jwtTokenUtil.generateAccessToken(user);
             String refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
-            // Return tokens in JSON response
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", accessToken);
-            tokens.put("refreshToken", refreshToken);
-            PrintWriter out = response.getWriter();
-            objectMapper.writeValue(out, tokens);
-            out.flush();
+            response.addCookie(cookieGenerator.createCookie(
+                    "accessToken",
+                    accessToken,
+                    "/",
+                    (int) jwtTokenUtil.getAccessTokenExpiration() / 1000));
+            response.addCookie(cookieGenerator.createCookie(
+                    "refreshToken",
+                    refreshToken,
+                    "/refresh/",
+                    (int) jwtTokenUtil.getRefreshTokenExpiration() / 1000));
+
+            String redirectUri = (String) request.getSession().getAttribute("redirectUri");
+            logger.info("Redirect URI from session: {}", redirectUri);
+            if (redirectUri != null) {
+                response.sendRedirect(redirectUri);
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
+            }
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
         }

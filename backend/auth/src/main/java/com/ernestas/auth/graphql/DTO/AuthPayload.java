@@ -1,4 +1,4 @@
-package com.ernestas.auth.graphql;
+package com.ernestas.auth.graphql.DTO;
 
 public final class AuthPayload implements AuthResult {
     private String email;

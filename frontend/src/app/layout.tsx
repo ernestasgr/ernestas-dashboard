@@ -1,6 +1,5 @@
+import { ApolloWrapper } from '@/lib/graphql/apollo-wrapper';
 import { AuthRedirectListener } from '@/lib/listeners/AuthRedirectListener';
-import { AuthProvider } from '@/lib/providers/auth-provider';
-import ReactQueryProvider from '@/lib/providers/react-query-client';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -30,12 +29,10 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <ReactQueryProvider>
-                    <AuthProvider>
-                        <AuthRedirectListener />
-                        <main>{children}</main>
-                    </AuthProvider>
-                </ReactQueryProvider>
+                <ApolloWrapper>
+                    <AuthRedirectListener />
+                    <main>{children}</main>
+                </ApolloWrapper>
             </body>
         </html>
     );

@@ -2,20 +2,23 @@ package com.ernestas.auth.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CookieValue;
 
-import com.ernestas.auth.graphql.AuthError;
-import com.ernestas.auth.graphql.AuthPayload;
-import com.ernestas.auth.graphql.AuthResult;
-import com.ernestas.auth.graphql.RefreshResult;
+import com.ernestas.auth.graphql.DTO.AuthPayload;
+import com.ernestas.auth.graphql.DTO.AuthResult;
+import com.ernestas.auth.graphql.DTO.RefreshResult;
+import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
+import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
 
+import graphql.GraphQLContext;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
 
 /**
  * Controller for authentication-related endpoints.
@@ -24,6 +27,7 @@ import io.jsonwebtoken.Claims;
 public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserService userService;
+    private final CookieGenerator cookieGenerator;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
@@ -33,19 +37,21 @@ public class AuthController {
      */
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
-            UserService userService) {
+            UserService userService,
+            CookieGenerator cookieGenerator) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
+        this.cookieGenerator = cookieGenerator;
     }
 
     @QueryMapping
-    public AuthResult me(@Argument String accessToken) {
-        if (!jwtTokenUtil.validateToken(accessToken, "access")) {
-            return new AuthError("Invalid access token");
-        }
+    public AuthResult me(GraphQLContext context) {
+        String accessToken = context.get("accessToken");
+        logger.info("Received access token from cookie: {}", accessToken);
 
-        if (!"access".equals(jwtTokenUtil.getTokenType(accessToken))) {
-            return new AuthError("Invalid token type");
+        if (accessToken == null || !jwtTokenUtil.validateToken(accessToken, "access")) {
+            logger.error("Invalid or missing access token: {}", accessToken);
+            throw new InvalidAccessTokenException("Invalid access token");
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
@@ -53,9 +59,9 @@ public class AuthController {
     }
 
     @MutationMapping
-    public RefreshResult refresh(@Argument String refreshToken) {
-        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")
-                || !"refresh".equals(jwtTokenUtil.getTokenType(refreshToken))) {
+    public RefreshResult refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+            jakarta.servlet.http.HttpServletResponse response) {
+        if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
             return new RefreshResult(null, null, "Invalid refresh token");
         }
 
@@ -64,6 +70,14 @@ public class AuthController {
 
         String newAccessToken = jwtTokenUtil.generateAccessToken(user);
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
+
+        Cookie accessCookie = cookieGenerator.createCookie("accessToken", newAccessToken, "/",
+                10);
+        Cookie refreshCookie = cookieGenerator.createCookie("refreshToken", newRefreshToken, "/",
+                30);
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
 
         return new RefreshResult(newAccessToken, newRefreshToken, "Access token refreshed");
     }

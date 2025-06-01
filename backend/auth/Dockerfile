@@ -10,4 +10,6 @@ COPY . .
 
 EXPOSE 8080 5841
 
-CMD ["mvn", "spring-boot:run"]
+ENV MAVEN_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5841"
+
+CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.fork=false"]

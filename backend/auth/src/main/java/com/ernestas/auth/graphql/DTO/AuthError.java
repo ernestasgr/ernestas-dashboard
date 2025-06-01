@@ -1,4 +1,4 @@
-package com.ernestas.auth.graphql;
+package com.ernestas.auth.graphql.DTO;
 
 public final class AuthError implements AuthResult {
     private String message;

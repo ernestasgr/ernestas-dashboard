@@ -133,6 +133,7 @@ services:
       - elk
     environment:
       - AUTH_URL=http://auth:8080/graphql
+      - AUTH_REDIRECT_URL=http://localhost:8080
     depends_on:
       auth:
         condition: service_started

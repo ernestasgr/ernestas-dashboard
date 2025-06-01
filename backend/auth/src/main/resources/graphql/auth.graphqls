@@ -1,9 +1,9 @@
 type Query {
-	me(accessToken: String!): AuthPayloadOrError!
+	me: AuthPayloadOrError!
 }
 
 type Mutation {
-	refresh(refreshToken: String!): RefreshResult!
+	refresh: RefreshResult!
 }
 
 type AuthPayload {

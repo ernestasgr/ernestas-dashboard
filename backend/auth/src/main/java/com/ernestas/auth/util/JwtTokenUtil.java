@@ -1,18 +1,24 @@
 package com.ernestas.auth.util;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.ernestas.auth.model.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Date;
-import javax.crypto.SecretKey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 /**
  * Utility class for creating and validating JWT access and refresh tokens.
@@ -20,6 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenUtil {
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 
     @Value("${jwt.secret}")
     private String secret;
@@ -86,8 +93,11 @@ public class JwtTokenUtil {
         try {
             Claims claims = parseClaims(token);
             String tokenType = (String) claims.get("type");
+            Date expiration = claims.getExpiration();
+            logger.info("Token expires at: {}", expiration);
             return tokenType.equals(expectedType);
         } catch (Exception e) {
+            logger.warn("Failed to validate token: {}", e.getMessage());
             return false;
         }
     }
