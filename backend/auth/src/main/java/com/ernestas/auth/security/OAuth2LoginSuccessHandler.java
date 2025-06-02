@@ -74,7 +74,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             response.addCookie(cookieGenerator.createCookie(
                     "refreshToken",
                     refreshToken,
-                    "/refresh/",
+                    "/",
                     (int) jwtTokenUtil.getRefreshTokenExpiration() / 1000));
 
             String redirectUri = (String) request.getSession().getAttribute("redirectUri");

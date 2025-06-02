@@ -1,11 +1,17 @@
 'use client';
 
 import { useMeQuery } from '@/generated/graphql';
-import { triggerAuthFailure } from '@/lib/events/auth';
+import { useRefetchStore } from '@/lib/stores/use-refetch-store';
+import { useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const WelcomeMessage: React.FC = () => {
-    const { data, loading, error } = useMeQuery();
+    const { data, loading, error, refetch } = useMeQuery();
+    const setRefetch = useRefetchStore((s) => s.setRefetch);
+
+    useEffect(() => {
+        setRefetch('me', refetch);
+    }, [refetch, setRefetch]);
 
     if (loading) {
         return (
@@ -23,8 +29,14 @@ const WelcomeMessage: React.FC = () => {
     }
 
     if (error) {
-        triggerAuthFailure();
-        return null;
+        return (
+            <div className='flex min-h-screen flex-col items-center justify-center'>
+                <h1 className='text-3xl font-bold'>Error</h1>
+                <p className='mt-4 text-red-500'>
+                    {error.message || 'An unexpected error occurred.'}
+                </p>
+            </div>
+        );
     }
 
     if (data?.me.__typename === 'AuthPayload') {

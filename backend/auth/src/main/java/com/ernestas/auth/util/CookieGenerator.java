@@ -1,7 +1,8 @@
 package com.ernestas.auth.util;
 
-import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Component;
+
+import jakarta.servlet.http.Cookie;
 
 /**
  * Utility class for generating secure HTTP-only cookies.
@@ -12,10 +13,10 @@ public class CookieGenerator {
     /**
      * Creates a secure HTTP-only cookie with the specified parameters.
      *
-     * @param name     the name of the cookie
-     * @param value    the value of the cookie
-     * @param path     the path for which the cookie is valid
-     * @param maxAge   the maximum age of the cookie in seconds
+     * @param name   the name of the cookie
+     * @param value  the value of the cookie
+     * @param path   the path for which the cookie is valid
+     * @param maxAge the maximum age of the cookie in seconds
      * @return a Cookie object with the specified parameters
      */
     public Cookie createCookie(String name, String value, String path, int maxAge) {

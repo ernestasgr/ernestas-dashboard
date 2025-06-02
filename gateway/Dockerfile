@@ -10,8 +10,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY src ./src
 
-EXPOSE 4000
+EXPOSE 4000 9229
 
 ENV NODE_ENV=production
 
-CMD ["pnpm", "dev"]
+CMD ["pnpm", "debug"]

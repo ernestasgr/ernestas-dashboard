@@ -34,11 +34,14 @@ const gateway = new ApolloGateway({
 					JSON.stringify(request, null, 2)
 				);
 
-				if (request.http && context.headers && context.headers.cookie) {
+				if (request.http && context.req?.headers?.cookie) {
 					console.log(
-						`Adding cookie to request for subgraph ${name}: ${context.headers.cookie}`
+						`Adding cookie to request for subgraph ${name}: ${context.req.headers.cookie}`
 					);
-					request.http.headers.set("cookie", context.headers.cookie);
+					request.http.headers.set(
+						"cookie",
+						context.req.headers.cookie
+					);
 				} else {
 					console.log("No cookie found in context headers");
 				}
@@ -49,6 +52,18 @@ const gateway = new ApolloGateway({
 					`Response from ${name} subgraph:`,
 					JSON.stringify(response, null, 2)
 				);
+				const setCookie = response.http?.headers.get("set-cookie");
+				if (setCookie && context?.res) {
+					const cookies = setCookie
+						.split(",")
+						.map((cookie) => cookie.trim())
+						.forEach((cookie) => {
+							context.res.append(
+								"Set-Cookie",
+								`${cookie}; HttpOnly; SameSite=Lax`
+							);
+						});
+				}
 				return response;
 			},
 
@@ -128,8 +143,9 @@ async function startGateway() {
 	app.use(
 		"/graphql",
 		expressMiddleware(server, {
-			context: async ({ req }) => ({
-				headers: req.headers,
+			context: async ({ req, res }) => ({
+				req,
+				res,
 			}),
 		})
 	);

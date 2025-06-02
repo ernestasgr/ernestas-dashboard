@@ -16,10 +16,10 @@ import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Mono;
 
 @Component
-class ResponseHeaderInterceptor implements WebGraphQlInterceptor {
+class RequestContextInterceptor implements WebGraphQlInterceptor {
     private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final Logger logger = LoggerFactory.getLogger(ResponseHeaderInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(RequestContextInterceptor.class);
 
     @Override
     @NonNull

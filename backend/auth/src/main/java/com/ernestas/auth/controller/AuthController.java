@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CookieValue;
 
 import com.ernestas.auth.graphql.DTO.AuthPayload;
 import com.ernestas.auth.graphql.DTO.AuthResult;
@@ -59,8 +58,10 @@ public class AuthController {
     }
 
     @MutationMapping
-    public RefreshResult refresh(@CookieValue(name = "refreshToken", required = false) String refreshToken,
-            jakarta.servlet.http.HttpServletResponse response) {
+    public RefreshResult refresh(GraphQLContext context) {
+        String refreshToken = context.get("refreshToken");
+        logger.info("Received refresh token from cookie: {}", refreshToken);
+
         if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
             return new RefreshResult(null, null, "Invalid refresh token");
         }
@@ -76,8 +77,8 @@ public class AuthController {
         Cookie refreshCookie = cookieGenerator.createCookie("refreshToken", newRefreshToken, "/",
                 30);
 
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+        context.put("accessToken", accessCookie.getValue());
+        context.put("refreshToken", refreshCookie.getValue());
 
         return new RefreshResult(newAccessToken, newRefreshToken, "Access token refreshed");
     }

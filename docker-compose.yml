@@ -31,8 +31,8 @@ services:
     ports:
       - "8080:8080"
       - "5841:5841"
-    volumes:
-      - ./backend/auth:/app
+    # volumes:
+    #   - ./backend/auth:/app
     networks:
       - elk
     environment:
@@ -41,7 +41,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       JWT_SECRET: j20dfVx8xokTmxheH2kohSUW7b8+p+ObBvFoKMRV8Yvnpb4m1HrzrH+NFsy4sRmywNzc4FxqsJjoTS40TMSOTT1ALKmk5RxUq4hVtIGRNOQ+Z82TwUwozdIS3SquzACNRzjkvh71Ct0wCjuwdRQO+RbAabxPJWvS0R5B9QQolyq5LpqBUbPpxVDjpVhGBkNmBwu5ZO+/HkAvMp/d5yOQCH6vgp1NTZSXfECb8dyQxFz8fnVwvfx9aFlTDIubNvfwZaSwUPew/YLwvo8j6LXiNS3O8la3a8xfpOuegtXGBlGoosfPglPaxhMDCBsvazhbrjEBo4BUTH39CJGF7jU35M8sFzUfbkN5RCf2fV7dDho=
       JWT_ACCESS_EXPIRATION: 10000
-      JWT_REFRESH_EXPIRATION: 30000
+      JWT_REFRESH_EXPIRATION: 3000000
     depends_on:
       db:
         condition: service_started
@@ -129,6 +129,7 @@ services:
     container_name: gateway
     ports:
       - "4000:4000"
+      - "9229:9229"
     networks:
       - elk
     environment:

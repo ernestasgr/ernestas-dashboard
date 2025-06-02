@@ -10,7 +10,6 @@ export function AuthRedirectListener() {
 
     useEffect(() => {
         onAuthFailure(() => {
-            console.trace('Auth failure detected, redirecting to login');
             router.push('/login');
         });
     }, [router]);
