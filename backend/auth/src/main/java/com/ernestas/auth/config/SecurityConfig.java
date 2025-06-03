@@ -44,8 +44,7 @@ public class SecurityConfig {
     /**
      * Configures the security filter chain for the application.
      *
-     * <p>
-     * This method sets up the security configuration using {@link HttpSecurity}.
+     * <p>This method sets up the security configuration using {@link HttpSecurity}.
      * It ensures that all incoming requests are authenticated and enables OAuth2
      * login
      * with default settings. It also configures the authorization endpoint to use a
@@ -63,7 +62,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs/GraphQL
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .anyRequest().permitAll())

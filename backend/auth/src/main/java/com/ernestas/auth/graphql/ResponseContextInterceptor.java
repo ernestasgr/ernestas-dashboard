@@ -18,7 +18,7 @@ import java.util.Optional;
 class ResponseContextInterceptor implements WebGraphQlInterceptor {
     private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final Logger logger = LoggerFactory.getLogger(RequestContextInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseContextInterceptor.class);
 
     @Override
     @NonNull

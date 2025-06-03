@@ -11,6 +11,7 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import reactor.core.publisher.Mono;
@@ -44,21 +45,21 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
         return chain.next(request);
     }
 
-    private String getValueFromCookies(WebGraphQlRequest request, String cookieName) {
+    String getValueFromCookies(WebGraphQlRequest request, String cookieName) {
         List<String> cookieHeaders = request.getHeaders().get(HttpHeaders.COOKIE);
         if (cookieHeaders != null) {
             for (String cookieHeader : cookieHeaders) {
                 List<HttpCookie> accessTokenCookies = parseCookieHeader(cookieHeader).get(cookieName);
                 if (accessTokenCookies != null && !accessTokenCookies.isEmpty()) {
-                    return accessTokenCookies.get(0).getValue();
+                    return accessTokenCookies.getFirst().getValue();
                 }
             }
         }
         return null;
     }
 
-    private MultiValueMap<String, HttpCookie> parseCookieHeader(String cookieHeader) {
-        org.springframework.util.LinkedMultiValueMap<String, HttpCookie> cookies = new org.springframework.util.LinkedMultiValueMap<>();
+    MultiValueMap<String, HttpCookie> parseCookieHeader(String cookieHeader) {
+        org.springframework.util.LinkedMultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();
         String[] pairs = cookieHeader.split(";");
         for (String pair : pairs) {
             String[] parts = pair.trim().split("=", 2);

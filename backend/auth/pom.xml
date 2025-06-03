@@ -130,12 +130,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-graphql</artifactId>
 		</dependency>
-		<!-- Apollo Federation support for GraphQL Java -->
 		<dependency>
 			<groupId>com.apollographql.federation</groupId>
 			<artifactId>federation-graphql-java-support</artifactId>
 			<version>5.4.0</version>
 		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+        <scope>test</scope>
+    </dependency>	
 	</dependencies>
 
 	<build>

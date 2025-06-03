@@ -6,9 +6,8 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
-import com.ernestas.auth.graphql.DTO.AuthPayload;
-import com.ernestas.auth.graphql.DTO.AuthResult;
-import com.ernestas.auth.graphql.DTO.RefreshResult;
+import com.ernestas.auth.graphql.dto.AuthPayload;
+import com.ernestas.auth.graphql.dto.RefreshResult;
 import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
@@ -43,8 +42,15 @@ public class AuthController {
         this.cookieGenerator = cookieGenerator;
     }
 
+    /**
+     * Endpoint to get the authenticated user's information.
+     *
+     * @param context the GraphQL context containing the access token
+     * @return AuthPayload containing user email and name
+     * @throws InvalidAccessTokenException if the access token is invalid or missing
+     */
     @QueryMapping
-    public AuthResult me(GraphQLContext context) {
+    public AuthPayload me(GraphQLContext context) {
         String accessToken = context.get("accessToken");
         logger.info("Received access token from cookie: {}", accessToken);
 
@@ -57,13 +63,19 @@ public class AuthController {
         return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 
+    /**
+     * Endpoint to refresh the access token using the refresh token.
+     *
+     * @param context the GraphQL context containing the refresh token
+     * @return RefreshResult containing new access and refresh tokens
+     */
     @MutationMapping
     public RefreshResult refresh(GraphQLContext context) {
         String refreshToken = context.get("refreshToken");
         logger.info("Received refresh token from cookie: {}", refreshToken);
 
         if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
-            return new RefreshResult(null, null, "Invalid refresh token");
+            return new RefreshResult("Invalid refresh token");
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);
@@ -80,6 +92,6 @@ public class AuthController {
         context.put("accessToken", accessCookie.getValue());
         context.put("refreshToken", refreshCookie.getValue());
 
-        return new RefreshResult(newAccessToken, newRefreshToken, "Access token refreshed");
+        return new RefreshResult("Access token refreshed");
     }
 }

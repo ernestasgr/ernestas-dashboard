@@ -7,7 +7,7 @@ RUN mvn dependency:go-offline
 
 COPY . .
 
-RUN mvn clean package -DskipTests && ls -lh /app/target
+RUN mvn package -DskipTests && ls -lh /app/target
 
 FROM amazoncorretto:24-alpine
 

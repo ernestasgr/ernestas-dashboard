@@ -1,6 +1,7 @@
 package com.ernestas.auth.config;
 
-import com.ernestas.auth.security.OAuth2LoginSuccessHandler;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -9,7 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.ernestas.auth.security.OAuth2LoginSuccessHandler;
 
 @ExtendWith(MockitoExtension.class)
 class SecurityConfigTest {
@@ -32,4 +33,3 @@ class SecurityConfigTest {
         assertThat(source).isNotNull();
     }
 }
-
