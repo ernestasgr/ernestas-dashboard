@@ -2,6 +2,7 @@ package com.ernestas.auth.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
@@ -27,6 +28,12 @@ public class AuthController {
     private final UserService userService;
     private final CookieGenerator cookieGenerator;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
+    @Value("${jwt.access.expiration}")
+    private int accessTokenExpiration;
+
+    @Value("${jwt.refresh.expiration}")
+    private int refreshTokenExpiration;
 
     /**
      * Constructor for AuthController.
@@ -85,13 +92,14 @@ public class AuthController {
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
 
         Cookie accessCookie = cookieGenerator.createCookie("accessToken", newAccessToken, "/",
-                10);
+                accessTokenExpiration);
         Cookie refreshCookie = cookieGenerator.createCookie("refreshToken", newRefreshToken, "/",
-                30);
+                refreshTokenExpiration);
 
         context.put("accessToken", accessCookie.getValue());
         context.put("refreshToken", refreshCookie.getValue());
 
         return new RefreshResult("Access token refreshed");
     }
+
 }

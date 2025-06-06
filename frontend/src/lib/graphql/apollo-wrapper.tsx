@@ -10,11 +10,15 @@ import {
 import { onError } from '@apollo/client/link/error';
 import { triggerAuthFailure } from '../events/auth';
 import { useRefetchStore } from '../stores/use-refetch-store';
+import { getCsrfToken } from '../utils/auth-utils';
 
 function makeClient() {
     const httpLink = new HttpLink({
         uri: 'http://localhost:4000/graphql',
         credentials: 'include',
+        headers: {
+            'X-XSRF-TOKEN': getCsrfToken(),
+        },
     });
 
     const errorLink = onError(

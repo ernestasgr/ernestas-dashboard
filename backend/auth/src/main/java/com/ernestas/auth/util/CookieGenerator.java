@@ -1,5 +1,6 @@
 package com.ernestas.auth.util;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.Cookie;
@@ -10,6 +11,9 @@ import jakarta.servlet.http.Cookie;
  */
 @Component
 public class CookieGenerator {
+    @Value("${profile}")
+    private String profile;
+
     /**
      * Creates a secure HTTP-only cookie with the specified parameters.
      *
@@ -23,7 +27,7 @@ public class CookieGenerator {
         Cookie cookie = new Cookie(name, value);
         cookie.setMaxAge(maxAge);
         cookie.setPath(path);
-        cookie.setSecure(false);
+        cookie.setSecure(profile.equals("prod")); // Set secure flag only in production
         cookie.setHttpOnly(true);
         return cookie;
     }
