@@ -1,31 +1,26 @@
-import { useUser } from '@/lib/hooks/use-user';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, Mock, vi } from 'vitest';
 import WelcomeMessage from './WelcomeMessage';
 
-vi.mock('@/lib/hooks/use-user', () => ({
-    useUser: vi.fn(),
+vi.mock('@/generated/graphql', () => ({
+    useMeQuery: vi.fn(),
 }));
 
+vi.mock('@/lib/stores/use-refetch-store', () => ({
+    useRefetchStore: vi.fn(() => () => {
+        return;
+    }),
+}));
+
+import { useMeQuery } from '@/generated/graphql';
+
 describe('WelcomeMessage', () => {
-    it('renders the welcome message when user data is available', () => {
-        (useUser as Mock).mockReturnValue({
-            data: { name: 'John Doe' },
-            isLoading: false,
-            isError: false,
-        });
-
-        render(<WelcomeMessage />);
-        expect(
-            screen.getByText(/welcome to the dashboard john doe/i),
-        ).toBeInTheDocument();
-    });
-
-    it('renders loading skeletons when data is loading', () => {
-        (useUser as Mock).mockReturnValue({
+    it('renders loading skeletons when loading', () => {
+        (useMeQuery as Mock).mockReturnValue({
             data: null,
-            isLoading: true,
-            isError: false,
+            loading: true,
+            error: null,
+            refetch: vi.fn(),
         });
 
         render(<WelcomeMessage />);
@@ -33,16 +28,56 @@ describe('WelcomeMessage', () => {
         expect(screen.getByTestId('skeleton-subtitle')).toBeInTheDocument();
     });
 
-    it('renders an error message when there is an error', () => {
-        (useUser as Mock).mockReturnValue({
+    it('renders error message when error occurs', () => {
+        (useMeQuery as Mock).mockReturnValue({
             data: null,
-            isLoading: false,
-            isError: true,
+            loading: false,
+            error: { message: 'Something went wrong' },
+            refetch: vi.fn(),
+        });
+
+        render(<WelcomeMessage />);
+        expect(screen.getByText(/error/i)).toBeInTheDocument();
+        expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    });
+
+    it('renders dashboard with user name when AuthPayload is returned', () => {
+        (useMeQuery as Mock).mockReturnValue({
+            data: {
+                me: {
+                    __typename: 'AuthPayload',
+                    name: 'Alice',
+                    email: 'alice@example.com',
+                },
+            },
+            loading: false,
+            error: null,
+            refetch: vi.fn(),
         });
 
         render(<WelcomeMessage />);
         expect(
-            screen.getByText(/error loading user data/i),
+            screen.getByText(/welcome to the dashboard alice/i),
+        ).toBeInTheDocument();
+    });
+
+    it('renders dashboard with email if name is missing', () => {
+        (useMeQuery as Mock).mockReturnValue({
+            data: {
+                me: {
+                    __typename: 'AuthPayload',
+                    name: null,
+                    email: 'bob@example.com',
+                },
+            },
+            loading: false,
+            error: null,
+            refetch: vi.fn(),
+        });
+
+        render(<WelcomeMessage />);
+        expect(
+            screen.getByText(/welcome to the dashboard bob@example.com/i),
         ).toBeInTheDocument();
     });
 });
