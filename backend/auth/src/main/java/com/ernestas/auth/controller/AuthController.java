@@ -59,10 +59,9 @@ public class AuthController {
     @QueryMapping
     public AuthPayload me(GraphQLContext context) {
         String accessToken = context.get("accessToken");
-        logger.info("Received access token from cookie: {}", accessToken);
 
         if (accessToken == null || !jwtTokenUtil.validateToken(accessToken, "access")) {
-            logger.error("Invalid or missing access token: {}", accessToken);
+            logger.error("Invalid or missing access token");
             throw new InvalidAccessTokenException("Invalid access token");
         }
 
@@ -79,7 +78,6 @@ public class AuthController {
     @MutationMapping
     public RefreshResult refresh(GraphQLContext context) {
         String refreshToken = context.get("refreshToken");
-        logger.info("Received refresh token from cookie: {}", refreshToken);
 
         if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
             return new RefreshResult("Invalid refresh token");

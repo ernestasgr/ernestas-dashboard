@@ -1,17 +1,19 @@
 'use client';
 
 import { useMeQuery } from '@/generated/graphql';
-import { useRefetchStore } from '@/lib/stores/use-refetch-store';
+import { useEventStore } from '@/lib/stores/use-event-store';
 import { useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const WelcomeMessage: React.FC = () => {
     const { data, loading, error, refetch } = useMeQuery();
-    const setRefetch = useRefetchStore((s) => s.setRefetch);
+    const setEventListener = useEventStore((s) => s.subscribe);
 
     useEffect(() => {
-        setRefetch('me', refetch);
-    }, [refetch, setRefetch]);
+        setEventListener('refresh', () => {
+            void refetch();
+        });
+    }, [refetch, setEventListener]);
 
     if (loading) {
         return (
@@ -31,8 +33,10 @@ const WelcomeMessage: React.FC = () => {
     if (error) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <h1 className='text-3xl font-bold'>Error</h1>
-                <p className='mt-4 text-red-500'>
+                <h1 className='text-3xl font-bold' data-testid='error-heading'>
+                    Error
+                </h1>
+                <p className='mt-4 text-red-500' data-testid='error-message'>
                     {error.message || 'An unexpected error occurred.'}
                 </p>
             </div>
@@ -42,13 +46,20 @@ const WelcomeMessage: React.FC = () => {
     if (data?.me.__typename === 'AuthPayload') {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <h1 className='text-3xl font-bold'>Dashboard</h1>
-                <p className='mt-4'>
+                <h1
+                    className='text-3xl font-bold'
+                    data-testid='dashboard-heading'
+                >
+                    Dashboard
+                </h1>
+                <p className='mt-4' data-testid='welcome-message'>
                     Welcome to the dashboard {data.me.name ?? data.me.email}!
                 </p>
             </div>
         );
     }
+
+    return null;
 };
 
 export default WelcomeMessage;

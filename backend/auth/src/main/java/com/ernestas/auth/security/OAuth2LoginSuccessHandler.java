@@ -2,8 +2,6 @@ package com.ernestas.auth.security;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -29,7 +27,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
     private final CookieGenerator cookieGenerator;
-    private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class);
 
     /**
      * Constructor for OAuth2LoginSuccessHandler.
@@ -78,7 +75,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     (int) jwtTokenUtil.getRefreshTokenExpiration() / 1000));
 
             String redirectUri = (String) request.getSession().getAttribute("redirectUri");
-            logger.info("Redirect URI from session: {}", redirectUri);
             if (redirectUri != null) {
                 response.sendRedirect(redirectUri);
             } else {

@@ -2,8 +2,6 @@ package com.ernestas.auth.graphql;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.graphql.server.WebGraphQlInterceptor;
 import org.springframework.graphql.server.WebGraphQlRequest;
 import org.springframework.graphql.server.WebGraphQlResponse;
@@ -20,15 +18,12 @@ import reactor.core.publisher.Mono;
 class RequestContextInterceptor implements WebGraphQlInterceptor {
     private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final Logger logger = LoggerFactory.getLogger(RequestContextInterceptor.class);
 
     @Override
     @NonNull
     public Mono<WebGraphQlResponse> intercept(@NonNull WebGraphQlRequest request, @NonNull Chain chain) {
         String accessToken = getValueFromCookies(request, ACCESS_TOKEN_COOKIE_NAME);
         String refreshToken = getValueFromCookies(request, REFRESH_TOKEN_COOKIE_NAME);
-        logger.info("Access token from cookies: {}", accessToken);
-        logger.info("Refresh token from cookies: {}", refreshToken);
 
         if (accessToken != null || refreshToken != null) {
             request.configureExecutionInput((_, builder) -> builder

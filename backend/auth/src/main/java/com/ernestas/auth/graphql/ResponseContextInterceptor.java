@@ -1,7 +1,7 @@
 package com.ernestas.auth.graphql;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Optional;
+
 import org.springframework.graphql.server.WebGraphQlInterceptor;
 import org.springframework.graphql.server.WebGraphQlRequest;
 import org.springframework.graphql.server.WebGraphQlResponse;
@@ -12,13 +12,10 @@ import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
 @Component
 class ResponseContextInterceptor implements WebGraphQlInterceptor {
     private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
-    private static final Logger logger = LoggerFactory.getLogger(ResponseContextInterceptor.class);
 
     @Override
     @NonNull
@@ -36,11 +33,6 @@ class ResponseContextInterceptor implements WebGraphQlInterceptor {
                     .get(REFRESH_TOKEN_COOKIE_NAME);
             ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshCookieString).build();
             response.getResponseHeaders().add(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-            logger.info("Setting cookies"
-                    + " accessToken: {}, refreshToken: {}",
-                    accessCookieString, refreshCookieString);
-
         });
     }
 }

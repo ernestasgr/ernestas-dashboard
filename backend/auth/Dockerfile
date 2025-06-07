@@ -12,7 +12,6 @@ RUN mvn package -DskipTests && ls -lh /app/target
 FROM amazoncorretto:24-alpine
 
 WORKDIR /app
-RUN ls -lh /app
 COPY --from=builder /app/target/auth-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080 5841
