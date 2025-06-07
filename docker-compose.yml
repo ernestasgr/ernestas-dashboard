@@ -9,6 +9,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - WATCHPACK_POLLING=${WATCHPACK_POLLING}
+      - GATEWAY_DOMAIN=${GATEWAY_DOMAIN}
     depends_on:
       - auth
     networks:

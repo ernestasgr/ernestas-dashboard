@@ -13,6 +13,7 @@ import { triggerAuthFailure } from '../events/auth';
 import { useEventStore } from '../stores/use-event-store';
 import { getCsrfToken } from '../utils/auth-utils';
 
+
 async function refreshAccessToken(client: ApolloClient<unknown>) {
     const response = await client.mutate({ mutation: RefreshDocument });
     const responseSchema = z.object({
