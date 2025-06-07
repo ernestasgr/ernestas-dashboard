@@ -35,27 +35,26 @@ import jakarta.servlet.http.HttpServletResponse;
 public class SecurityConfig {
     private final OAuth2LoginSuccessHandler successHandler;
     private final ClientRegistrationRepository clientRegistrationRepository;
-
-    @Value("${gateway.secret}")
-    private String gatewaySecret;
-
-    @Value("${frontend.domain}")
-    private String frontendDomain;
+    private final String gatewaySecret;
+    private final String frontendDomain;
 
     /**
      * Constructor for SecurityConfig.
      *
      * @param successHandler               the OAuth2LoginSuccessHandler instance
-     *                                     for handling successful logins
      * @param clientRegistrationRepository the ClientRegistrationRepository instance
-     *                                     for managing
-     *                                     OAuth2 client registrations
+     * @param gatewaySecret                the gateway secret property
+     * @param frontendDomain               the frontend domain property
      */
     public SecurityConfig(
             OAuth2LoginSuccessHandler successHandler,
-            ClientRegistrationRepository clientRegistrationRepository) {
+            ClientRegistrationRepository clientRegistrationRepository,
+            @Value("${gateway.secret}") String gatewaySecret,
+            @Value("${frontend.domain}") String frontendDomain) {
         this.successHandler = successHandler;
         this.clientRegistrationRepository = clientRegistrationRepository;
+        this.gatewaySecret = gatewaySecret;
+        this.frontendDomain = frontendDomain;
     }
 
     /**

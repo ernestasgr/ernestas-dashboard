@@ -44,7 +44,7 @@ services:
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
       GATEWAY_SECRET: ${GATEWAY_SECRET}
       FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
-      PROFILE: ${PROFILE}
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
     depends_on:
       db:
         condition: service_started

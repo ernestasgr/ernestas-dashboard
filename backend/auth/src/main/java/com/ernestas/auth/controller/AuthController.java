@@ -28,12 +28,8 @@ public class AuthController {
     private final UserService userService;
     private final CookieGenerator cookieGenerator;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
-    @Value("${jwt.access.expiration}")
-    private int accessTokenExpiration;
-
-    @Value("${jwt.refresh.expiration}")
-    private int refreshTokenExpiration;
+    private final int accessTokenExpiration;
+    private final int refreshTokenExpiration;
 
     /**
      * Constructor for AuthController.
@@ -43,10 +39,14 @@ public class AuthController {
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
             UserService userService,
-            CookieGenerator cookieGenerator) {
+            CookieGenerator cookieGenerator,
+            @Value("${jwt.access.expiration}") int accessTokenExpiration,
+            @Value("${jwt.refresh.expiration}") int refreshTokenExpiration) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
         this.cookieGenerator = cookieGenerator;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
     /**

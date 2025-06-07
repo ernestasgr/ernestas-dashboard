@@ -7,7 +7,8 @@ import org.springframework.graphql.data.federation.FederationSchemaFactory;
 
 /**
  * Configuration class for GraphQL Federation.
- * This class sets up the necessary beans for GraphQL federation in the application.
+ * This class sets up the necessary beans for GraphQL federation in the
+ * application.
  */
 @Configuration
 public class FederationConfig {
@@ -19,7 +20,7 @@ public class FederationConfig {
      * @return a GraphQlSourceBuilderCustomizer that applies the federation schema
      */
     @Bean
-    public GraphQlSourceBuilderCustomizer customizer(FederationSchemaFactory factory) {
+    GraphQlSourceBuilderCustomizer customizer(FederationSchemaFactory factory) {
         return builder -> builder.schemaFactory(factory::createGraphQLSchema);
     }
 
@@ -29,7 +30,7 @@ public class FederationConfig {
      * @return a FederationSchemaFactory instance
      */
     @Bean
-    public FederationSchemaFactory schemaFactory() {
+    FederationSchemaFactory schemaFactory() {
         return new FederationSchemaFactory();
     }
 }

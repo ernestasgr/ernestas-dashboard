@@ -35,7 +35,7 @@ public class AuthControllerTest {
         jwtTokenUtil = mock(JwtTokenUtil.class);
         userService = mock(UserService.class);
         cookieGenerator = mock(CookieGenerator.class);
-        authController = new AuthController(jwtTokenUtil, userService, cookieGenerator);
+        authController = new AuthController(jwtTokenUtil, userService, cookieGenerator, 1, 1);
     }
 
     @Test

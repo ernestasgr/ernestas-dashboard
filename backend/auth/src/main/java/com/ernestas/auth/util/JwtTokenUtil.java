@@ -18,28 +18,31 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Utility class for creating and validating JWT access and refresh tokens.
  */
 @Component
-@RequiredArgsConstructor
 public class JwtTokenUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
-
-    @Value("${jwt.secret}")
     private String secret;
 
     @Getter
-    @Value("${jwt.access.expiration}")
     private long accessTokenExpiration;
 
     @Getter
-    @Value("${jwt.refresh.expiration}")
     private long refreshTokenExpiration;
 
     private Key signingKey;
+
+    public JwtTokenUtil(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access.expiration}") long accessTokenExpiration,
+            @Value("${jwt.refresh.expiration}") long refreshTokenExpiration) {
+        this.secret = secret;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+    }
 
     /**
      * Initializes the signing key using the secret key from application properties.

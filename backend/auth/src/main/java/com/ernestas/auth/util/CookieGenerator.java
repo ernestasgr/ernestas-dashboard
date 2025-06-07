@@ -11,8 +11,11 @@ import jakarta.servlet.http.Cookie;
  */
 @Component
 public class CookieGenerator {
-    @Value("${profile}")
-    private String profile;
+    private final String profile;
+
+    public CookieGenerator(@Value("${spring.profiles.active:dev}") String profile) {
+        this.profile = profile;
+    }
 
     /**
      * Creates a secure HTTP-only cookie with the specified parameters.
