@@ -17,6 +17,6 @@
 			"@/*": ["./tests/*"]
 		}
 	},
-	"include": ["**/*.ts"],
+	"include": ["**/*.ts", "!tsconfig.json"],
 	"exclude": ["node_modules"]
 }

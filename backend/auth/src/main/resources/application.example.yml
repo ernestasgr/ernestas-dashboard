@@ -28,6 +28,10 @@ spring:
                         redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
                         scope: user:email
 
+    graphql:
+        graphiql:
+            enabled: true
+
 jwt:
     secret:
         key: <JWT_SECRET_KEY>

@@ -1,12 +1,17 @@
 package com.ernestas.auth.util;
 
-import com.ernestas.auth.model.User;
-import io.jsonwebtoken.Claims;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.ernestas.auth.model.User;
+
+import io.jsonwebtoken.Claims;
 
 class JwtTokenUtilTest {
     private JwtTokenUtil jwtTokenUtil;
@@ -14,7 +19,7 @@ class JwtTokenUtilTest {
 
     @BeforeEach
     void setUp() {
-        jwtTokenUtil = new JwtTokenUtil();
+        jwtTokenUtil = new JwtTokenUtil("secret", 1, 1);
         String secret = "my-very-secret-key-which-is-long-enough-for-hmac";
         ReflectionTestUtils.setField(jwtTokenUtil, "secret", secret);
 
@@ -67,4 +72,3 @@ class JwtTokenUtilTest {
         assertFalse(jwtTokenUtil.validateToken("invalid.token.value", "access"));
     }
 }
-

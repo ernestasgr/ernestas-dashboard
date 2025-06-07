@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.5.0
+      zod:
+        specifier: ^3.25.56
+        version: 3.25.56
     devDependencies:
       '@playwright/test':
         specifier: ^1.52.0
@@ -24,6 +31,10 @@ packages:
 
   '@types/node@22.15.22':
     resolution: {integrity: sha512-IZ8lyY8xikZwGTJ9tsmbE68+mZbx2tsR+WnN1ZJU/h5flim8xBxEbpDrouMQNkMeT4pYxyJOTkf7YyDcQaUvQw==}
+
+  dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
 
   fsevents@2.3.2:
     resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
@@ -43,6 +54,9 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  zod@3.25.56:
+    resolution: {integrity: sha512-rd6eEF3BTNvQnR2e2wwolfTmUTnp70aUTqr0oaGbHifzC3BKJsoV+Gat8vxUMR1hwOKBs6El+qWehrHbCpW6SQ==}
+
 snapshots:
 
   '@playwright/test@1.52.0':
@@ -52,6 +66,8 @@ snapshots:
   '@types/node@22.15.22':
     dependencies:
       undici-types: 6.21.0
+
+  dotenv@16.5.0: {}
 
   fsevents@2.3.2:
     optional: true
@@ -65,3 +81,5 @@ snapshots:
       fsevents: 2.3.2
 
   undici-types@6.21.0: {}
+
+  zod@3.25.56: {}

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const graphqlEndpoint = "http://localhost:4000/graphql";
+
 test("login page shows provider buttons", async ({ page }) => {
 	await page.goto("/login");
 	await expect(page.getByRole("heading", { name: /login/i })).toBeVisible();
@@ -13,39 +15,67 @@ test("login page shows provider buttons", async ({ page }) => {
 
 test("redirects to login if not authenticated", async ({ page }) => {
 	const response = await page.goto("/dashboard");
-	expect(page.url()).toContain("/login");
+	await expect(page).toHaveURL(/\/login/);
 });
 
-test("dashboard shows welcome message with user name", async ({
-	page,
-	context,
-}) => {
-	await context.addCookies([
-		{
-			name: "accessToken",
-			value: "test-token",
-			domain: "localhost",
-			path: "/",
-			httpOnly: false,
-			secure: false,
-			sameSite: "Lax",
-		},
-	]);
-	await page.route("**/me/", (route) => {
-		route.fulfill({
-			status: 200,
-			contentType: "application/json",
-			body: JSON.stringify({
-				name: "Test User",
-				email: "test@example.com",
-			}),
+test.describe("WelcomeMessage component", () => {
+	test("shows loading skeleton initially", async ({ page }) => {
+		await page.route(graphqlEndpoint, async (route) => {
+			await new Promise((r) => setTimeout(r, 3000));
+			await route.continue();
 		});
+
+		await page.goto("/dashboard");
+
+		await expect(page.getByTestId("skeleton-title")).toBeVisible();
+		await expect(page.getByTestId("skeleton-subtitle")).toBeVisible();
 	});
-	await page.goto("/dashboard");
-	await expect(
-		page.getByRole("heading", { name: /dashboard/i })
-	).toBeVisible();
-	await expect(
-		page.getByText(/welcome to the dashboard test user/i)
-	).toBeVisible();
+
+	test("shows error message when GraphQL returns error", async ({ page }) => {
+		await page.route(graphqlEndpoint, (route) => {
+			route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({
+					errors: [{ message: "GraphQL error: Unauthorized" }],
+				}),
+			});
+		});
+
+		await page.goto("/dashboard");
+
+		await expect(
+			page.getByRole("heading", { name: "Error" })
+		).toBeVisible();
+		await expect(
+			page.locator("p", { hasText: /Unauthorized/ })
+		).toBeVisible();
+	});
+
+	test("shows dashboard welcome message on success", async ({ page }) => {
+		await page.route(graphqlEndpoint, (route) => {
+			route.fulfill({
+				status: 200,
+				contentType: "application/json",
+				body: JSON.stringify({
+					data: {
+						me: {
+							__typename: "AuthPayload",
+							name: "Alice",
+							email: "alice@example.com",
+						},
+					},
+				}),
+			});
+		});
+
+		await page.goto("/dashboard");
+
+		await expect(
+			page.getByRole("heading", { name: "Dashboard" })
+		).toBeVisible();
+		await expect(
+			page.locator("p", { hasText: /Welcome to the dashboard Alice!/ })
+		).toBeVisible();
+	});
 });
