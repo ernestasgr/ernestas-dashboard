@@ -85,16 +85,7 @@ jobs:
                   GATEWAY_DOMAIN: ${{ secrets.GATEWAY_DOMAIN }}
                   PROFILE: ${{ secrets.PROFILE }}
             - name: Wait for gateway to be healthy
-              run: |
-                  GATEWAY_DOMAIN="${{ secrets.GATEWAY_DOMAIN }}"
-                  for i in {1..30}; do
-                    if curl -s "$GATEWAY_DOMAIN/health" > /dev/null; then
-                      echo "Frontend is up!" && exit 0
-                    fi
-                    echo "Waiting for gateway..."
-                    sleep 5
-                  done
-                  echo "Frontend did not start in time" && exit 1
+              run: .github/scripts/wait-for-gateway.sh "${{ secrets.GATEWAY_DOMAIN }}"
             - name: Install dependencies
               run: npm install -g pnpm && pnpm install
             - name: Install Playwright Browsers
