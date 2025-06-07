@@ -68,6 +68,24 @@ jobs:
               run: docker compose --version
             - name: Start Docker services
               run: docker compose -f ../docker-compose.yml up -d
+              env:
+                  NODE_ENV: ${{ secrets.NODE_ENV }}
+                  WATCHPACK_POLLING: ${{ secrets.WATCHPACK_POLLING }}
+                  FRONTEND_DOMAIN: ${{ secrets.FRONTEND_DOMAIN }}
+                  SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+                  SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+                  SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
+                  JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+                  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+                  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+                  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+                  AUTH_URL: ${{ secrets.AUTH_URL }}
+                  AUTH_REDIRECT_URL: ${{ secrets.AUTH_REDIRECT_URL }}
+                  GATEWAY_SECRET: ${{ secrets.GATEWAY_SECRET }}
+                  GATEWAY_DOMAIN: ${{ secrets.GATEWAY_DOMAIN }}
+                  PROFILE: ${{ secrets.PROFILE }}
             - name: Wait for frontend to be healthy
               run: |
                   for i in {1..30}; do
