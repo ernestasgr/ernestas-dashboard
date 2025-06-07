@@ -84,28 +84,36 @@ jobs:
                   node-version: lts/*
             - name: Create .env file
               run: |
-                cat <<EOF > ../.env
-                NODE_ENV=${{ secrets.NODE_ENV }}
-                WATCHPACK_POLLING=${{ secrets.WATCHPACK_POLLING }}
-                FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
-                SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
-                SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
-                SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-                JWT_SECRET=${{ secrets.JWT_SECRET }}
-                JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }}
-                JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
-                POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-                POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-                AUTH_URL=${{ secrets.AUTH_URL }}
-                AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
-                GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}
-                GATEWAY_DOMAIN=${{ secrets.GATEWAY_DOMAIN }}
-                PROFILE=${{ secrets.PROFILE }}
-                ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
-                ELASTICSEARCH_HOSTS=${{ secrets.ELASTICSEARCH_HOSTS }}
-                LOGSTASH_HTTP_HOST=${{ secrets.LOGSTASH_HTTP_HOST }}
-                EOF
+                  cat <<EOF > ../.env
+                  NODE_ENV=${{ secrets.NODE_ENV }}
+                  WATCHPACK_POLLING=${{ secrets.WATCHPACK_POLLING }}
+                  FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
+                  SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+                  SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+                  SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+                  JWT_SECRET=${{ secrets.JWT_SECRET }}
+                  JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }}
+                  JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+                  POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+                  POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+                  POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+                  AUTH_URL=${{ secrets.AUTH_URL }}
+                  AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
+                  GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}
+                  GATEWAY_DOMAIN=${{ secrets.GATEWAY_DOMAIN }}
+                  PROFILE=${{ secrets.PROFILE }}
+                  ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+                  ELASTICSEARCH_HOSTS=${{ secrets.ELASTICSEARCH_HOSTS }}
+                  LOGSTASH_HTTP_HOST=${{ secrets.LOGSTASH_HTTP_HOST }}
+                  OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID }}
+                  OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET }}
+                  OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI }}
+                  OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE }}
+                  OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID }}
+                  OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET }}
+                  OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI }}
+                  OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE=${{ secrets.OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE }}
+                  EOF
             - name: Start Docker services
               run: docker compose -f ../docker-compose.yml up -d
             - name: Wait for gateway to be healthy
