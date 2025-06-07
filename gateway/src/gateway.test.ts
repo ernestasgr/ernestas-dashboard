@@ -38,6 +38,7 @@ vi.mock("zod", async () => {
 
 const mockApp = {
 	use: vi.fn(),
+	get: vi.fn(),
 	listen: vi.fn((port: number, cb?: () => void) => {
 		if (cb) cb();
 		return mockApp;
