@@ -7,10 +7,9 @@ package com.ernestas.auth.graphql.exception;
  */
 public class InvalidAccessTokenException extends RuntimeException {
     /**
-     * Constructs a new InvalidAccessTokenException with the specified detail message.
+     * Creates an exception indicating that an access token is invalid.
      *
-     * @param message the detail message, which is saved for later retrieval by the
-     *                {@link Throwable#getMessage()} method.
+     * @param message the detail message describing the reason for the invalid token
      */
     public InvalidAccessTokenException(String message) {
         super(message);

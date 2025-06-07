@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthApplication {
     private static final Logger logger = LoggerFactory.getLogger(AuthApplication.class);
 
-    /**
-     * Main method to run the Spring Boot application.
+    /****
+     * Launches the AuthApplication Spring Boot service.
      *
-     * @param args command-line arguments
+     * @param args command-line arguments passed to the application
      */
     public static void main(String[] args) {
         logger.info("Starting AuthApplication...");
@@ -26,6 +26,11 @@ public class AuthApplication {
 
     @RestController
     class HealthController {
+        /**
+         * Handles HTTP GET requests to the /health endpoint and returns a simple health status.
+         *
+         * @return the string "OK" indicating the service is healthy
+         */
         @GetMapping("/health")
         public String health() {
             return "OK";

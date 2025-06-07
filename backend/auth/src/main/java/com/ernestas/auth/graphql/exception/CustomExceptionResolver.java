@@ -17,6 +17,17 @@ import graphql.schema.DataFetchingEnvironment;
 @Component
 public class CustomExceptionResolver extends DataFetcherExceptionResolverAdapter {
 
+    /**
+     * Resolves an exception thrown during GraphQL data fetching to a single GraphQLError.
+     *
+     * If the exception is an InvalidAccessTokenException, returns a GraphQLError with type ValidationError,
+     * including the exception message, query path, and source location. For other exceptions, returns null,
+     * allowing default error handling to proceed.
+     *
+     * @param ex  the exception thrown during data fetching
+     * @param env the data fetching environment containing context about the GraphQL execution
+     * @return a GraphQLError for InvalidAccessTokenException, or null for other exceptions
+     */
     @Override
     protected GraphQLError resolveToSingleError(@NonNull Throwable ex, @NonNull DataFetchingEnvironment env) {
         if (ex instanceof InvalidAccessTokenException) {

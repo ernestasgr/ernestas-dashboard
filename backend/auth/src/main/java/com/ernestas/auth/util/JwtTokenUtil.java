@@ -32,6 +32,13 @@ public class JwtTokenUtil {
 
     private Key signingKey;
 
+    /**
+     * Constructs a JwtTokenUtil with the specified secret and token expiration durations.
+     *
+     * @param secret the secret key used for signing JWT tokens
+     * @param accessTokenExpiration the expiration duration (in milliseconds) for access tokens
+     * @param refreshTokenExpiration the expiration duration (in milliseconds) for refresh tokens
+     */
     public JwtTokenUtil(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.access.expiration}") long accessTokenExpiration,
