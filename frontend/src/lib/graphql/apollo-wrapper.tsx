@@ -14,6 +14,15 @@ import { useEventStore } from '../stores/use-event-store';
 import { getCsrfToken } from '../utils/auth-utils';
 
 
+/**
+ * Attempts to refresh the user's access token using a GraphQL mutation.
+ *
+ * Sends a refresh token mutation via the provided Apollo Client and validates the response. If the access token is successfully refreshed, triggers a global 'refresh' event and returns `true`.
+ *
+ * @returns `true` if the access token was refreshed successfully.
+ *
+ * @throws {Error} If the refresh mutation fails or the response does not indicate a successful token refresh.
+ */
 async function refreshAccessToken(client: ApolloClient<unknown>) {
     const response = await client.mutate({ mutation: RefreshDocument });
     const responseSchema = z.object({
@@ -38,6 +47,13 @@ async function refreshAccessToken(client: ApolloClient<unknown>) {
     throw new Error('Failed to refresh access token');
 }
 
+/**
+ * Creates and configures an Apollo Client instance with error handling, token refresh, logging, and CSRF protection.
+ *
+ * The client automatically attempts to refresh the access token and retry operations when authentication errors occur. All GraphQL responses are logged, and requests include a CSRF token header.
+ *
+ * @returns An Apollo Client instance ready for use in a Next.js application.
+ */
 function makeClient() {
     // eslint-disable-next-line prefer-const
     let client: ApolloClient<unknown>;
@@ -108,6 +124,13 @@ function makeClient() {
     return client;
 }
 
+/**
+ * Provides the Apollo Client context to its child components for GraphQL operations.
+ *
+ * Wraps children with {@link ApolloNextAppProvider}, supplying a preconfigured Apollo Client instance for use within a Next.js application.
+ *
+ * @param children - React components that require access to the Apollo Client context.
+ */
 export function ApolloWrapper({ children }: React.PropsWithChildren) {
     return (
         <ApolloNextAppProvider makeClient={makeClient}>

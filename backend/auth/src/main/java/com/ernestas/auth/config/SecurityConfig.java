@@ -38,13 +38,13 @@ public class SecurityConfig {
     private final String gatewaySecret;
     private final String frontendDomain;
 
-    /**
-     * Constructor for SecurityConfig.
+    /****
+     * Initializes the SecurityConfig with required handlers, repository, and configuration properties.
      *
-     * @param successHandler               the OAuth2LoginSuccessHandler instance
-     * @param clientRegistrationRepository the ClientRegistrationRepository instance
-     * @param gatewaySecret                the gateway secret property
-     * @param frontendDomain               the frontend domain property
+     * @param successHandler the handler for successful OAuth2 logins
+     * @param clientRegistrationRepository the repository for OAuth2 client registrations
+     * @param gatewaySecret the secret value used for gateway authentication
+     * @param frontendDomain the allowed frontend domain for CORS configuration
      */
     public SecurityConfig(
             OAuth2LoginSuccessHandler successHandler,
@@ -58,22 +58,15 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures the security filter chain for the application.
+     * Builds and configures the application's security filter chain.
      *
      * <p>
-     * This method sets up the security configuration using {@link HttpSecurity}.
-     * It ensures that all incoming requests are authenticated and enables OAuth2
-     * login
-     * with default settings. It also configures the authorization endpoint to use a
-     * custom
-     * request resolver for handling authorization requests.
+     * Sets up CORS, CSRF protection (excluding /health and /graphql), stateless session management, and a custom gateway authentication filter. Permits all HTTP requests and configures OAuth2 login with a custom authorization request resolver and success handler.
      * </p>
      *
-     * @param http the {@link HttpSecurity} object used to configure security
-     *             settings
-     * @return the configured {@link SecurityFilterChain} instance
-     * @throws Exception if an error occurs while building the security
-     *                   configuration
+     * @param http the {@link HttpSecurity} object for configuring security settings
+     * @return the configured {@link SecurityFilterChain}
+     * @throws Exception if an error occurs during security configuration
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -98,18 +91,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Configures CORS (Cross-Origin Resource Sharing) settings for the application.
+    /****
+     * Creates a CORS configuration source that permits requests only from the configured frontend domain.
      *
-     * <p>
-     * This method sets up a {@link CorsConfigurationSource} that allows requests
-     * from the specified frontend domain,
-     * allows all HTTP methods and headers, and enables credentials to be included
-     * in
-     * CORS requests.
-     * </p>
+     * Allows all HTTP methods and headers, and enables credentials for cross-origin requests.
      *
-     * @return the configured {@link CorsConfigurationSource} instance
+     * @return a CorsConfigurationSource allowing CORS requests from the specified frontend domain
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -123,20 +110,25 @@ public class SecurityConfig {
         return source;
     }
 
-    /**
-     * Creates a filter that checks for a gateway secret in the request header.
+    /****
+     * Returns a filter that enforces the presence of a valid gateway secret in the `x-gateway-secret` request header for all endpoints except `/health`.
      *
-     * <p>
-     * This filter is used to protect certain endpoints from unauthorized access by
-     * verifying the presence of a specific secret in the request header.
-     * </p>
+     * Requests missing the correct secret receive a 403 Forbidden response and are not processed further.
      *
-     * @return an instance of {@link OncePerRequestFilter} that checks the gateway
-     *         secret
+     * @return a {@link OncePerRequestFilter} that validates the gateway secret header
      */
     @Bean
     OncePerRequestFilter gatewayAuthFilter() {
         return new OncePerRequestFilter() {
+            /****
+             * Checks the `x-gateway-secret` header on incoming requests and blocks access with HTTP 403 Forbidden if the secret is missing or incorrect, except for requests to the `/health` endpoint.
+             *
+             * @param request the HTTP request
+             * @param response the HTTP response
+             * @param filterChain the filter chain to continue processing if the secret is valid or the request is for `/health`
+             * @throws ServletException if a servlet error occurs
+             * @throws IOException if an I/O error occurs
+             */
             @Override
             protected void doFilterInternal(@NonNull HttpServletRequest request,
                     @NonNull HttpServletResponse response,

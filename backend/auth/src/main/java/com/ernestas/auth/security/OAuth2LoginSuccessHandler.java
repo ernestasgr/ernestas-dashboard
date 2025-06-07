@@ -28,11 +28,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenUtil jwtTokenUtil;
     private final CookieGenerator cookieGenerator;
 
-    /**
-     * Constructor for OAuth2LoginSuccessHandler.
+    /****
+     * Creates an instance of OAuth2LoginSuccessHandler with required dependencies.
      *
-     * @param userService  the UserService instance for user management
-     * @param jwtTokenUtil the JwtTokenUtil instance for JWT token generation
+     * @param userService service for registering or updating users after OAuth2 login
+     * @param jwtTokenUtil utility for generating JWT access and refresh tokens
+     * @param cookieGenerator utility for creating HTTP cookies for tokens
      */
     public OAuth2LoginSuccessHandler(
             UserService userService,
@@ -43,14 +44,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         this.cookieGenerator = cookieGenerator;
     }
 
-    /**
-     * Handles successful authentication by generating a JWT token and sending it in
-     * the response body as JSON.
+    /****
+     * Handles successful OAuth2 authentication by registering or updating the user, generating JWT access and refresh tokens, setting them as cookies, and redirecting the user.
      *
-     * @param request        the HTTP request
-     * @param response       the HTTP response
-     * @param authentication the authentication object containing user details
-     * @throws IOException if an I/O error occurs
+     * If a redirect URI is present in the session, the user is redirected to that URI. Otherwise, a 400 Bad Request error is sent. If authentication is not an OAuth2 token, a 401 Unauthorized error is returned.
+     *
+     * @param request the HTTP request
+     * @param response the HTTP response
+     * @param authentication the authentication object
+     * @throws IOException if an I/O error occurs during response handling
      */
     @Override
     public void onAuthenticationSuccess(
