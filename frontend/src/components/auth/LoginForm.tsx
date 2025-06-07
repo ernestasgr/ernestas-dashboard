@@ -29,6 +29,7 @@ const LoginForm: React.FC = () => {
                                 }}
                                 className='w-full'
                                 disabled={loadingProvider !== null}
+                                name={`login-with-${provider}`}
                             >
                                 <LucideLogIn className='mr-2' />
                                 {loadingProvider === provider

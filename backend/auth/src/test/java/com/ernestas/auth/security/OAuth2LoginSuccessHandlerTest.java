@@ -1,27 +1,29 @@
+// src/test/java/com/ernestas/auth/security/OAuth2LoginSuccessHandlerTest.java
 package com.ernestas.auth.security;
+
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
+
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import jakarta.servlet.http.HttpSession;
 
 class OAuth2LoginSuccessHandlerTest {
 
@@ -39,72 +41,77 @@ class OAuth2LoginSuccessHandlerTest {
     }
 
     @Test
-    void shouldGenerateTokensAndRedirectOnSuccess() throws IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        Objects.requireNonNull(request.getSession()).setAttribute("redirectUri", "/dashboard");
-        MockHttpServletResponse response = new MockHttpServletResponse();
+    void onAuthenticationSuccess_withValidOAuth2Token_redirectsAndSetsCookies() throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        OAuth2AuthenticationToken authentication = mock(OAuth2AuthenticationToken.class);
+        OAuth2User oauth2User = mock(OAuth2User.class);
+        User user = mock(User.class);
+        HttpSession session = mock(HttpSession.class);
 
-        OAuth2User oauth2User = new DefaultOAuth2User(
-                List.of(), Map.of("email", "test@example.com"), "email");
-        OAuth2AuthenticationToken token = mock(OAuth2AuthenticationToken.class);
-        when(token.getPrincipal()).thenReturn(oauth2User);
-
-        User user = new User();
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
         when(userService.registerOrUpdateUser(oauth2User)).thenReturn(user);
         when(jwtTokenUtil.generateAccessToken(user)).thenReturn("access-token");
         when(jwtTokenUtil.generateRefreshToken(user)).thenReturn("refresh-token");
-        when(jwtTokenUtil.getAccessTokenExpiration()).thenReturn(3600L);
-        when(jwtTokenUtil.getRefreshTokenExpiration()).thenReturn(86400L);
+        when(jwtTokenUtil.getAccessTokenExpiration()).thenReturn(3600000L);
+        when(jwtTokenUtil.getRefreshTokenExpiration()).thenReturn(7200000L);
 
         Cookie accessCookie = new Cookie("accessToken", "access-token");
         Cookie refreshCookie = new Cookie("refreshToken", "refresh-token");
-        when(cookieGenerator.createCookie("accessToken", "access-token", "/", 3600)).thenReturn(accessCookie);
-        when(cookieGenerator.createCookie("refreshToken", "refresh-token", "/refresh/", 86400)).thenReturn(refreshCookie);
+        when(cookieGenerator.createCookie(eq("accessToken"), eq("access-token"), eq("/"), anyInt()))
+                .thenReturn(accessCookie);
+        when(cookieGenerator.createCookie(eq("refreshToken"), eq("refresh-token"), eq("/"), anyInt()))
+                .thenReturn(refreshCookie);
 
-        handler.onAuthenticationSuccess(request, response, token);
+        when(request.getSession()).thenReturn(session);
+        when(session.getAttribute("redirectUri")).thenReturn("http://localhost/redirect");
 
-        assertEquals("/dashboard", response.getRedirectedUrl());
-        assertEquals(2, response.getCookies().length);
-        assertEquals("accessToken", response.getCookies()[0].getName());
-        assertEquals("refreshToken", response.getCookies()[1].getName());
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(response).addCookie(accessCookie);
+        verify(response).addCookie(refreshCookie);
+        verify(response).sendRedirect("http://localhost/redirect");
     }
 
     @Test
-    void shouldReturn400IfRedirectUriMissing() throws IOException {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
+    void onAuthenticationSuccess_missingRedirectUri_sendsBadRequest() throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        OAuth2AuthenticationToken authentication = mock(OAuth2AuthenticationToken.class);
+        OAuth2User oauth2User = mock(OAuth2User.class);
+        User user = mock(User.class);
+        HttpSession session = mock(HttpSession.class);
 
-        OAuth2User oauth2User = new DefaultOAuth2User(
-                List.of(), Map.of("email", "test@example.com"), "email");
-        OAuth2AuthenticationToken token = mock(OAuth2AuthenticationToken.class);
-        when(token.getPrincipal()).thenReturn(oauth2User);
-
-        User user = new User();
+        when(authentication.getPrincipal()).thenReturn(oauth2User);
         when(userService.registerOrUpdateUser(oauth2User)).thenReturn(user);
         when(jwtTokenUtil.generateAccessToken(user)).thenReturn("access-token");
         when(jwtTokenUtil.generateRefreshToken(user)).thenReturn("refresh-token");
-        when(jwtTokenUtil.getAccessTokenExpiration()).thenReturn(3600L);
-        when(jwtTokenUtil.getRefreshTokenExpiration()).thenReturn(86400L);
+        when(jwtTokenUtil.getAccessTokenExpiration()).thenReturn(3600000L);
+        when(jwtTokenUtil.getRefreshTokenExpiration()).thenReturn(7200000L);
 
         Cookie accessCookie = new Cookie("accessToken", "access-token");
         Cookie refreshCookie = new Cookie("refreshToken", "refresh-token");
-        when(cookieGenerator.createCookie("accessToken", "access-token", "/", 3600)).thenReturn(accessCookie);
-        when(cookieGenerator.createCookie("refreshToken", "refresh-token", "/refresh/", 86400)).thenReturn(refreshCookie);
+        when(cookieGenerator.createCookie(eq("accessToken"), eq("access-token"), eq("/"), anyInt()))
+                .thenReturn(accessCookie);
+        when(cookieGenerator.createCookie(eq("refreshToken"), eq("refresh-token"), eq("/"), anyInt()))
+                .thenReturn(refreshCookie);
 
-        handler.onAuthenticationSuccess(request, response, token);
+        when(request.getSession()).thenReturn(session);
+        when(session.getAttribute("redirectUri")).thenReturn(null);
 
-        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
-        assertNull(response.getRedirectedUrl());
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
     }
 
     @Test
-    void shouldReturn401IfAuthenticationNotOAuth2() throws IOException {
-        Authentication nonOAuthAuthentication = mock(Authentication.class);
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
+    void onAuthenticationSuccess_withNonOAuth2Token_sendsUnauthorized() throws IOException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        Authentication authentication = mock(Authentication.class);
 
-        handler.onAuthenticationSuccess(request, response, nonOAuthAuthentication);
+        handler.onAuthenticationSuccess(request, response, authentication);
 
-        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+        verify(response).sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
     }
 }

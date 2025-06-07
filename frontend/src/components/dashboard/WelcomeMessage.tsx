@@ -1,12 +1,21 @@
 'use client';
 
-import { useUser } from '@/lib/hooks/use-user';
+import { useMeQuery } from '@/generated/graphql';
+import { useEventStore } from '@/lib/stores/use-event-store';
+import { useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const WelcomeMessage: React.FC = () => {
-    const { data, isLoading, isError } = useUser();
+    const { data, loading, error, refetch } = useMeQuery();
+    const setEventListener = useEventStore((s) => s.subscribe);
 
-    if (isLoading) {
+    useEffect(() => {
+        setEventListener('refresh', () => {
+            void refetch();
+        });
+    }, [refetch, setEventListener]);
+
+    if (loading) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
                 <Skeleton
@@ -21,20 +30,36 @@ const WelcomeMessage: React.FC = () => {
         );
     }
 
-    if (isError) {
+    if (error) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <h1 className='text-3xl font-bold'>Error loading user data</h1>
+                <h1 className='text-3xl font-bold' data-testid='error-heading'>
+                    Error
+                </h1>
+                <p className='mt-4 text-red-500' data-testid='error-message'>
+                    {error.message || 'An unexpected error occurred.'}
+                </p>
             </div>
         );
     }
 
-    return (
-        <div className='flex min-h-screen flex-col items-center justify-center'>
-            <h1 className='text-3xl font-bold'>Dashboard</h1>
-            <p className='mt-4'>Welcome to the dashboard {data?.name}!</p>
-        </div>
-    );
+    if (data?.me.__typename === 'AuthPayload') {
+        return (
+            <div className='flex min-h-screen flex-col items-center justify-center'>
+                <h1
+                    className='text-3xl font-bold'
+                    data-testid='dashboard-heading'
+                >
+                    Dashboard
+                </h1>
+                <p className='mt-4' data-testid='welcome-message'>
+                    Welcome to the dashboard {data.me.name ?? data.me.email}!
+                </p>
+            </div>
+        );
+    }
+
+    return null;
 };
 
 export default WelcomeMessage;

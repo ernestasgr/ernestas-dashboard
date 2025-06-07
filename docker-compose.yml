@@ -7,8 +7,9 @@ services:
       - "3000:3000"
     restart: always
     environment:
-      - NODE_ENV=development
-      - WATCHPACK_POLLING=true
+      - NODE_ENV=${NODE_ENV}
+      - WATCHPACK_POLLING=${WATCHPACK_POLLING}
+      - GATEWAY_DOMAIN=${GATEWAY_DOMAIN}
     depends_on:
       - auth
     networks:
@@ -31,17 +32,28 @@ services:
     ports:
       - "8080:8080"
       - "5841:5841"
-    volumes:
-      - ./backend/auth:/app
+    # volumes:
+    #   - ./backend/auth:/app
     networks:
       - elk
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/personal_dashboard_auth
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
-      JWT_SECRET: j20dfVx8xokTmxheH2kohSUW7b8+p+ObBvFoKMRV8Yvnpb4m1HrzrH+NFsy4sRmywNzc4FxqsJjoTS40TMSOTT1ALKmk5RxUq4hVtIGRNOQ+Z82TwUwozdIS3SquzACNRzjkvh71Ct0wCjuwdRQO+RbAabxPJWvS0R5B9QQolyq5LpqBUbPpxVDjpVhGBkNmBwu5ZO+/HkAvMp/d5yOQCH6vgp1NTZSXfECb8dyQxFz8fnVwvfx9aFlTDIubNvfwZaSwUPew/YLwvo8j6LXiNS3O8la3a8xfpOuegtXGBlGoosfPglPaxhMDCBsvazhbrjEBo4BUTH39CJGF7jU35M8sFzUfbkN5RCf2fV7dDho=
-      JWT_ACCESS_EXPIRATION: 10000
-      JWT_REFRESH_EXPIRATION: 30000
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      GATEWAY_SECRET: ${GATEWAY_SECRET}
+      FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
+      SPRING_PROFILES_ACTIVE: ${PROFILE}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE}
     depends_on:
       db:
         condition: service_started
@@ -50,9 +62,9 @@ services:
     image: postgres:latest
     container_name: db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: personal_dashboard_auth
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     networks:
       - elk
     ports:
@@ -66,7 +78,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.16.6
     environment:
       - discovery.type=single-node
-      - ELASTIC_PASSWORD=changeme
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
@@ -86,7 +98,7 @@ services:
     container_name: logstash
     image: docker.elastic.co/logstash/logstash:8.16.6
     environment:
-      - LOGSTASH_HTTP_HOST=0.0.0.0
+      - LOGSTASH_HTTP_HOST=${LOGSTASH_HTTP_HOST}
     ports:
       - "5044:5044"
     networks:
@@ -108,7 +120,7 @@ services:
     container_name: kibana
     image: docker.elastic.co/kibana/kibana:8.16.6
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
     ports:
       - "5601:5601"
     networks:
@@ -121,6 +133,24 @@ services:
       retries: 3
       start_period: 20s
       timeout: 20s
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    ports:
+      - "4000:4000"
+      - "9229:9229"
+    networks:
+      - elk
+    environment:
+      - AUTH_URL=${AUTH_URL}
+      - AUTH_REDIRECT_URL=${AUTH_REDIRECT_URL}
+      - GATEWAY_SECRET=${GATEWAY_SECRET}
+    depends_on:
+      auth:
+        condition: service_started
 
 networks:
   elk:

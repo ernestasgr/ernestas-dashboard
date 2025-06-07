@@ -1,38 +1,52 @@
 package com.ernestas.auth.util;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.ernestas.auth.model.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Date;
-import javax.crypto.SecretKey;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 /**
  * Utility class for creating and validating JWT access and refresh tokens.
  */
 @Component
-@RequiredArgsConstructor
 public class JwtTokenUtil {
-
-    @Value("${jwt.secret}")
     private String secret;
 
     @Getter
-    @Value("${jwt.access.expiration}")
     private long accessTokenExpiration;
 
     @Getter
-    @Value("${jwt.refresh.expiration}")
     private long refreshTokenExpiration;
 
     private Key signingKey;
+
+    /**
+     * Constructs a JwtTokenUtil with the specified secret and token expiration durations.
+     *
+     * @param secret the secret key used for signing JWT tokens
+     * @param accessTokenExpiration the expiration duration (in milliseconds) for access tokens
+     * @param refreshTokenExpiration the expiration duration (in milliseconds) for refresh tokens
+     */
+    public JwtTokenUtil(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.access.expiration}") long accessTokenExpiration,
+            @Value("${jwt.refresh.expiration}") long refreshTokenExpiration) {
+        this.secret = secret;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+    }
 
     /**
      * Initializes the signing key using the secret key from application properties.

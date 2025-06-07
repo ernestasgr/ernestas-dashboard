@@ -1,122 +1,106 @@
 package com.ernestas.auth.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.stereotype.Controller;
 
+import com.ernestas.auth.graphql.dto.AuthPayload;
+import com.ernestas.auth.graphql.dto.RefreshResult;
+import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
+
+import graphql.GraphQLContext;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.Cookie;
 
 /**
  * Controller for authentication-related endpoints.
  */
-@RestController
+@Controller
 public class AuthController {
     private final JwtTokenUtil jwtTokenUtil;
     private final UserService userService;
     private final CookieGenerator cookieGenerator;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private final int accessTokenExpiration;
+    private final int refreshTokenExpiration;
 
     /**
-     * Constructor for AuthController.
-     *
-     * @param jwtTokenUtil the JwtTokenUtil instance for JWT token operations
-     */
+         * Creates an AuthController with required utilities and token expiration settings.
+         *
+         * @param accessTokenExpiration expiration time for access tokens, in seconds
+         * @param refreshTokenExpiration expiration time for refresh tokens, in seconds
+         */
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
             UserService userService,
-            CookieGenerator cookieGenerator) {
+            CookieGenerator cookieGenerator,
+            @Value("${jwt.access.expiration}") int accessTokenExpiration,
+            @Value("${jwt.refresh.expiration}") int refreshTokenExpiration) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
         this.cookieGenerator = cookieGenerator;
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    /**
-     * Endpoint to get user information.
+    /****
+     * Retrieves the authenticated user's email and name from a valid access token in the GraphQL context.
      *
-     * @param accessToken the access token from the request cookie
-     * @return a map containing user information
+     * @param context the GraphQL context containing the access token
+     * @return an AuthPayload with the user's email and name
+     * @throws InvalidAccessTokenException if the access token is missing or invalid
      */
-    @GetMapping("/me/")
-    public Map<String, Object> getUserInfo(
-            @CookieValue("accessToken") String accessToken,
-            HttpServletResponse response
-    ) throws IOException {
-        logger.info("Getting user info...");
+    @QueryMapping
+    public AuthPayload me(GraphQLContext context) {
+        String accessToken = context.get("accessToken");
 
-        if (!jwtTokenUtil.validateToken(accessToken, "access")) {
-            logger.warn("Invalid access token");
-            response.sendRedirect("/refresh/");
-            return Map.of("message", "Invalid access token");
-        }
-
-        if (!jwtTokenUtil.getTokenType(accessToken).equals("access")) {
-            logger.warn("Invalid token type");
-            return Map.of("message", "Invalid token type");
+        if (accessToken == null || !jwtTokenUtil.validateToken(accessToken, "access")) {
+            logger.error("Invalid or missing access token");
+            throw new InvalidAccessTokenException("Invalid access token");
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
-        logger.info("User: {}", claims.getSubject());
-        return Map.of(
-                "email", claims.getSubject(),
-                "name", claims.get("name"));
+        return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 
-    /**
-     * Endpoint to refresh the authentication token.
+    /****
+     * Generates new access and refresh tokens using a valid refresh token from the GraphQL context.
      *
-     * @return a map indicating the success of the token refresh
+     * If the refresh token is missing or invalid, returns a result indicating an error. On success, issues new tokens, updates the context with their values, and returns a result indicating the access token was refreshed.
+     *
+     * @param context the GraphQL context containing the refresh token
+     * @return a RefreshResult indicating the outcome of the refresh operation
      */
-    @GetMapping("/refresh/")
-    public ResponseEntity<Map<String, Object>> refresh(
-            @CookieValue("refreshToken") String refreshToken,
-            HttpServletResponse response
-    ) {
-        logger.info("Refreshing user info");
+    @MutationMapping
+    public RefreshResult refresh(GraphQLContext context) {
+        String refreshToken = context.get("refreshToken");
 
-        if (!jwtTokenUtil.validateToken(refreshToken, "refresh")) {
-            logger.warn("Invalid refresh token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid refresh token"));
-        }
-
-        if (!"refresh".equals(jwtTokenUtil.getTokenType(refreshToken))) {
-            logger.warn("Invalid token type");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid token type"));
+        if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
+            return new RefreshResult("Invalid refresh token");
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);
         User user = userService.findUserByEmail(email);
 
         String newAccessToken = jwtTokenUtil.generateAccessToken(user);
-        response.addCookie(cookieGenerator.createCookie(
-                "accessToken",
-                newAccessToken,
-                "/",
-                (int) jwtTokenUtil.getAccessTokenExpiration()
-        ));
-
         String newRefreshToken = jwtTokenUtil.generateRefreshToken(user);
-        response.addCookie(cookieGenerator.createCookie(
-                "refreshToken",
-                newRefreshToken,
-                "/refresh/",
-                (int) jwtTokenUtil.getRefreshTokenExpiration()
-        ));
 
-        logger.info("New access token issued for user: {}", email);
+        Cookie accessCookie = cookieGenerator.createCookie("accessToken", newAccessToken, "/",
+                accessTokenExpiration);
+        Cookie refreshCookie = cookieGenerator.createCookie("refreshToken", newRefreshToken, "/",
+                refreshTokenExpiration);
 
-        return ResponseEntity.ok(Map.of("message", "Access token refreshed"));
+        context.put("accessToken", accessCookie.getValue());
+        context.put("refreshToken", refreshCookie.getValue());
+
+        return new RefreshResult("Access token refreshed");
     }
+
 }

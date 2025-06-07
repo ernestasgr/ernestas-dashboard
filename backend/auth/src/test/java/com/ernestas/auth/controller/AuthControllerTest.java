@@ -1,122 +1,125 @@
 package com.ernestas.auth.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.ernestas.auth.graphql.dto.AuthPayload;
+import com.ernestas.auth.graphql.dto.RefreshResult;
+import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
+
+import graphql.GraphQLContext;
 import io.jsonwebtoken.Claims;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.Cookie;
 
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
+public class AuthControllerTest {
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-class AuthControllerTest {
-    @Mock
     private JwtTokenUtil jwtTokenUtil;
-    @Mock
     private UserService userService;
-    @Mock
     private CookieGenerator cookieGenerator;
-    @Mock
-    private HttpServletResponse response;
-    @Mock
-    private Claims claims;
-
-    @InjectMocks
     private AuthController authController;
 
     @BeforeEach
-    void setUp() throws Exception {
-        try (AutoCloseable _ = MockitoAnnotations.openMocks(this)) {
-            authController = new AuthController(jwtTokenUtil, userService, cookieGenerator);
-        }
+    void setUp() {
+        jwtTokenUtil = mock(JwtTokenUtil.class);
+        userService = mock(UserService.class);
+        cookieGenerator = mock(CookieGenerator.class);
+        authController = new AuthController(jwtTokenUtil, userService, cookieGenerator, 1, 1);
     }
 
     @Test
-    void getUserInfoValidAccessToken() throws IOException {
-        String accessToken = "validAccessToken";
-        when(jwtTokenUtil.validateToken(accessToken, "access")).thenReturn(true);
-        when(jwtTokenUtil.getTokenType(accessToken)).thenReturn("access");
-        when(jwtTokenUtil.parseClaims(accessToken)).thenReturn(claims);
-        when(claims.getSubject()).thenReturn("test@example.com");
-        when(claims.get("name")).thenReturn("Test User");
+    void testMe_ValidAccessToken_ReturnsAuthPayload() {
+        String token = "valid.token";
+        GraphQLContext context = GraphQLContext.newContext().build();
+        context.put("accessToken", token);
 
-        Map<String, Object> result = authController.getUserInfo(accessToken, response);
-        assertEquals("test@example.com", result.get("email"));
-        assertEquals("Test User", result.get("name"));
+        Claims claims = mock(Claims.class);
+        when(jwtTokenUtil.validateToken(token, "access")).thenReturn(true);
+        when(jwtTokenUtil.parseClaims(token)).thenReturn(claims);
+        when(claims.getSubject()).thenReturn("user@example.com");
+        when(claims.get("name")).thenReturn("John Doe");
+
+        AuthPayload result = authController.me(context);
+        assertEquals("user@example.com", result.email());
+        assertEquals("John Doe", result.name());
     }
 
     @Test
-    void getUserInfoInvalidAccessToken() throws IOException {
-        String accessToken = "invalidAccessToken";
-        when(jwtTokenUtil.validateToken(accessToken, "access")).thenReturn(false);
+    void testMe_InvalidToken_ThrowsException() {
+        GraphQLContext context = GraphQLContext.newContext().build();
+        context.put("accessToken", "invalid.token");
 
-        Map<String, Object> result = authController.getUserInfo(accessToken, response);
-        assertEquals("Invalid access token", result.get("message"));
-        verify(response).sendRedirect("/refresh/");
+        when(jwtTokenUtil.validateToken("invalid.token", "access")).thenReturn(false);
+
+        assertThrows(InvalidAccessTokenException.class, () -> authController.me(context));
     }
 
     @Test
-    void getUserInfoInvalidTokenType() throws IOException {
-        String accessToken = "wrongTypeToken";
-        when(jwtTokenUtil.validateToken(accessToken, "access")).thenReturn(true);
-        when(jwtTokenUtil.getTokenType(accessToken)).thenReturn("refresh");
-
-        Map<String, Object> result = authController.getUserInfo(accessToken, response);
-        assertEquals("Invalid token type", result.get("message"));
+    void testMe_MissingToken_ThrowsException() {
+        GraphQLContext context = GraphQLContext.newContext().build();
+        assertThrows(InvalidAccessTokenException.class, () -> authController.me(context));
     }
 
     @Test
-    void refreshValidRefreshToken() {
-        String refreshToken = "validRefreshToken";
+    void testRefresh_ValidToken_ReturnsNewTokens() {
+        String refreshToken = "valid.refresh.token";
+        String email = "user@example.com";
+        String newAccessToken = "new.access.token";
+        String newRefreshToken = "new.refresh.token";
+
+        GraphQLContext context = GraphQLContext.newContext().build();
+        context.put("refreshToken", refreshToken);
+
         User user = new User();
-        user.setEmail("test@example.com");
-        when(jwtTokenUtil.validateToken(refreshToken, "refresh")).thenReturn(true);
-        when(jwtTokenUtil.getTokenType(refreshToken)).thenReturn("refresh");
-        when(jwtTokenUtil.getUsernameFromToken(refreshToken)).thenReturn("test@example.com");
-        when(userService.findUserByEmail("test@example.com")).thenReturn(user);
-        when(jwtTokenUtil.generateAccessToken(user)).thenReturn("newAccessToken");
-        when(jwtTokenUtil.getAccessTokenExpiration()).thenReturn(3600L);
-        when(jwtTokenUtil.generateRefreshToken(user)).thenReturn("newRefreshToken");
-        when(jwtTokenUtil.getRefreshTokenExpiration()).thenReturn(7200L);
+        user.setEmail(email);
 
-        ResponseEntity<Map<String, Object>> responseEntity = authController.refresh(refreshToken, response);
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals("Access token refreshed", responseEntity.getBody().get("message"));
+        when(jwtTokenUtil.validateToken(refreshToken, "refresh")).thenReturn(true);
+        when(jwtTokenUtil.getUsernameFromToken(refreshToken)).thenReturn(email);
+        when(userService.findUserByEmail(email)).thenReturn(user);
+        when(jwtTokenUtil.generateAccessToken(user)).thenReturn(newAccessToken);
+        when(jwtTokenUtil.generateRefreshToken(user)).thenReturn(newRefreshToken);
+
+        Cookie accessCookie = new Cookie("accessToken", newAccessToken);
+        Cookie refreshCookie = new Cookie("refreshToken", newRefreshToken);
+        when(cookieGenerator.createCookie(eq("accessToken"), eq(newAccessToken), any(), anyInt()))
+                .thenReturn(accessCookie);
+        when(cookieGenerator.createCookie(eq("refreshToken"), eq(newRefreshToken), any(), anyInt()))
+                .thenReturn(refreshCookie);
+
+        RefreshResult result = authController.refresh(context);
+
+        assertEquals("Access token refreshed", result.message());
+        assertEquals(newAccessToken, context.get("accessToken"));
+        assertEquals(newRefreshToken, context.get("refreshToken"));
     }
 
     @Test
-    void refreshInvalidRefreshToken() {
-        String refreshToken = "invalidRefreshToken";
-        when(jwtTokenUtil.validateToken(refreshToken, "refresh")).thenReturn(false);
+    void testRefresh_InvalidToken_ReturnsError() {
+        GraphQLContext context = GraphQLContext.newContext().build();
+        context.put("refreshToken", "invalid.token");
 
-        ResponseEntity<Map<String, Object>> responseEntity = authController.refresh(refreshToken, response);
-        assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals("Invalid refresh token", responseEntity.getBody().get("message"));
+        when(jwtTokenUtil.validateToken("invalid.token", "refresh")).thenReturn(false);
+
+        RefreshResult result = authController.refresh(context);
+        assertEquals("Invalid refresh token", result.message());
     }
 
     @Test
-    void refreshInvalidTokenType() {
-        String refreshToken = "wrongTypeToken";
-        when(jwtTokenUtil.validateToken(refreshToken, "refresh")).thenReturn(true);
-        when(jwtTokenUtil.getTokenType(refreshToken)).thenReturn("access");
+    void testRefresh_MissingToken_ReturnsError() {
+        GraphQLContext context = GraphQLContext.newContext().build();
 
-        ResponseEntity<Map<String, Object>> responseEntity = authController.refresh(refreshToken, response);
-        assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals("Invalid token type", responseEntity.getBody().get("message"));
+        RefreshResult result = authController.refresh(context);
+        assertEquals("Invalid refresh token", result.message());
     }
 }
-

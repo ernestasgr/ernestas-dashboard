@@ -1,12 +1,15 @@
 package com.ernestas.auth.util;
 
-import jakarta.servlet.http.Cookie;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.servlet.http.Cookie;
 
 class CookieGeneratorTest {
-    private final CookieGenerator cookieGenerator = new CookieGenerator();
+    private CookieGenerator cookieGenerator = new CookieGenerator("test");
 
     @Test
     void testCreateCookie_setsAllPropertiesCorrectly() {
@@ -25,4 +28,3 @@ class CookieGeneratorTest {
         assertFalse(cookie.getSecure());
     }
 }
-

@@ -39,36 +39,94 @@ jobs:
             - name: Run auth unit tests
               run: ./mvnw test
 
-    e2e-tests:
+    gateway-unit-tests:
         runs-on: ubuntu-latest
         defaults:
             run:
-                working-directory: e2e
+                working-directory: gateway
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
                   node-version: lts/*
-            - name: Set up Docker Compose
-              run: docker compose --version
+            - name: Install dependencies
+              run: npm install -g pnpm && pnpm install
+            - name: Run gateway unit tests
+              run: pnpm test
+
+    e2e-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: e2e
+        env:
+            NODE_ENV: ${{ secrets.NODE_ENV }}
+            WATCHPACK_POLLING: ${{ secrets.WATCHPACK_POLLING }}
+            FRONTEND_DOMAIN: ${{ secrets.FRONTEND_DOMAIN }}
+            SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+            SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+            SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+            JWT_SECRET: ${{ secrets.JWT_SECRET }}
+            JWT_ACCESS_EXPIRATION: ${{ secrets.JWT_ACCESS_EXPIRATION }}
+            JWT_REFRESH_EXPIRATION: ${{ secrets.JWT_REFRESH_EXPIRATION }}
+            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+            AUTH_URL: ${{ secrets.AUTH_URL }}
+            AUTH_REDIRECT_URL: ${{ secrets.AUTH_REDIRECT_URL }}
+            GATEWAY_SECRET: ${{ secrets.GATEWAY_SECRET }}
+            GATEWAY_DOMAIN: ${{ secrets.GATEWAY_DOMAIN }}
+            PROFILE: ${{ secrets.PROFILE }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+            - name: Create .env file
+              run: |
+                  cat <<EOF > ../.env
+                  NODE_ENV=${{ secrets.NODE_ENV }}
+                  WATCHPACK_POLLING=${{ secrets.WATCHPACK_POLLING }}
+                  FRONTEND_DOMAIN=${{ secrets.FRONTEND_DOMAIN }}
+                  SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+                  SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+                  SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+                  JWT_SECRET=${{ secrets.JWT_SECRET }}
+                  JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }}
+                  JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+                  POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+                  POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+                  POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+                  AUTH_URL=${{ secrets.AUTH_URL }}
+                  AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
+                  GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}
+                  GATEWAY_DOMAIN=${{ secrets.GATEWAY_DOMAIN }}
+                  PROFILE=${{ secrets.PROFILE }}
+                  ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+                  ELASTICSEARCH_HOSTS=${{ secrets.ELASTICSEARCH_HOSTS }}
+                  LOGSTASH_HTTP_HOST=${{ secrets.LOGSTASH_HTTP_HOST }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI }}
+                  SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE }}
+                  EOF
             - name: Start Docker services
               run: docker compose -f ../docker-compose.yml up -d
-            - name: Wait for frontend to be healthy
-              run: |
-                  for i in {1..30}; do
-                    if curl -s http://localhost:3000 > /dev/null; then
-                      echo "Frontend is up!" && exit 0
-                    fi
-                    echo "Waiting for frontend..."
-                    sleep 5
-                  done
-                  echo "Frontend did not start in time" && exit 1
+            - name: Wait for gateway to be healthy
+              run: ../.github/scripts/wait-for-gateway.sh "${{ secrets.GATEWAY_DOMAIN }}"
             - name: Install dependencies
               run: npm install -g pnpm && pnpm install
             - name: Install Playwright Browsers
               run: pnpm exec playwright install --with-deps
             - name: Run Playwright tests
               run: pnpm exec playwright test
+            - name: Print logs on failure
+              if: failure()
+              run: docker compose -f ../docker-compose.yml logs
             - name: Stop Docker services
               if: always()
               run: docker compose -f ../docker-compose.yml down
