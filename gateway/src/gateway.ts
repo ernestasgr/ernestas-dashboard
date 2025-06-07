@@ -150,6 +150,10 @@ const startGateway = async () => {
 		})
 	);
 
+	app.get("/health", (_req, res) => {
+		res.status(200).send("OK");
+	});
+
 	app.listen(4000, () => {
 		console.log("🚀 Apollo Gateway running at http://localhost:4000");
 	});

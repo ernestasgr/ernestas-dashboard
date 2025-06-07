@@ -64,8 +64,6 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: lts/*
-            - name: Set up Docker Compose
-              run: docker compose --version
             - name: Start Docker services
               run: docker compose -f ../docker-compose.yml up -d
               env:
@@ -86,10 +84,10 @@ jobs:
                   GATEWAY_SECRET: ${{ secrets.GATEWAY_SECRET }}
                   GATEWAY_DOMAIN: ${{ secrets.GATEWAY_DOMAIN }}
                   PROFILE: ${{ secrets.PROFILE }}
-            - name: Wait for frontend to be healthy
+            - name: Wait for gateway to be healthy
               run: |
                   for i in {1..30}; do
-                    if curl -s http://localhost:3000 > /dev/null; then
+                    if curl -s ${{ secrets.GATEWAY_DOMAIN }}/health > /dev/null; then
                       echo "Frontend is up!" && exit 0
                     fi
                     echo "Waiting for frontend..."
