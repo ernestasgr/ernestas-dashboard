@@ -85,7 +85,7 @@ jobs:
                   GATEWAY_DOMAIN: ${{ secrets.GATEWAY_DOMAIN }}
                   PROFILE: ${{ secrets.PROFILE }}
             - name: Wait for gateway to be healthy
-              run: ../scripts/wait-for-gateway.sh "${{ secrets.GATEWAY_DOMAIN }}"
+              run: ../.github/scripts/wait-for-gateway.sh "${{ secrets.GATEWAY_DOMAIN }}"
             - name: Install dependencies
               run: npm install -g pnpm && pnpm install
             - name: Install Playwright Browsers
