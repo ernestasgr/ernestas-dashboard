@@ -92,9 +92,9 @@ jobs:
               run: pnpm exec playwright install --with-deps
             - name: Run Playwright tests
               run: pnpm exec playwright test
-            - name: Stop Docker services
-              if: always()
-              run: docker compose -f ../docker-compose.yml down
             - name: Print logs on failure
               if: failure()
               run: docker compose -f ../docker-compose.yml logs
+            - name: Stop Docker services
+              if: always()
+              run: docker compose -f ../docker-compose.yml down
