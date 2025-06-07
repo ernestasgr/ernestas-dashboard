@@ -13,18 +13,25 @@ import jakarta.servlet.http.Cookie;
 public class CookieGenerator {
     private final String profile;
 
+    /**
+     * Constructs a CookieGenerator with the specified active Spring profile.
+     *
+     * @param profile the active Spring profile, defaults to "dev" if not set
+     */
     public CookieGenerator(@Value("${spring.profiles.active:dev}") String profile) {
         this.profile = profile;
     }
 
     /**
-     * Creates a secure HTTP-only cookie with the specified parameters.
+     * Creates an HTTP-only cookie with the specified name, value, path, and maximum age.
      *
-     * @param name   the name of the cookie
-     * @param value  the value of the cookie
-     * @param path   the path for which the cookie is valid
+     * The cookie's secure flag is set only if the active profile is "prod".
+     *
+     * @param name the cookie name
+     * @param value the cookie value
+     * @param path the path for which the cookie is valid
      * @param maxAge the maximum age of the cookie in seconds
-     * @return a Cookie object with the specified parameters
+     * @return a configured Cookie instance
      */
     public Cookie createCookie(String name, String value, String path, int maxAge) {
         Cookie cookie = new Cookie(name, value);

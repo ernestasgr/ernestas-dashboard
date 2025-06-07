@@ -32,10 +32,11 @@ public class AuthController {
     private final int refreshTokenExpiration;
 
     /**
-     * Constructor for AuthController.
-     *
-     * @param jwtTokenUtil the JwtTokenUtil instance for JWT token operations
-     */
+         * Creates an AuthController with required utilities and token expiration settings.
+         *
+         * @param accessTokenExpiration expiration time for access tokens, in seconds
+         * @param refreshTokenExpiration expiration time for refresh tokens, in seconds
+         */
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
             UserService userService,
@@ -49,12 +50,12 @@ public class AuthController {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
-    /**
-     * Endpoint to get the authenticated user's information.
+    /****
+     * Retrieves the authenticated user's email and name from a valid access token in the GraphQL context.
      *
      * @param context the GraphQL context containing the access token
-     * @return AuthPayload containing user email and name
-     * @throws InvalidAccessTokenException if the access token is invalid or missing
+     * @return an AuthPayload with the user's email and name
+     * @throws InvalidAccessTokenException if the access token is missing or invalid
      */
     @QueryMapping
     public AuthPayload me(GraphQLContext context) {
@@ -69,11 +70,13 @@ public class AuthController {
         return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 
-    /**
-     * Endpoint to refresh the access token using the refresh token.
+    /****
+     * Generates new access and refresh tokens using a valid refresh token from the GraphQL context.
+     *
+     * If the refresh token is missing or invalid, returns a result indicating an error. On success, issues new tokens, updates the context with their values, and returns a result indicating the access token was refreshed.
      *
      * @param context the GraphQL context containing the refresh token
-     * @return RefreshResult containing new access and refresh tokens
+     * @return a RefreshResult indicating the outcome of the refresh operation
      */
     @MutationMapping
     public RefreshResult refresh(GraphQLContext context) {

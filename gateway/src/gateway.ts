@@ -10,6 +10,15 @@ import cors from "cors";
 import express from "express";
 import { z } from "zod";
 
+/**
+ * Validates and parses required environment variables for the gateway.
+ *
+ * Ensures that {@link AUTH_URL} and {@link AUTH_REDIRECT_URL} are valid URLs and that {@link GATEWAY_SECRET} is present.
+ *
+ * @returns An object containing the validated environment variables.
+ *
+ * @throws {ZodError} If any required environment variable is missing or invalid.
+ */
 function getEnv() {
 	const envSchema = z.object({
 		AUTH_URL: z.string().url(),
