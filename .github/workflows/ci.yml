@@ -86,11 +86,12 @@ jobs:
                   PROFILE: ${{ secrets.PROFILE }}
             - name: Wait for gateway to be healthy
               run: |
+                  GATEWAY_DOMAIN="${{ secrets.GATEWAY_DOMAIN }}"
                   for i in {1..30}; do
-                    if curl -s ${{ secrets.GATEWAY_DOMAIN }}/health > /dev/null; then
+                    if curl -s "$GATEWAY_DOMAIN/health" > /dev/null; then
                       echo "Frontend is up!" && exit 0
                     fi
-                    echo "Waiting for frontend..."
+                    echo "Waiting for gateway..."
                     sleep 5
                   done
                   echo "Frontend did not start in time" && exit 1
