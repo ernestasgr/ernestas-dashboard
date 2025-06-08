@@ -10,9 +10,11 @@ const WelcomeMessage: React.FC = () => {
     const setEventListener = useEventStore((s) => s.subscribe);
 
     useEffect(() => {
-        setEventListener('refresh', () => {
+        const unsubscribe = setEventListener('refresh', () => {
             void refetch();
         });
+
+        return unsubscribe;
     }, [refetch, setEventListener]);
 
     if (loading) {

@@ -13,7 +13,6 @@ import { triggerAuthFailure } from '../events/auth';
 import { useEventStore } from '../stores/use-event-store';
 import { getCsrfToken } from '../utils/auth-utils';
 
-
 /**
  * Attempts to refresh the user's access token using a GraphQL mutation.
  *
@@ -28,10 +27,7 @@ async function refreshAccessToken(client: ApolloClient<unknown>) {
     const responseSchema = z.object({
         data: z.object({
             refresh: z.object({
-                message: z.enum([
-                    'Invalid refresh token',
-                    'Access token refreshed',
-                ]),
+                message: z.string(),
             }),
         }),
     });

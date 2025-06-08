@@ -23,17 +23,4 @@ public class AuthApplication {
         logger.info("Starting AuthApplication...");
         SpringApplication.run(AuthApplication.class, args);
     }
-
-    @RestController
-    class HealthController {
-        /**
-         * Handles HTTP GET requests to the /health endpoint and returns a simple health status.
-         *
-         * @return the string "OK" indicating the service is healthy
-         */
-        @GetMapping("/health")
-        public String health() {
-            return "OK";
-        }
-    }
 }

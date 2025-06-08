@@ -10,9 +10,17 @@ export const redirectToProviderLogin = (provider: string) => {
 
 export const getCsrfToken = () => {
     if (typeof document === 'undefined') return '';
-    const cookies = document.cookie.split(';');
-    const csrfCookie = cookies.find((cookie) =>
-        cookie.trim().startsWith('XSRF-TOKEN='),
-    );
-    return csrfCookie ? decodeURIComponent(csrfCookie.split('=')[1]) : '';
+    try {
+        const cookies = document.cookie.split(';');
+        const csrfCookie = cookies.find((cookie) =>
+            cookie.trim().startsWith('XSRF-TOKEN='),
+        );
+        if (!csrfCookie) return '';
+
+        const tokenValue = csrfCookie.split('=')[1];
+        return tokenValue ? decodeURIComponent(tokenValue) : '';
+    } catch (error) {
+        console.warn('Failed to parse CSRF token from cookies:', error);
+        return '';
+    }
 };

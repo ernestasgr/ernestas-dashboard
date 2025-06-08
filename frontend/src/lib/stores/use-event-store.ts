@@ -14,12 +14,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     subscribe: (event, fn) => {
         set((state) => {
-            const current = state.listeners[event] ?? new Set();
-            current.add(fn);
+            const next = new Set(state.listeners[event] ?? []);
+            next.add(fn);
             return {
                 listeners: {
                     ...state.listeners,
-                    [event]: current,
+                    [event]: next,
                 },
             };
         });

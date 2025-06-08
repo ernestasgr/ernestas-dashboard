@@ -30,18 +30,11 @@ export interface Scalars {
     Float: { input: number; output: number };
 }
 
-export interface AuthError {
-    __typename?: 'AuthError';
-    message: Scalars['String']['output'];
-}
-
 export interface AuthPayload {
     __typename?: 'AuthPayload';
     email: Scalars['String']['output'];
     name?: Maybe<Scalars['String']['output']>;
 }
-
-export type AuthPayloadOrError = AuthError | AuthPayload;
 
 export interface Mutation {
     __typename?: 'Mutation';
@@ -50,14 +43,12 @@ export interface Mutation {
 
 export interface Query {
     __typename?: 'Query';
-    me: AuthPayloadOrError;
+    me: AuthPayload;
 }
 
 export interface RefreshResult {
     __typename?: 'RefreshResult';
-    accessToken?: Maybe<Scalars['String']['output']>;
     message: Scalars['String']['output'];
-    refreshToken?: Maybe<Scalars['String']['output']>;
 }
 
 export interface User {
@@ -70,33 +61,21 @@ export type MeQueryVariables = Exact<Record<string, never>>;
 
 export interface MeQuery {
     __typename?: 'Query';
-    me:
-        | { __typename?: 'AuthError'; message: string }
-        | { __typename?: 'AuthPayload'; email: string; name?: string | null };
+    me: { __typename?: 'AuthPayload'; email: string; name?: string | null };
 }
 
 export type RefreshMutationVariables = Exact<Record<string, never>>;
 
 export interface RefreshMutation {
     __typename?: 'Mutation';
-    refresh: {
-        __typename?: 'RefreshResult';
-        accessToken?: string | null;
-        refreshToken?: string | null;
-        message: string;
-    };
+    refresh: { __typename?: 'RefreshResult'; message: string };
 }
 
 export const MeDocument = gql`
     query Me {
         me {
-            ... on AuthPayload {
-                email
-                name
-            }
-            ... on AuthError {
-                message
-            }
+            email
+            name
         }
     }
 `;
@@ -149,8 +128,6 @@ export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const RefreshDocument = gql`
     mutation Refresh {
         refresh {
-            accessToken
-            refreshToken
             message
         }
     }

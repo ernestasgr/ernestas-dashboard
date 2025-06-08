@@ -14,7 +14,7 @@ test("login page shows provider buttons", async ({ page }) => {
 });
 
 test("redirects to login if not authenticated", async ({ page }) => {
-	const response = await page.goto("/dashboard");
+	await page.goto("/dashboard");
 	await expect(page).toHaveURL(/\/login/);
 });
 

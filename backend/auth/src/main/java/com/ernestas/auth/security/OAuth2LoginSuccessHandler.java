@@ -45,9 +45,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     /****
-     * Handles successful OAuth2 authentication by registering or updating the user, generating JWT access and refresh tokens, setting them as cookies, and redirecting the user.
+     * Handles successful OAuth2 authentication by registering or updating the user,
+     * generating JWT access and refresh tokens, setting them as cookies, and redirecting the user.
      *
-     * If a redirect URI is present in the session, the user is redirected to that URI. Otherwise, a 400 Bad Request error is sent. If authentication is not an OAuth2 token, a 401 Unauthorized error is returned.
+     * <p>If a redirect URI is present in the session, the user is redirected to that URI.
+     * Otherwise, a 400 Bad Request error is sent. If authentication is not an OAuth2 token,
+     * a 401 Unauthorized error is returned.</p>
      *
      * @param request the HTTP request
      * @param response the HTTP response

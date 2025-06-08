@@ -1,18 +1,26 @@
 package com.ernestas.auth.graphql;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.graphql.server.WebGraphQlRequest;
-import org.springframework.graphql.server.WebGraphQlInterceptor.Chain;
-import org.springframework.graphql.server.WebGraphQlResponse;
-import org.springframework.http.HttpHeaders;
-import reactor.core.publisher.Mono;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.graphql.server.WebGraphQlInterceptor.Chain;
+import org.springframework.graphql.server.WebGraphQlRequest;
+import org.springframework.graphql.server.WebGraphQlResponse;
+import org.springframework.http.HttpHeaders;
+
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 class RequestContextInterceptorTest {
 
@@ -38,7 +46,9 @@ class RequestContextInterceptorTest {
 
         Mono<WebGraphQlResponse> result = interceptor.intercept(request, chain);
 
-        assertNotNull(result.block());
+        StepVerifier.create(result)
+                .expectNext(response)
+                .verifyComplete();
         verify(request).configureExecutionInput(any());
     }
 

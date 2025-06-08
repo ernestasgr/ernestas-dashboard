@@ -45,12 +45,16 @@ class ResponseContextInterceptorTest {
         verifyNoMoreInteractions(chain);
     }
 
+    private void assertCookieContains(HttpHeaders headers, String expectedCookie) {
+        assertTrue(Objects.requireNonNull(headers.get(HttpHeaders.SET_COOKIE)).stream()
+                .anyMatch(cookie -> cookie.contains(expectedCookie)));
+    }
+
     @Test
     void shouldSetCookiesIfOperationNameContainsRefresh() {
         when(request.getOperationName()).thenReturn("MutationRefreshToken");
         when(chain.next(request)).thenReturn(Mono.just(response));
 
-        // Mock GraphQLContext
         graphql.GraphQLContext context = graphql.GraphQLContext.newContext()
                 .of("accessToken", "access-token-value")
                 .of("refreshToken", "refresh-token-value")
@@ -67,9 +71,7 @@ class ResponseContextInterceptorTest {
 
         result.block();
 
-        assertTrue(Objects.requireNonNull(headers.get(HttpHeaders.SET_COOKIE)).stream()
-                .anyMatch(cookie -> cookie.contains("accessToken=access-token-value")));
-        assertTrue(Objects.requireNonNull(headers.get(HttpHeaders.SET_COOKIE)).stream()
-                .anyMatch(cookie -> cookie.contains("refreshToken=refresh-token-value")));
+        assertCookieContains(headers, "accessToken=access-token-value");
+        assertCookieContains(headers, "refreshToken=refresh-token-value");
     }
 }

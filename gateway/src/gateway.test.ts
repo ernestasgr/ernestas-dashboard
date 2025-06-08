@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { startGateway } from "./gateway";
+import { startGateway } from "./gateway.js";
 
 vi.mock("@apollo/gateway", () => ({
 	ApolloGateway: vi.fn().mockImplementation(() => ({

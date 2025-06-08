@@ -14,4 +14,14 @@ public class InvalidAccessTokenException extends RuntimeException {
     public InvalidAccessTokenException(String message) {
         super(message);
     }
+
+    /**
+      * Constructs a new InvalidAccessTokenException with the specified detail message and cause.
+      *
+      * @param message the detail message
+      * @param cause the cause of this exception
+      */
+    public InvalidAccessTokenException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
