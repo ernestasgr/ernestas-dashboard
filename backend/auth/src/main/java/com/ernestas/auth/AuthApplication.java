@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Main application class for the authentication service.
@@ -22,18 +20,5 @@ public class AuthApplication {
     public static void main(String[] args) {
         logger.info("Starting AuthApplication...");
         SpringApplication.run(AuthApplication.class, args);
-    }
-
-    @RestController
-    class HealthController {
-        /**
-         * Handles HTTP GET requests to the /health endpoint and returns a simple health status.
-         *
-         * @return the string "OK" indicating the service is healthy
-         */
-        @GetMapping("/health")
-        public String health() {
-            return "OK";
-        }
     }
 }

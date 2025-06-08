@@ -14,21 +14,23 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     subscribe: (event, fn) => {
         set((state) => {
-            const current = state.listeners[event] ?? new Set();
-            current.add(fn);
+            const next = new Set(state.listeners[event] ?? []);
+            next.add(fn);
             return {
                 listeners: {
                     ...state.listeners,
-                    [event]: current,
+                    [event]: next,
                 },
             };
         });
 
         return () => {
             set((state) => {
-                const current = state.listeners[event];
-                current.delete(fn);
-                if (current.size === 0) {
+                const current =
+                    state.listeners[event] ?? new Set<EventListener>();
+                const next = new Set(current);
+                next.delete(fn);
+                if (next.size === 0) {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { [event]: _, ...rest } = state.listeners;
                     return { listeners: rest };
@@ -36,7 +38,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
                 return {
                     listeners: {
                         ...state.listeners,
-                        [event]: current,
+                        [event]: next,
                     },
                 };
             });

@@ -25,7 +25,7 @@ public class CookieGenerator {
     /**
      * Creates an HTTP-only cookie with the specified name, value, path, and maximum age.
      *
-     * The cookie's secure flag is set only if the active profile is "prod".
+     * <p>The cookie's secure flag is set only if the active profile is "prod".</p>
      *
      * @param name the cookie name
      * @param value the cookie value

@@ -1,5 +1,5 @@
 type Query {
-	me: AuthPayloadOrError!
+	me: AuthPayload!
 }
 
 type Mutation {
@@ -11,14 +11,6 @@ type AuthPayload {
 	name: String
 }
 
-type AuthError {
-	message: String!
-}
-
-union AuthPayloadOrError = AuthPayload | AuthError
-
 type RefreshResult {
-	accessToken: String
-	refreshToken: String
 	message: String!
 }

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import com.ernestas.auth.graphql.dto.AuthPayload;
 import com.ernestas.auth.graphql.dto.RefreshResult;
 import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
+import com.ernestas.auth.graphql.exception.InvalidRefreshTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
@@ -111,15 +112,12 @@ public class AuthControllerTest {
 
         when(jwtTokenUtil.validateToken("invalid.token", "refresh")).thenReturn(false);
 
-        RefreshResult result = authController.refresh(context);
-        assertEquals("Invalid refresh token", result.message());
+        assertThrows(InvalidRefreshTokenException.class, () -> authController.refresh(context));
     }
 
     @Test
     void testRefresh_MissingToken_ReturnsError() {
         GraphQLContext context = GraphQLContext.newContext().build();
-
-        RefreshResult result = authController.refresh(context);
-        assertEquals("Invalid refresh token", result.message());
+        assertThrows(InvalidRefreshTokenException.class, () -> authController.refresh(context));
     }
 }

@@ -7,7 +7,7 @@ RUN mvn dependency:go-offline
 
 COPY . .
 
-RUN mvn package -DskipTests && ls -lh /app/target
+RUN mvn package -DskipTests
 
 FROM amazoncorretto:24-alpine
 
@@ -16,4 +16,4 @@ COPY --from=builder /app/target/auth-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080 5841
 
-ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5841", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS:-} -jar app.jar"]

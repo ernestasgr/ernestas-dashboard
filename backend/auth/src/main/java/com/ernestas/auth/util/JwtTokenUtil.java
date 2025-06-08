@@ -22,13 +22,13 @@ import lombok.Getter;
  */
 @Component
 public class JwtTokenUtil {
-    private String secret;
+    private final String secret;
 
     @Getter
-    private long accessTokenExpiration;
+    private final long accessTokenExpiration;
 
     @Getter
-    private long refreshTokenExpiration;
+    private final long refreshTokenExpiration;
 
     private Key signingKey;
 

@@ -1,18 +1,27 @@
 package com.ernestas.auth.graphql;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.graphql.server.WebGraphQlRequest;
-import org.springframework.graphql.server.WebGraphQlInterceptor.Chain;
-import org.springframework.graphql.server.WebGraphQlResponse;
-import org.springframework.http.HttpHeaders;
-import reactor.core.publisher.Mono;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.graphql.server.WebGraphQlInterceptor.Chain;
+import org.springframework.graphql.server.WebGraphQlRequest;
+import org.springframework.graphql.server.WebGraphQlResponse;
+import org.springframework.http.HttpHeaders;
+
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 class RequestContextInterceptorTest {
 
@@ -38,7 +47,9 @@ class RequestContextInterceptorTest {
 
         Mono<WebGraphQlResponse> result = interceptor.intercept(request, chain);
 
-        assertNotNull(result.block());
+        StepVerifier.create(result)
+                .expectNext(response)
+                .verifyComplete();
         verify(request).configureExecutionInput(any());
     }
 
@@ -71,6 +82,17 @@ class RequestContextInterceptorTest {
     }
 
     @Test
+    void testGetValueFromCookies_returnsNullIfCookieNotFound() {
+        WebGraphQlRequest request = mock(WebGraphQlRequest.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.put(HttpHeaders.COOKIE, List.of("otherCookie=value"));
+        when(request.getHeaders()).thenReturn(headers);
+
+        String value = interceptor.getValueFromCookies(request, "accessToken");
+        assertNull(value);
+    }
+
+    @Test
     void testParseCookieHeader_parsesMultipleCookies() {
         String cookieHeader = "accessToken=abc; refreshToken=def; other=xyz";
         var cookies = interceptor.parseCookieHeader(cookieHeader);
@@ -78,5 +100,20 @@ class RequestContextInterceptorTest {
         assertEquals("abc", Objects.requireNonNull(cookies.getFirst("accessToken")).getValue());
         assertEquals("def", Objects.requireNonNull(cookies.getFirst("refreshToken")).getValue());
         assertEquals("xyz", Objects.requireNonNull(cookies.getFirst("other")).getValue());
+    }
+
+    @Test
+    void testParseCookieHeader_handlesEmptyValues() {
+        String cookieHeader = "accessToken=; refreshToken=def";
+        var cookies = interceptor.parseCookieHeader(cookieHeader);
+
+        assertEquals("", Objects.requireNonNull(cookies.getFirst("accessToken")).getValue());
+        assertEquals("def", Objects.requireNonNull(cookies.getFirst("refreshToken")).getValue());
+    }
+
+    @Test
+    void testParseCookieHeader_handlesEmptyString() {
+        var cookies = interceptor.parseCookieHeader("");
+        assertTrue(cookies.isEmpty());
     }
 }

@@ -10,9 +10,13 @@ const WelcomeMessage: React.FC = () => {
     const setEventListener = useEventStore((s) => s.subscribe);
 
     useEffect(() => {
-        setEventListener('refresh', () => {
-            void refetch();
+        const unsubscribe = setEventListener('refresh', () => {
+            refetch().catch((error: unknown) => {
+                console.error('Failed to refetch user data:', error);
+            });
         });
+
+        return unsubscribe;
     }, [refetch, setEventListener]);
 
     if (loading) {

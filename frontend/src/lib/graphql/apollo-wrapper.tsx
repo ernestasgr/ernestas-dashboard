@@ -12,7 +12,7 @@ import { z } from 'zod';
 import { triggerAuthFailure } from '../events/auth';
 import { useEventStore } from '../stores/use-event-store';
 import { getCsrfToken } from '../utils/auth-utils';
-
+import { env } from '../utils/env-utils';
 
 /**
  * Attempts to refresh the user's access token using a GraphQL mutation.
@@ -28,10 +28,7 @@ async function refreshAccessToken(client: ApolloClient<unknown>) {
     const responseSchema = z.object({
         data: z.object({
             refresh: z.object({
-                message: z.enum([
-                    'Invalid refresh token',
-                    'Access token refreshed',
-                ]),
+                message: z.string(),
             }),
         }),
     });
@@ -103,13 +100,13 @@ function makeClient() {
                 operationName: operation.operationName,
                 variables: operation.variables,
                 data: response.data,
-            });
+            }); // TODO: Scrub sensitive data in production
             return response;
         }),
     );
 
     const httpLink = new HttpLink({
-        uri: 'http://localhost:4000/graphql',
+        uri: `${env.NEXT_PUBLIC_GATEWAY_DOMAIN}/graphql`,
         credentials: 'include',
         headers: {
             'X-XSRF-TOKEN': getCsrfToken(),

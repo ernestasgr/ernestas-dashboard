@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import com.ernestas.auth.graphql.dto.AuthPayload;
 import com.ernestas.auth.graphql.dto.RefreshResult;
 import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
+import com.ernestas.auth.graphql.exception.InvalidRefreshTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
@@ -32,11 +33,12 @@ public class AuthController {
     private final int refreshTokenExpiration;
 
     /**
-         * Creates an AuthController with required utilities and token expiration settings.
-         *
-         * @param accessTokenExpiration expiration time for access tokens, in seconds
-         * @param refreshTokenExpiration expiration time for refresh tokens, in seconds
-         */
+     * Creates an AuthController with required utilities and token expiration
+     * settings.
+     *
+     * @param accessTokenExpiration  expiration time for access tokens, in seconds
+     * @param refreshTokenExpiration expiration time for refresh tokens, in seconds
+     */
     public AuthController(
             JwtTokenUtil jwtTokenUtil,
             UserService userService,
@@ -51,7 +53,8 @@ public class AuthController {
     }
 
     /****
-     * Retrieves the authenticated user's email and name from a valid access token in the GraphQL context.
+     * Retrieves the authenticated user's email and name from a valid access token
+     * in the GraphQL context.
      *
      * @param context the GraphQL context containing the access token
      * @return an AuthPayload with the user's email and name
@@ -59,9 +62,9 @@ public class AuthController {
      */
     @QueryMapping
     public AuthPayload me(GraphQLContext context) {
-        String accessToken = context.get("accessToken");
+        Object tokenObj = context.get("accessToken");
 
-        if (accessToken == null || !jwtTokenUtil.validateToken(accessToken, "access")) {
+        if (!(tokenObj instanceof String accessToken) || !jwtTokenUtil.validateToken(accessToken, "access")) {
             logger.error("Invalid or missing access token");
             throw new InvalidAccessTokenException("Invalid access token");
         }
@@ -70,10 +73,16 @@ public class AuthController {
         return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 
-    /****
-     * Generates new access and refresh tokens using a valid refresh token from the GraphQL context.
+    /**
+     * Generates new access and refresh tokens using a valid refresh token from the
+     * GraphQL context.
      *
-     * If the refresh token is missing or invalid, returns a result indicating an error. On success, issues new tokens, updates the context with their values, and returns a result indicating the access token was refreshed.
+     * <p>
+     * If the refresh token is missing or invalid, returns a result indicating an
+     * error.
+     * On success, issues new tokens, updates the context with their values,
+     * and returns a result indicating the access token was refreshed.
+     * </p>
      *
      * @param context the GraphQL context containing the refresh token
      * @return a RefreshResult indicating the outcome of the refresh operation
@@ -83,7 +92,7 @@ public class AuthController {
         String refreshToken = context.get("refreshToken");
 
         if (refreshToken == null || !jwtTokenUtil.validateToken(refreshToken, "refresh")) {
-            return new RefreshResult("Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         String email = jwtTokenUtil.getUsernameFromToken(refreshToken);

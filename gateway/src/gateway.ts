@@ -24,75 +24,13 @@ function getEnv() {
 		AUTH_URL: z.string().url(),
 		AUTH_REDIRECT_URL: z.string().url(),
 		GATEWAY_SECRET: z.string(),
+		FRONTEND_DOMAIN: z.string().url(),
 	});
 
 	return envSchema.parse(process.env);
 }
 
 const env = getEnv();
-
-const gateway = new ApolloGateway({
-	supergraphSdl: new IntrospectAndCompose({
-		subgraphs: [{ name: "auth", url: `${env.AUTH_URL}/graphql` }],
-	}),
-	buildService({ name, url }) {
-		return new RemoteGraphQLDataSource({
-			url,
-
-			willSendRequest({ request, context }) {
-				console.log(`[${name}] Sending request to ${url}`);
-				request.http?.headers.set(
-					"x-gateway-secret",
-					env.GATEWAY_SECRET
-				);
-
-				const cookie = context.req?.headers?.cookie;
-				const xsrf = context.req?.headers["x-xsrf-token"];
-
-				if (cookie) {
-					console.log(`[${name}] Attaching cookie`);
-					request.http?.headers.set("cookie", cookie);
-				} else {
-					console.log(`[${name}] No cookie found`);
-				}
-
-				if (xsrf) {
-					request.http?.headers.set("x-xsrf-token", xsrf);
-				}
-			},
-
-			async didReceiveResponse({ response, context }) {
-				console.log(`[${name}] Received response`);
-				const setCookie = response.http?.headers.get("set-cookie");
-
-				if (setCookie && context?.res) {
-					setCookie
-						.split(",")
-						.map((cookie) => cookie.trim())
-						.forEach((cookie) => {
-							context.res.append(
-								"Set-Cookie",
-								`${cookie}; HttpOnly; SameSite=Lax`
-							);
-						});
-				}
-
-				return response;
-			},
-
-			didEncounterError(error, fetchRequest, response, context) {
-				console.error(`[${name}] Error: ${error.message}`);
-				console.error(
-					"Request:",
-					JSON.stringify(fetchRequest, null, 2)
-				);
-				if (response) console.error("Response:", response);
-				if (context?.headers)
-					console.error("Context headers:", context.headers);
-			},
-		});
-	},
-});
 
 const waitForService = async (
 	url: string,
@@ -117,9 +55,71 @@ const waitForService = async (
 const startGateway = async () => {
 	await waitForService(`${env.AUTH_URL}/health`);
 
+	const gateway = new ApolloGateway({
+		supergraphSdl: new IntrospectAndCompose({
+			subgraphs: [{ name: "auth", url: `${env.AUTH_URL}/graphql` }],
+		}),
+		buildService({ name, url }) {
+			return new RemoteGraphQLDataSource({
+				url,
+
+				willSendRequest({ request, context }) {
+					console.log(`[${name}] Sending request to ${url}`);
+					request.http?.headers.set(
+						"x-gateway-secret",
+						env.GATEWAY_SECRET
+					);
+
+					const cookie = context.req?.headers?.cookie;
+					const xsrf = context.req?.headers["x-xsrf-token"];
+
+					if (cookie) {
+						request.http?.headers.set("cookie", cookie);
+					} else {
+						console.log(`[${name}] No cookie found`);
+					}
+
+					if (xsrf) {
+						request.http?.headers.set("x-xsrf-token", xsrf);
+					}
+				},
+
+				async didReceiveResponse({ response, context }) {
+					console.log(`[${name}] Received response`);
+					const setCookie = response.http?.headers.get("set-cookie");
+
+					if (setCookie && context?.res) {
+						setCookie
+							.split(",")
+							.map((cookie) => cookie.trim())
+							.forEach((cookie) => {
+								context.res.append(
+									"Set-Cookie",
+									`${cookie}; HttpOnly; SameSite=Lax`
+								);
+							});
+					}
+
+					return response;
+				},
+
+				didEncounterError(error, fetchRequest, response, context) {
+					console.error(`[${name}] Error: ${error.message}`);
+					console.error(
+						"Request:",
+						JSON.stringify(fetchRequest, null, 2) // TODO: scrub sensitive data in production
+					);
+					if (response) console.error("Response:", response);
+					if (context?.headers)
+						console.error("Context headers:", context.headers);
+				},
+			});
+		},
+	});
+
 	const app = express();
 
-	app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+	app.use(cors({ origin: env.FRONTEND_DOMAIN, credentials: true }));
 	app.use(express.json());
 
 	app.use(

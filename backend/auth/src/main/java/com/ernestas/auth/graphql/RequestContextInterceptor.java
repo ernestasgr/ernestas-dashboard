@@ -20,14 +20,21 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 
     /**
-     * Intercepts a GraphQL request to extract authentication tokens from cookies and adds them to the GraphQL context.
+     * Intercepts a GraphQL request to extract authentication tokens from cookies
+     * and adds them to the GraphQL context.
      *
-     * If "accessToken" or "refreshToken" cookies are present in the request, their values are added to the GraphQL execution context under the keys "accessToken" and "refreshToken" respectively before proceeding with the interceptor chain.
+     * <p>
+     * If "accessToken" or "refreshToken" cookies are present in the request,
+     * their values are added to the GraphQL execution context under the keys
+     * "accessToken" and "refreshToken"
+     * respectively before proceeding with the interceptor chain.
+     * </p>
      *
      * @param request the incoming GraphQL request
-     * @param chain the interceptor chain
+     * @param chain   the interceptor chain
      * @return a Mono emitting the GraphQL response after processing the request
      */
+    @SuppressWarnings("checkstyle:LambdaParameterName")
     @Override
     @NonNull
     public Mono<WebGraphQlResponse> intercept(@NonNull WebGraphQlRequest request, @NonNull Chain chain) {
@@ -50,9 +57,10 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     }
 
     /**
-     * Retrieves the value of a specified cookie from the request's "Cookie" headers.
+     * Retrieves the value of a specified cookie from the request's "Cookie"
+     * headers.
      *
-     * @param request the GraphQL request containing HTTP headers
+     * @param request    the GraphQL request containing HTTP headers
      * @param cookieName the name of the cookie to retrieve
      * @return the value of the first matching cookie, or {@code null} if not found
      */
@@ -70,10 +78,12 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     }
 
     /**
-     * Parses a cookie header string into a map of cookie names to their corresponding {@link HttpCookie} objects.
+     * Parses a cookie header string into a map of cookie names to their
+     * corresponding {@link HttpCookie} objects.
      *
      * @param cookieHeader the raw "Cookie" HTTP header string
-     * @return a map where each key is a cookie name and the value is a list of {@link HttpCookie} objects with that name
+     * @return a map where each key is a cookie name and
+     *         the value is a list of {@link HttpCookie} objects with that name
      */
     MultiValueMap<String, HttpCookie> parseCookieHeader(String cookieHeader) {
         org.springframework.util.LinkedMultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();
