@@ -86,21 +86,18 @@ const startGateway = async () => {
 
 				async didReceiveResponse({ response, context }) {
 					console.log(`[${name}] Received response`);
-					const rawSetCookies =
-						response.http?.headers
-							// @ts-ignore – `raw` exists in node-fetch’s type but not in dom lib
-							.raw?.()["set-cookie"] ??
-						(response.http?.headers.get("set-cookie")
-							? [response.http.headers.get("set-cookie")]
-							: []);
+					const setCookie = response.http?.headers.get("set-cookie");
 
-					if (rawSetCookies.length && context?.res) {
-						rawSetCookies.forEach((cookie: string) =>
-							(context.res as express.Response).append(
-								"Set-Cookie",
-								`${cookie}; HttpOnly; SameSite=Lax`
-							)
-						);
+					if (setCookie && context?.res) {
+						setCookie
+							.split(",")
+							.map((cookie) => cookie.trim())
+							.forEach((cookie) => {
+								context.res.append(
+									"Set-Cookie",
+									`${cookie}; HttpOnly; SameSite=Lax`
+								);
+							});
 					}
 
 					return response;

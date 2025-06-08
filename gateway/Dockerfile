@@ -12,6 +12,6 @@ COPY src ./src
 
 EXPOSE 4000 9229
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 CMD ["pnpm", "debug"]

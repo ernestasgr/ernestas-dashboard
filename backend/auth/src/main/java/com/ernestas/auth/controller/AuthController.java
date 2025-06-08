@@ -1,6 +1,5 @@
 package com.ernestas.auth.controller;
 
-import com.ernestas.auth.graphql.exception.InvalidRefreshTokenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import com.ernestas.auth.graphql.dto.AuthPayload;
 import com.ernestas.auth.graphql.dto.RefreshResult;
 import com.ernestas.auth.graphql.exception.InvalidAccessTokenException;
+import com.ernestas.auth.graphql.exception.InvalidRefreshTokenException;
 import com.ernestas.auth.model.User;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
@@ -62,9 +62,9 @@ public class AuthController {
      */
     @QueryMapping
     public AuthPayload me(GraphQLContext context) {
-        String accessToken = context.get("accessToken");
+        Object tokenObj = context.get("accessToken");
 
-        if (accessToken == null || !jwtTokenUtil.validateToken(accessToken, "access")) {
+        if (!(tokenObj instanceof String accessToken) || !jwtTokenUtil.validateToken(accessToken, "access")) {
             logger.error("Invalid or missing access token");
             throw new InvalidAccessTokenException("Invalid access token");
         }

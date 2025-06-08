@@ -1,7 +1,5 @@
-export const BASE_URL = process.env.GATEWAY_URL ?? 'http://localhost:4000';
+import { env } from '@/lib/utils/env-utils';
 
 export const AUTH_URLS = {
-    USER_INFO: `${BASE_URL}/me/`,
-    REFRESH: `${BASE_URL}/refresh/`,
-    OAUTH: `${BASE_URL}/oauth2/authorization/`,
+    OAUTH: `${env.NEXT_PUBLIC_GATEWAY_DOMAIN}/oauth2/authorization/`,
 };

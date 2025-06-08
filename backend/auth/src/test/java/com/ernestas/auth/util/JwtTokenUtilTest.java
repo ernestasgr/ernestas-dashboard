@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.ernestas.auth.model.User;
 
@@ -19,15 +18,8 @@ class JwtTokenUtilTest {
 
     @BeforeEach
     void setUp() {
-        jwtTokenUtil = new JwtTokenUtil("secret", 1, 1);
-        String secret = "my-very-secret-key-which-is-long-enough-for-hmac";
-        ReflectionTestUtils.setField(jwtTokenUtil, "secret", secret);
-
-        long accessTokenExpiration = 1000 * 60 * 15;
-        ReflectionTestUtils.setField(jwtTokenUtil, "accessTokenExpiration", accessTokenExpiration);
-
-        long refreshTokenExpiration = 1000 * 60 * 60 * 24 * 7;
-        ReflectionTestUtils.setField(jwtTokenUtil, "refreshTokenExpiration", refreshTokenExpiration);
+        jwtTokenUtil = new JwtTokenUtil("my-very-secret-key-which-is-long-enough-for-hmac", 1000 * 60 * 15,
+                1000 * 60 * 60 * 24 * 7);
         jwtTokenUtil.init();
         user = new User();
         user.setEmail("test@example.com");

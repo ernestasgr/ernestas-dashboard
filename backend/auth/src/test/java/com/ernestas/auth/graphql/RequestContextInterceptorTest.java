@@ -3,6 +3,7 @@ package com.ernestas.auth.graphql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -81,6 +82,17 @@ class RequestContextInterceptorTest {
     }
 
     @Test
+    void testGetValueFromCookies_returnsNullIfCookieNotFound() {
+        WebGraphQlRequest request = mock(WebGraphQlRequest.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.put(HttpHeaders.COOKIE, List.of("otherCookie=value"));
+        when(request.getHeaders()).thenReturn(headers);
+
+        String value = interceptor.getValueFromCookies(request, "accessToken");
+        assertNull(value);
+    }
+
+    @Test
     void testParseCookieHeader_parsesMultipleCookies() {
         String cookieHeader = "accessToken=abc; refreshToken=def; other=xyz";
         var cookies = interceptor.parseCookieHeader(cookieHeader);
@@ -88,5 +100,20 @@ class RequestContextInterceptorTest {
         assertEquals("abc", Objects.requireNonNull(cookies.getFirst("accessToken")).getValue());
         assertEquals("def", Objects.requireNonNull(cookies.getFirst("refreshToken")).getValue());
         assertEquals("xyz", Objects.requireNonNull(cookies.getFirst("other")).getValue());
+    }
+
+    @Test
+    void testParseCookieHeader_handlesEmptyValues() {
+        String cookieHeader = "accessToken=; refreshToken=def";
+        var cookies = interceptor.parseCookieHeader(cookieHeader);
+
+        assertEquals("", Objects.requireNonNull(cookies.getFirst("accessToken")).getValue());
+        assertEquals("def", Objects.requireNonNull(cookies.getFirst("refreshToken")).getValue());
+    }
+
+    @Test
+    void testParseCookieHeader_handlesEmptyString() {
+        var cookies = interceptor.parseCookieHeader("");
+        assertTrue(cookies.isEmpty());
     }
 }

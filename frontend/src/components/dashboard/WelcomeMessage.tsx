@@ -11,7 +11,9 @@ const WelcomeMessage: React.FC = () => {
 
     useEffect(() => {
         const unsubscribe = setEventListener('refresh', () => {
-            void refetch();
+            refetch().catch((error: unknown) => {
+                console.error('Failed to refetch user data:', error);
+            });
         });
 
         return unsubscribe;
