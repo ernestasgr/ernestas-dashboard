@@ -29,11 +29,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final CookieGenerator cookieGenerator;
 
     /****
-     * Creates an instance of OAuth2LoginSuccessHandler with required dependencies.
-     *
-     * @param userService service for registering or updating users after OAuth2 login
-     * @param jwtTokenUtil utility for generating JWT access and refresh tokens
-     * @param cookieGenerator utility for creating HTTP cookies for tokens
+     * Constructs an OAuth2LoginSuccessHandler with the specified user service, JWT token utility, and cookie generator.
      */
     public OAuth2LoginSuccessHandler(
             UserService userService,

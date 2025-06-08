@@ -7,20 +7,20 @@ package com.ernestas.auth.graphql.exception;
  */
 public class InvalidAccessTokenException extends RuntimeException {
     /**
-     * Creates an exception indicating that an access token is invalid.
+     * Constructs an exception indicating that an access token is invalid.
      *
-     * @param message the detail message describing the reason for the invalid token
+     * @param message the detail message explaining why the access token is considered invalid
      */
     public InvalidAccessTokenException(String message) {
         super(message);
     }
 
     /**
-      * Constructs a new InvalidAccessTokenException with the specified detail message and cause.
-      *
-      * @param message the detail message
-      * @param cause the cause of this exception
-      */
+     * Creates an InvalidAccessTokenException with a detail message and underlying cause.
+     *
+     * @param message explanation of why the access token is invalid
+     * @param cause the underlying exception that led to this error
+     */
     public InvalidAccessTokenException(String message, Throwable cause) {
         super(message, cause);
     }

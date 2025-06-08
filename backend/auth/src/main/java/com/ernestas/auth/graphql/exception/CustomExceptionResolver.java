@@ -18,22 +18,15 @@ import graphql.schema.DataFetchingEnvironment;
 public class CustomExceptionResolver extends DataFetcherExceptionResolverAdapter {
 
     /**
-     * Resolves an exception thrown during GraphQL data fetching to a single
-     * GraphQLError.
+     * Converts specific authentication token exceptions thrown during GraphQL data fetching into a single GraphQLError with validation error details.
      *
      * <p>
-     * If the exception is an InvalidAccessTokenException, returns a GraphQLError
-     * with type ValidationError,
-     * including the exception message, query path, and source location. For other
-     * exceptions, returns null,
-     * allowing default error handling to proceed.
+     * Returns a GraphQLError of type ValidationError if the exception is an InvalidAccessTokenException or InvalidRefreshTokenException, including the exception message, query path, and source location. Returns null for all other exceptions to allow default error handling.
      * </p>
      *
-     * @param ex  the exception thrown during data fetching
-     * @param env the data fetching environment containing context about the GraphQL
-     *            execution
-     * @return a GraphQLError for InvalidAccessTokenException, or null for other
-     *         exceptions
+     * @param ex the exception thrown during data fetching
+     * @param env the data fetching environment with execution context
+     * @return a GraphQLError for invalid token exceptions, or null for other exception types
      */
     @Override
     protected GraphQLError resolveToSingleError(@NonNull Throwable ex, @NonNull DataFetchingEnvironment env) {

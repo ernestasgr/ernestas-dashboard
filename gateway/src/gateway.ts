@@ -11,9 +11,9 @@ import express from "express";
 import { z } from "zod";
 
 /**
- * Validates and parses required environment variables for the gateway.
+ * Validates and parses the required environment variables for the gateway.
  *
- * Ensures that {@link AUTH_URL} and {@link AUTH_REDIRECT_URL} are valid URLs and that {@link GATEWAY_SECRET} is present.
+ * Ensures that the authentication URLs, gateway secret, and frontend domain are present and valid.
  *
  * @returns An object containing the validated environment variables.
  *

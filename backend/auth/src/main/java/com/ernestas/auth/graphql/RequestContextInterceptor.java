@@ -20,19 +20,15 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 
     /**
-     * Intercepts a GraphQL request to extract authentication tokens from cookies
-     * and adds them to the GraphQL context.
+     * Intercepts GraphQL requests to extract authentication tokens from cookies and injects them into the GraphQL context.
      *
      * <p>
-     * If "accessToken" or "refreshToken" cookies are present in the request,
-     * their values are added to the GraphQL execution context under the keys
-     * "accessToken" and "refreshToken"
-     * respectively before proceeding with the interceptor chain.
+     * If "accessToken" or "refreshToken" cookies are present in the request, their values are added to the GraphQL execution context under the keys "accessToken" and "refreshToken" respectively. This enables downstream GraphQL components to access these tokens during execution.
      * </p>
      *
      * @param request the incoming GraphQL request
-     * @param chain   the interceptor chain
-     * @return a Mono emitting the GraphQL response after processing the request
+     * @param chain the interceptor chain to continue processing
+     * @return a Mono emitting the GraphQL response after processing
      */
     @SuppressWarnings("checkstyle:LambdaParameterName")
     @Override
@@ -57,8 +53,7 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     }
 
     /**
-     * Retrieves the value of a specified cookie from the request's "Cookie"
-     * headers.
+     * Returns the value of the first cookie with the specified name from the request's "Cookie" headers.
      *
      * @param request    the GraphQL request containing HTTP headers
      * @param cookieName the name of the cookie to retrieve
@@ -78,12 +73,10 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
     }
 
     /**
-     * Parses a cookie header string into a map of cookie names to their
-     * corresponding {@link HttpCookie} objects.
+     * Parses a raw HTTP cookie header string into a map of cookie names to lists of {@link HttpCookie} objects.
      *
      * @param cookieHeader the raw "Cookie" HTTP header string
-     * @return a map where each key is a cookie name and
-     *         the value is a list of {@link HttpCookie} objects with that name
+     * @return a map where each key is a cookie name and the value is a list of {@link HttpCookie} objects with that name
      */
     MultiValueMap<String, HttpCookie> parseCookieHeader(String cookieHeader) {
         org.springframework.util.LinkedMultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>();

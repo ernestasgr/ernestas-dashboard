@@ -7,20 +7,19 @@ package com.ernestas.auth.graphql.exception;
  */
 public class InvalidRefreshTokenException extends RuntimeException {
     /**
-     * Creates an exception indicating that a refresh token is invalid.
+     * Constructs an InvalidRefreshTokenException with a specified detail message.
      *
-     * @param message the detail message describing the reason for the invalid token
+     * @param message the detail message explaining why the refresh token is invalid
      */
     public InvalidRefreshTokenException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a new InvalidRefreshTokenException with the specified detail
-     * message and cause.
+     * Creates a new InvalidRefreshTokenException with a specified detail message and underlying cause.
      *
-     * @param message the detail message
-     * @param cause   the cause of this exception
+     * @param message explanation of why the refresh token is considered invalid
+     * @param cause the underlying cause of this exception
      */
     public InvalidRefreshTokenException(String message, Throwable cause) {
         super(message, cause);

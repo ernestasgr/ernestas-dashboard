@@ -15,13 +15,13 @@ import { getCsrfToken } from '../utils/auth-utils';
 import { env } from '../utils/env-utils';
 
 /**
- * Attempts to refresh the user's access token using a GraphQL mutation.
+ * Refreshes the user's access token by executing a GraphQL mutation.
  *
- * Sends a refresh token mutation via the provided Apollo Client and validates the response. If the access token is successfully refreshed, triggers a global 'refresh' event and returns `true`.
+ * Validates the mutation response and triggers a global 'refresh' event if the token is refreshed successfully.
  *
- * @returns `true` if the access token was refreshed successfully.
+ * @returns `true` if the access token was refreshed.
  *
- * @throws {Error} If the refresh mutation fails or the response does not indicate a successful token refresh.
+ * @throws {Error} If the mutation fails or the response does not confirm a successful token refresh.
  */
 async function refreshAccessToken(client: ApolloClient<unknown>) {
     const response = await client.mutate({ mutation: RefreshDocument });
@@ -45,11 +45,11 @@ async function refreshAccessToken(client: ApolloClient<unknown>) {
 }
 
 /**
- * Creates and configures an Apollo Client instance with error handling, token refresh, logging, and CSRF protection.
+ * Creates and configures an Apollo Client instance with automatic token refresh, error handling, logging, and CSRF protection.
  *
- * The client automatically attempts to refresh the access token and retry operations when authentication errors occur. All GraphQL responses are logged, and requests include a CSRF token header.
+ * The client intercepts authentication errors, attempts to refresh the access token, and retries failed operations when possible. All GraphQL responses are logged, and requests include a CSRF token header for enhanced security.
  *
- * @returns An Apollo Client instance ready for use in a Next.js application.
+ * @returns An Apollo Client instance configured for secure and resilient GraphQL operations in a Next.js application.
  */
 function makeClient() {
     // eslint-disable-next-line prefer-const

@@ -33,10 +33,9 @@ public class AuthController {
     private final int refreshTokenExpiration;
 
     /**
-     * Creates an AuthController with required utilities and token expiration
-     * settings.
+     * Constructs an AuthController with JWT utilities, user service, cookie generator, and token expiration settings.
      *
-     * @param accessTokenExpiration  expiration time for access tokens, in seconds
+     * @param accessTokenExpiration expiration time for access tokens, in seconds
      * @param refreshTokenExpiration expiration time for refresh tokens, in seconds
      */
     public AuthController(
@@ -53,11 +52,10 @@ public class AuthController {
     }
 
     /****
-     * Retrieves the authenticated user's email and name from a valid access token
-     * in the GraphQL context.
+     * Returns the authenticated user's email and name based on a valid access token from the GraphQL context.
      *
      * @param context the GraphQL context containing the access token
-     * @return an AuthPayload with the user's email and name
+     * @return an AuthPayload containing the user's email and name
      * @throws InvalidAccessTokenException if the access token is missing or invalid
      */
     @QueryMapping
@@ -74,18 +72,16 @@ public class AuthController {
     }
 
     /**
-     * Generates new access and refresh tokens using a valid refresh token from the
-     * GraphQL context.
+     * Refreshes authentication tokens using a valid refresh token from the GraphQL context.
      *
      * <p>
-     * If the refresh token is missing or invalid, returns a result indicating an
-     * error.
-     * On success, issues new tokens, updates the context with their values,
-     * and returns a result indicating the access token was refreshed.
+     * Validates the provided refresh token, generates new access and refresh tokens for the user,
+     * updates the GraphQL context with the new token values, and returns a result indicating the access token was refreshed.
+     * Throws {@link InvalidRefreshTokenException} if the refresh token is missing or invalid.
      * </p>
      *
      * @param context the GraphQL context containing the refresh token
-     * @return a RefreshResult indicating the outcome of the refresh operation
+     * @return a {@link RefreshResult} indicating the access token was refreshed
      */
     @MutationMapping
     public RefreshResult refresh(GraphQLContext context) {
