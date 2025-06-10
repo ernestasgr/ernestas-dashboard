@@ -122,3 +122,85 @@
         @apply bg-background text-foreground;
     }
 }
+
+.react-grid-layout {
+    position: relative;
+}
+
+.react-grid-item {
+    transition: all 200ms ease;
+    transition-property: left, top, width, height;
+}
+
+.react-grid-item.cssTransforms {
+    transition-property: transform, width, height;
+}
+
+.react-grid-item > .react-resizable-handle {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    box-sizing: border-box;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiM0YzRmNjkiIGZpbGwtcnVsZT0iZXZlbm9kZCIgb3BhY2l0eT0iLjMiPjxwYXRoIGQ9Im0wIDBoNnY2aC02eiIvPjwvZz48L3N2Zz4=');
+    background-position: bottom right;
+    padding: 0 3px 3px 0;
+    background-repeat: no-repeat;
+    background-origin: content-box;
+    box-sizing: border-box;
+    cursor: se-resize;
+}
+
+.react-grid-item.react-grid-placeholder {
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 0.2;
+    transition-duration: 100ms;
+    z-index: 2;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.react-grid-item.react-draggable-dragging {
+    transition: none;
+    z-index: 3;
+}
+
+.react-grid-item.dropping {
+    visibility: hidden;
+}
+
+.react-grid-item.react-grid-placeholder {
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 0.2;
+    transition-duration: 100ms;
+    z-index: 2;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+    content: '';
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 5px;
+    height: 5px;
+    border-right: 2px solid rgba(0, 0, 0, 0.4);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
+
+.dark .react-grid-item > .react-resizable-handle::after {
+    border-right: 2px solid rgba(255, 255, 255, 0.4);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .react-grid-item.react-grid-placeholder {
+    background: rgba(255, 255, 255, 0.1);
+}
