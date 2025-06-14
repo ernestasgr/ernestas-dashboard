@@ -6,6 +6,7 @@ import {
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import { z } from "zod";
@@ -71,16 +72,11 @@ const startGateway = async () => {
 					);
 
 					const cookie = context.req?.headers?.cookie;
-					const xsrf = context.req?.headers["x-xsrf-token"];
 
 					if (cookie) {
 						request.http?.headers.set("cookie", cookie);
 					} else {
 						console.log(`[${name}] No cookie found`);
-					}
-
-					if (xsrf) {
-						request.http?.headers.set("x-xsrf-token", xsrf);
 					}
 				},
 
@@ -119,21 +115,35 @@ const startGateway = async () => {
 
 	const app = express();
 
+	app.use(cookieParser());
 	app.use(cors({ origin: env.FRONTEND_DOMAIN, credentials: true }));
 	app.use(express.json());
 
-	app.use(
-		(
-			req: express.Request,
-			res: express.Response,
-			next: express.NextFunction
-		) => {
-			if (req.path.startsWith("/oauth2")) {
-				return res.redirect(env.AUTH_REDIRECT_URL + req.originalUrl);
+	app.use("/oauth2", (req, res) => {
+		return res.redirect(env.AUTH_REDIRECT_URL + req.originalUrl);
+	});
+
+	app.use("/graphql", (req, res, next) => {
+		if (req.method === "POST") {
+			const csrfHeader = req.headers["x-xsrf-token"];
+			const csrfCookie = req.cookies["XSRF-TOKEN"];
+
+			if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
+				return res.status(403).json({ error: "CSRF token mismatch" });
 			}
-			next();
 		}
-	);
+		next();
+	});
+
+	app.get("/csrf-token", (_req, res) => {
+		const token = crypto.randomUUID();
+		res.cookie("XSRF-TOKEN", token, {
+			httpOnly: false,
+			sameSite: "lax",
+			secure: process.env.NODE_ENV === "production",
+		});
+		res.json({ token });
+	});
 
 	const server = new ApolloServer({
 		gateway,

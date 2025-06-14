@@ -8,19 +8,25 @@ export const redirectToProviderLogin = (provider: string) => {
     );
 };
 
-export const getCsrfToken = () => {
-    if (typeof document === 'undefined') return '';
-    try {
-        const cookies = document.cookie.split(';');
-        const csrfCookie = cookies.find((cookie) =>
-            cookie.trim().startsWith('XSRF-TOKEN='),
-        );
-        if (!csrfCookie) return '';
+let csrfToken: string | null = null;
 
-        const tokenValue = csrfCookie.split('=')[1];
-        return tokenValue ? decodeURIComponent(tokenValue) : '';
+export async function initCsrfToken(gatewayBaseUrl: string): Promise<void> {
+    try {
+        const res = await fetch(`${gatewayBaseUrl}/csrf-token`, {
+            credentials: 'include',
+        });
+        const data = await res.json();
+        if (typeof data.token === 'string') {
+            csrfToken = data.token;
+            console.log('CSRF token initialized');
+        } else {
+            console.warn('Invalid CSRF token response');
+        }
     } catch (error) {
-        console.warn('Failed to parse CSRF token from cookies:', error);
-        return '';
+        console.error('Failed to initialize CSRF token:', error);
     }
-};
+}
+
+export function getCsrfToken(): string | null {
+    return csrfToken;
+}
