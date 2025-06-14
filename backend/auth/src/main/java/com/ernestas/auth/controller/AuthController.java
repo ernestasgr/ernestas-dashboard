@@ -78,6 +78,9 @@ public class AuthController {
         }
 
         Claims claims = jwtTokenUtil.parseClaims(accessToken);
+
+        logger.info("Authenticated user: {}", claims.getSubject());
+
         return new AuthPayload(claims.getSubject(), (String) claims.get("name"));
     }
 

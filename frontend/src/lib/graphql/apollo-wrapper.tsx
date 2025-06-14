@@ -63,7 +63,10 @@ function makeClient() {
                 for (const err of graphQLErrors) {
                     console.log(`[GraphQL error]: Message: ${err.message}`);
 
-                    if (err.message === 'Invalid access token') {
+                    if (
+                        err.message === 'Invalid access token' ||
+                        err.extensions?.code === 'UNAUTHENTICATED'
+                    ) {
                         return new Observable((observer) => {
                             refreshAccessToken(client)
                                 .then(() => {

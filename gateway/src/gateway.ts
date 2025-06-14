@@ -9,61 +9,33 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
 
 /**
- * Validates an access token by making a GraphQL query to the auth service.
+ * Validates a JWT access token.
  *
- * @param accessToken - The access token to validate
- * @param authUrl - The URL of the auth service
- * @param gatewaySecret - The gateway secret for authentication
- * @returns Promise<{valid: boolean, user?: {email: string, name: string}}> - Validation result with user data if valid
+ * @param token - The JWT token to validate
+ * @param secret - The secret key used to sign the token
+ * @returns boolean - True if the token is valid and is an access token
  */
-async function validateAccessToken(
-	accessToken: string,
-	authUrl: string,
-	gatewaySecret: string
-): Promise<{ valid: boolean; user?: { email: string; name: string } }> {
+function validateAccessToken(token: string, secret: string): boolean {
 	try {
-		const response = await fetch(`${authUrl}/graphql`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-gateway-secret": gatewaySecret,
-				cookie: `accessToken=${accessToken}`,
-			},
-			body: JSON.stringify({
-				query: `
-					query Me {
-						me {
-							email
-							name
-						}
-					}
-				`,
-			}),
-		});
+		const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
 
-		if (!response.ok) {
-			return { valid: false };
+		if (decoded.type !== "access") {
+			return false;
 		}
 
-		const data = await response.json();
-
-		if (!data.errors && data.data?.me?.email) {
-			return {
-				valid: true,
-				user: {
-					email: data.data.me.email,
-					name: data.data.me.name,
-				},
-			};
+		const now = Math.floor(Date.now() / 1000);
+		if (decoded.exp && decoded.exp < now) {
+			return false;
 		}
 
-		return { valid: false };
+		return true;
 	} catch (error) {
 		console.error("Token validation error:", error);
-		return { valid: false };
+		return false;
 	}
 }
 
@@ -109,6 +81,7 @@ function getEnv() {
 		AUTH_REDIRECT_URL: z.string().url(),
 		GATEWAY_SECRET: z.string(),
 		FRONTEND_DOMAIN: z.string().url(),
+		JWT_SECRET: z.string().min(1, "JWT secret is required"),
 	});
 
 	return envSchema.parse(process.env);
@@ -213,7 +186,6 @@ const startGateway = async () => {
 			if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
 				return res.status(403).json({ error: "CSRF token mismatch" });
 			}
-
 			if (!isExemptOperation(req.body)) {
 				const accessToken = req.cookies.accessToken;
 
@@ -228,13 +200,7 @@ const startGateway = async () => {
 					});
 				}
 
-				const validationResult = await validateAccessToken(
-					accessToken,
-					env.AUTH_URL,
-					env.GATEWAY_SECRET
-				);
-
-				if (!validationResult.valid) {
+				if (!validateAccessToken(accessToken, env.JWT_SECRET)) {
 					return res.status(401).json({
 						errors: [
 							{
