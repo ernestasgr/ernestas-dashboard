@@ -184,7 +184,7 @@ describe("gateway", () => {
 		});
 
 		it("should return false for regular queries", () => {
-			const body = { query: "query GetUser { me { email name } }" };
+			const body = { query: "query GetUser { user { email name } }" };
 			const result = isExemptOperation(body);
 			expect(result).toBe(false);
 		});

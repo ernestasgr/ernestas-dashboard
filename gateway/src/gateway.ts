@@ -83,7 +83,7 @@ function isExemptOperation(body: any): boolean {
 		return true;
 	}
 
-	if (query.includes("query") && query.includes("me")) {
+	if (query.includes("query") && /\bme\b/.test(query)) {
 		return true;
 	}
 
