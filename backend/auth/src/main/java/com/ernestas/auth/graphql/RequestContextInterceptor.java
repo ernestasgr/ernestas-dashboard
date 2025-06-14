@@ -68,9 +68,9 @@ class RequestContextInterceptor implements WebGraphQlInterceptor {
         List<String> cookieHeaders = request.getHeaders().get(HttpHeaders.COOKIE);
         if (cookieHeaders != null) {
             for (String cookieHeader : cookieHeaders) {
-                List<HttpCookie> accessTokenCookies = parseCookieHeader(cookieHeader).get(cookieName);
-                if (accessTokenCookies != null && !accessTokenCookies.isEmpty()) {
-                    return accessTokenCookies.getFirst().getValue();
+                HttpCookie first = parseCookieHeader(cookieHeader).getFirst(cookieName);
+                if (first != null) {
+                    return first.getValue();
                 }
             }
         }

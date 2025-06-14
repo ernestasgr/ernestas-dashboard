@@ -36,19 +36,20 @@ export interface AuthPayload {
     name?: Maybe<Scalars['String']['output']>;
 }
 
+export interface MessageResult {
+    __typename?: 'MessageResult';
+    message: Scalars['String']['output'];
+}
+
 export interface Mutation {
     __typename?: 'Mutation';
-    refresh: RefreshResult;
+    logout: MessageResult;
+    refresh: MessageResult;
 }
 
 export interface Query {
     __typename?: 'Query';
     me: AuthPayload;
-}
-
-export interface RefreshResult {
-    __typename?: 'RefreshResult';
-    message: Scalars['String']['output'];
 }
 
 export interface User {
@@ -68,7 +69,7 @@ export type RefreshMutationVariables = Exact<Record<string, never>>;
 
 export interface RefreshMutation {
     __typename?: 'Mutation';
-    refresh: { __typename?: 'RefreshResult'; message: string };
+    refresh: { __typename?: 'MessageResult'; message: string };
 }
 
 export const MeDocument = gql`

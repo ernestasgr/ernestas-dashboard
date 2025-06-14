@@ -64,13 +64,13 @@ class OAuth2LoginSuccessHandlerTest {
                 .thenReturn(refreshCookie);
 
         when(request.getSession()).thenReturn(session);
-        when(session.getAttribute("redirectUri")).thenReturn("http://localhost/redirect");
+        when(session.getAttribute("redirectUri")).thenReturn("http://localhost:3000/redirect");
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
         verify(response).addCookie(accessCookie);
         verify(response).addCookie(refreshCookie);
-        verify(response).sendRedirect("http://localhost/redirect");
+        verify(response).sendRedirect("http://localhost:3000/redirect");
     }
 
     @Test

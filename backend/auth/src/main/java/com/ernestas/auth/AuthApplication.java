@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AuthApplication {
     private static final Logger logger = LoggerFactory.getLogger(AuthApplication.class);
 
-    /****
+    /**
      * Launches the AuthApplication Spring Boot service.
      *
      * @param args command-line arguments passed to the application

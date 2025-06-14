@@ -3,7 +3,8 @@ type Query {
 }
 
 type Mutation {
-	refresh: RefreshResult!
+	refresh: MessageResult!
+	logout: MessageResult!
 }
 
 type AuthPayload {
@@ -11,6 +12,6 @@ type AuthPayload {
 	name: String
 }
 
-type RefreshResult {
+type MessageResult {
 	message: String!
 }

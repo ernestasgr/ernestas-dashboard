@@ -96,11 +96,13 @@ function makeClient() {
 
     const loggingLink = new ApolloLink((operation, forward) =>
         forward(operation).map((response) => {
-            console.log('[GraphQL response]:', {
-                operationName: operation.operationName,
-                variables: operation.variables,
-                data: response.data,
-            }); // TODO: Scrub sensitive data in production
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[GraphQL response]:', {
+                    operationName: operation.operationName,
+                    variables: operation.variables,
+                    data: response.data,
+                });
+            }
             return response;
         }),
     );
