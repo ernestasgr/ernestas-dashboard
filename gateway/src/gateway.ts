@@ -12,6 +12,89 @@ import express from "express";
 import { z } from "zod";
 
 /**
+ * Validates an access token by making a GraphQL query to the auth service.
+ *
+ * @param accessToken - The access token to validate
+ * @param authUrl - The URL of the auth service
+ * @param gatewaySecret - The gateway secret for authentication
+ * @returns Promise<{valid: boolean, user?: {email: string, name: string}}> - Validation result with user data if valid
+ */
+async function validateAccessToken(
+	accessToken: string,
+	authUrl: string,
+	gatewaySecret: string
+): Promise<{ valid: boolean; user?: { email: string; name: string } }> {
+	try {
+		const response = await fetch(`${authUrl}/graphql`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-gateway-secret": gatewaySecret,
+				cookie: `accessToken=${accessToken}`,
+			},
+			body: JSON.stringify({
+				query: `
+					query Me {
+						me {
+							email
+							name
+						}
+					}
+				`,
+			}),
+		});
+
+		if (!response.ok) {
+			return { valid: false };
+		}
+
+		const data = await response.json();
+
+		if (!data.errors && data.data?.me?.email) {
+			return {
+				valid: true,
+				user: {
+					email: data.data.me.email,
+					name: data.data.me.name,
+				},
+			};
+		}
+
+		return { valid: false };
+	} catch (error) {
+		console.error("Token validation error:", error);
+		return { valid: false };
+	}
+}
+
+/**
+ * Checks if a GraphQL operation should be exempt from token validation.
+ *
+ * @param body - The request body containing the GraphQL query
+ * @returns boolean - True if the operation should be exempt from validation
+ */
+function isExemptOperation(body: any): boolean {
+	if (!body?.query) return false;
+
+	const query = body.query.toLowerCase().trim();
+
+	// Allow introspection queries
+	if (query.includes("__schema")) {
+		return true;
+	}
+
+	if (query.includes("query") && query.includes("me")) {
+		return true;
+	}
+
+	if (query.includes("mutation") && query.includes("refresh")) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Validates and parses required environment variables for the gateway.
  *
  * Ensures that {@link AUTH_URL} and {@link AUTH_REDIRECT_URL} are valid URLs and that {@link GATEWAY_SECRET} is present.
@@ -122,14 +205,45 @@ const startGateway = async () => {
 	app.use("/oauth2", (req, res) => {
 		return res.redirect(env.AUTH_REDIRECT_URL + req.originalUrl);
 	});
-
-	app.use("/graphql", (req, res, next) => {
+	app.use("/graphql", async (req, res, next) => {
 		if (req.method === "POST") {
 			const csrfHeader = req.headers["x-xsrf-token"];
 			const csrfCookie = req.cookies["XSRF-TOKEN"];
 
 			if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
 				return res.status(403).json({ error: "CSRF token mismatch" });
+			}
+
+			if (!isExemptOperation(req.body)) {
+				const accessToken = req.cookies.accessToken;
+
+				if (!accessToken) {
+					return res.status(401).json({
+						errors: [
+							{
+								message: "Access token required",
+								extensions: { code: "UNAUTHENTICATED" },
+							},
+						],
+					});
+				}
+
+				const validationResult = await validateAccessToken(
+					accessToken,
+					env.AUTH_URL,
+					env.GATEWAY_SECRET
+				);
+
+				if (!validationResult.valid) {
+					return res.status(401).json({
+						errors: [
+							{
+								message: "Invalid or expired access token",
+								extensions: { code: "UNAUTHENTICATED" },
+							},
+						],
+					});
+				}
 			}
 		}
 		next();
@@ -152,11 +266,13 @@ const startGateway = async () => {
 	});
 
 	await server.start();
-
 	app.use(
 		"/graphql",
 		expressMiddleware(server, {
-			context: async ({ req, res }) => ({ req, res }),
+			context: async ({ req, res }) => ({
+				req,
+				res,
+			}),
 		})
 	);
 
@@ -174,5 +290,4 @@ startGateway().catch((err) => {
 	process.exit(1);
 });
 
-// Export for testing
-export { startGateway, waitForService };
+export { isExemptOperation, startGateway, validateAccessToken, waitForService };
