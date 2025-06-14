@@ -9,7 +9,62 @@ import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+
+/**
+ * Validates a JWT access token.
+ *
+ * @param token - The JWT token to validate
+ * @param secret - The secret key used to sign the token
+ * @returns boolean - True if the token is valid and is an access token
+ */
+function validateAccessToken(token: string, secret: string): boolean {
+	try {
+		const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
+
+		if (decoded.type !== "access") {
+			return false;
+		}
+
+		const now = Math.floor(Date.now() / 1000);
+		if (decoded.exp && decoded.exp < now) {
+			return false;
+		}
+
+		return true;
+	} catch (error) {
+		console.error("Token validation error:", error);
+		return false;
+	}
+}
+
+/**
+ * Checks if a GraphQL operation should be exempt from token validation.
+ *
+ * @param body - The request body containing the GraphQL query
+ * @returns boolean - True if the operation should be exempt from validation
+ */
+function isExemptOperation(body: any): boolean {
+	if (!body?.query) return false;
+
+	const query = body.query.toLowerCase().trim();
+
+	// Allow introspection queries
+	if (query.includes("__schema")) {
+		return true;
+	}
+
+	if (query.includes("query") && /\bme\b/.test(query)) {
+		return true;
+	}
+
+	if (query.includes("mutation") && query.includes("refresh")) {
+		return true;
+	}
+
+	return false;
+}
 
 /**
  * Validates and parses required environment variables for the gateway.
@@ -26,6 +81,7 @@ function getEnv() {
 		AUTH_REDIRECT_URL: z.string().url(),
 		GATEWAY_SECRET: z.string(),
 		FRONTEND_DOMAIN: z.string().url(),
+		JWT_SECRET: z.string().min(1, "JWT secret is required"),
 	});
 
 	return envSchema.parse(process.env);
@@ -122,14 +178,38 @@ const startGateway = async () => {
 	app.use("/oauth2", (req, res) => {
 		return res.redirect(env.AUTH_REDIRECT_URL + req.originalUrl);
 	});
-
-	app.use("/graphql", (req, res, next) => {
+	app.use("/graphql", async (req, res, next) => {
 		if (req.method === "POST") {
 			const csrfHeader = req.headers["x-xsrf-token"];
 			const csrfCookie = req.cookies["XSRF-TOKEN"];
 
 			if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
 				return res.status(403).json({ error: "CSRF token mismatch" });
+			}
+			if (!isExemptOperation(req.body)) {
+				const accessToken = req.cookies.accessToken;
+
+				if (!accessToken) {
+					return res.status(401).json({
+						errors: [
+							{
+								message: "Access token required",
+								extensions: { code: "UNAUTHENTICATED" },
+							},
+						],
+					});
+				}
+
+				if (!validateAccessToken(accessToken, env.JWT_SECRET)) {
+					return res.status(401).json({
+						errors: [
+							{
+								message: "Invalid or expired access token",
+								extensions: { code: "UNAUTHENTICATED" },
+							},
+						],
+					});
+				}
 			}
 		}
 		next();
@@ -152,11 +232,13 @@ const startGateway = async () => {
 	});
 
 	await server.start();
-
 	app.use(
 		"/graphql",
 		expressMiddleware(server, {
-			context: async ({ req, res }) => ({ req, res }),
+			context: async ({ req, res }) => ({
+				req,
+				res,
+			}),
 		})
 	);
 
@@ -174,5 +256,4 @@ startGateway().catch((err) => {
 	process.exit(1);
 });
 
-// Export for testing
-export { startGateway, waitForService };
+export { isExemptOperation, startGateway, validateAccessToken, waitForService };

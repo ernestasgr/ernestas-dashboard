@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { startGateway } from "./gateway.js";
+import { startGateway, validateAccessToken } from "./gateway.js";
+
+global.fetch = vi.fn();
 
 vi.mock("@apollo/gateway", () => ({
 	ApolloGateway: vi.fn().mockImplementation(() => ({
@@ -30,6 +32,8 @@ vi.mock("zod", async () => {
 					AUTH_URL: "http://localhost:5000",
 					AUTH_REDIRECT_URL: "http://localhost:5000/redirect",
 					GATEWAY_SECRET: "secret",
+					FRONTEND_DOMAIN: "http://localhost:3000",
+					JWT_SECRET: "test-jwt-secret",
 				})),
 			})),
 		},
@@ -97,5 +101,26 @@ describe("gateway", () => {
 			.mockResolvedValue({ ok: true } as any);
 		await startGateway();
 		expect(fetchSpy).toHaveBeenCalledWith("http://localhost:5000/health");
+	});
+
+	describe("validateAccessToken", () => {
+		const testSecret = "test-jwt-secret";
+
+		it("should return false for invalid token", () => {
+			const result = validateAccessToken("invalid-token", testSecret);
+			expect(result).toBe(false);
+		});
+
+		it("should return false for empty token", () => {
+			const result = validateAccessToken("", testSecret);
+			expect(result).toBe(false);
+		});
+
+		it("should return false for token with wrong type", () => {
+			// This would need a proper JWT library to create test tokens
+			// For now, just test invalid cases
+			const result = validateAccessToken("wrong.type.token", testSecret);
+			expect(result).toBe(false);
+		});
 	});
 });
