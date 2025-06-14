@@ -1,7 +1,13 @@
 package com.ernestas.auth.service;
 
-import com.ernestas.auth.model.User;
-import com.ernestas.auth.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -9,15 +15,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import com.ernestas.auth.model.User;
+import com.ernestas.auth.repository.UserRepository;
 
 class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @Mock
     private OAuth2User oAuth2User;
@@ -76,10 +83,8 @@ class UserServiceTest {
     @Test
     void findUserByEmailUserNotFound() {
         when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            userService.findUserByEmail("notfound@example.com")
-        );
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> userService.findUserByEmail("notfound@example.com"));
         assertEquals("User not found", exception.getMessage());
     }
 }
-
