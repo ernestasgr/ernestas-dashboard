@@ -2,6 +2,7 @@ package com.ernestas.auth.security;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -28,11 +29,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenUtil jwtTokenUtil;
     private final CookieGenerator cookieGenerator;
 
+    @Value("${frontend.domain}")
+    private String frontendDomain;
+
     /****
      * Creates an instance of OAuth2LoginSuccessHandler with required dependencies.
      *
-     * @param userService service for registering or updating users after OAuth2 login
-     * @param jwtTokenUtil utility for generating JWT access and refresh tokens
+     * @param userService     service for registering or updating users after OAuth2
+     *                        login
+     * @param jwtTokenUtil    utility for generating JWT access and refresh tokens
      * @param cookieGenerator utility for creating HTTP cookies for tokens
      */
     public OAuth2LoginSuccessHandler(
@@ -46,14 +51,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     /****
      * Handles successful OAuth2 authentication by registering or updating the user,
-     * generating JWT access and refresh tokens, setting them as cookies, and redirecting the user.
+     * generating JWT access and refresh tokens, setting them as cookies, and
+     * redirecting the user.
      *
-     * <p>If a redirect URI is present in the session, the user is redirected to that URI.
-     * Otherwise, a 400 Bad Request error is sent. If authentication is not an OAuth2 token,
-     * a 401 Unauthorized error is returned.</p>
+     * <p>
+     * If a redirect URI is present in the session, the user is redirected to that
+     * URI.
+     * Otherwise, a 400 Bad Request error is sent. If authentication is not an
+     * OAuth2 token,
+     * a 401 Unauthorized error is returned.
+     * </p>
      *
-     * @param request the HTTP request
-     * @param response the HTTP response
+     * @param request        the HTTP request
+     * @param response       the HTTP response
      * @param authentication the authentication object
      * @throws IOException if an I/O error occurs during response handling
      */
@@ -72,18 +82,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     "accessToken",
                     accessToken,
                     "/",
-                    (int) jwtTokenUtil.getAccessTokenExpiration() / 1000));
+                    (int) (jwtTokenUtil.getAccessTokenExpiration() / 1000)));
             response.addCookie(cookieGenerator.createCookie(
                     "refreshToken",
                     refreshToken,
                     "/",
-                    (int) jwtTokenUtil.getRefreshTokenExpiration() / 1000));
+                    (int) (jwtTokenUtil.getRefreshTokenExpiration() / 1000)));
 
             String redirectUri = (String) request.getSession().getAttribute("redirectUri");
-            if (redirectUri != null) {
+            frontendDomain = frontendDomain != null ? frontendDomain : "http://localhost:3000";
+            if (redirectUri != null && frontendDomain != null && redirectUri.startsWith(frontendDomain)) {
                 response.sendRedirect(redirectUri);
-            } else {
+            } else if (redirectUri == null) {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid redirect URI.");
             }
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");

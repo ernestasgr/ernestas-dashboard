@@ -59,7 +59,6 @@ class RefreshTokenServiceTest {
 
     @Test
     void storeRefreshToken_shouldSaveTokenSuccessfully() {
-        // Arrange
         String tokenId = "test-token-id";
         String tokenValue = "test-token-value";
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
@@ -73,10 +72,8 @@ class RefreshTokenServiceTest {
                 .thenReturn(Collections.emptyList());
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(savedToken);
 
-        // Act
         RefreshToken result = refreshTokenService.storeRefreshToken(tokenId, tokenValue, testUser, expiresAt);
 
-        // Assert
         assertNotNull(result);
         assertEquals(tokenId, result.getTokenId());
         assertEquals(testUser, result.getUser());
@@ -85,7 +82,6 @@ class RefreshTokenServiceTest {
 
     @Test
     void validateRefreshToken_withValidToken_shouldReturnToken() {
-        // Arrange
         String tokenId = "test-token-id";
         String tokenValue = "test-token-value";
 
@@ -98,34 +94,25 @@ class RefreshTokenServiceTest {
 
         when(refreshTokenRepository.findByTokenId(tokenId)).thenReturn(Optional.of(refreshToken));
 
-        // Act
         Optional<RefreshToken> result = refreshTokenService.validateRefreshToken(tokenId, tokenValue);
 
-        // Assert
-        // Note: This test will fail because we're not using the actual hash
-        // In a real scenario, you'd need to use the actual token value that produces
-        // the stored hash
-        assertTrue(result.isEmpty()); // Expected due to hash mismatch
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void validateRefreshToken_withNonExistentToken_shouldReturnEmpty() {
-        // Arrange
         String tokenId = "non-existent-token";
         String tokenValue = "test-token-value";
 
         when(refreshTokenRepository.findByTokenId(tokenId)).thenReturn(Optional.empty());
 
-        // Act
         Optional<RefreshToken> result = refreshTokenService.validateRefreshToken(tokenId, tokenValue);
 
-        // Assert
         assertTrue(result.isEmpty());
     }
 
     @Test
     void revokeRefreshToken_shouldRevokeToken() {
-        // Arrange
         String tokenId = "test-token-id";
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setTokenId(tokenId);
@@ -134,10 +121,8 @@ class RefreshTokenServiceTest {
         when(refreshTokenRepository.findByTokenId(tokenId)).thenReturn(Optional.of(refreshToken));
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(refreshToken);
 
-        // Act
         refreshTokenService.revokeRefreshToken(tokenId);
 
-        // Assert
         assertTrue(refreshToken.isRevoked());
         assertNotNull(refreshToken.getRevokedAt());
         verify(refreshTokenRepository).save(refreshToken);
@@ -145,29 +130,23 @@ class RefreshTokenServiceTest {
 
     @Test
     void revokeAllTokensForUser_shouldRevokeAllUserTokens() {
-        // Arrange
         int expectedRevokedCount = 3;
         when(refreshTokenRepository.revokeAllTokensForUser(eq(testUser), any(LocalDateTime.class)))
                 .thenReturn(expectedRevokedCount);
 
-        // Act
         refreshTokenService.revokeAllTokensForUser(testUser);
 
-        // Assert
         verify(refreshTokenRepository).revokeAllTokensForUser(eq(testUser), any(LocalDateTime.class));
     }
 
     @Test
     void cleanupExpiredTokens_shouldDeleteExpiredTokens() {
-        // Arrange
         int expectedDeletedCount = 5;
         when(refreshTokenRepository.deleteExpiredTokens(any(LocalDateTime.class)))
                 .thenReturn(expectedDeletedCount);
 
-        // Act
         int result = refreshTokenService.cleanupExpiredTokens();
 
-        // Assert
         assertEquals(expectedDeletedCount, result);
         verify(refreshTokenRepository).deleteExpiredTokens(any(LocalDateTime.class));
     }

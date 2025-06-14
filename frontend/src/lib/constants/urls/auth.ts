@@ -1,5 +1,7 @@
 import { env } from '@/lib/utils/env-utils';
 
+const gateway = env.NEXT_PUBLIC_GATEWAY_DOMAIN.replace(/\/$/, '');
+
 export const AUTH_URLS = {
-    OAUTH: `${env.NEXT_PUBLIC_GATEWAY_DOMAIN}/oauth2/authorization/`,
+    OAUTH: `${gateway}/oauth2/authorization/`,
 };
