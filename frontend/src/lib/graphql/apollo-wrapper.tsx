@@ -11,8 +11,10 @@ import { onError } from '@apollo/client/link/error';
 import { z } from 'zod';
 import { triggerAuthFailure } from '../events/auth';
 import { useEventStore } from '../stores/use-event-store';
-import { getCsrfToken } from '../utils/auth-utils';
+import { getCsrfToken, initCsrfToken } from '../utils/auth-utils';
 import { env } from '../utils/env-utils';
+
+let csrfInitPromise: Promise<void> | null = null;
 
 /**
  * Attempts to refresh the user's access token using a GraphQL mutation.
@@ -94,6 +96,30 @@ function makeClient() {
         },
     );
 
+    const csrfLink = new ApolloLink((operation, forward) => {
+        csrfInitPromise ??= initCsrfToken(env.NEXT_PUBLIC_GATEWAY_DOMAIN);
+
+        return new Observable((observer) => {
+            csrfInitPromise
+                ?.then(() => {
+                    const token = getCsrfToken();
+                    if (token) {
+                        operation.setContext(({ headers = {} }) => ({
+                            headers: {
+                                ...headers,
+                                'X-XSRF-TOKEN': token,
+                            },
+                        }));
+                    }
+                    forward(operation).subscribe(observer);
+                })
+                .catch((error: unknown) => {
+                    console.error('Error initializing CSRF token:', error);
+                    observer.error(error);
+                });
+        });
+    });
+
     const loggingLink = new ApolloLink((operation, forward) =>
         forward(operation).map((response) => {
             if (process.env.NODE_ENV !== 'production') {
@@ -110,14 +136,11 @@ function makeClient() {
     const httpLink = new HttpLink({
         uri: `${env.NEXT_PUBLIC_GATEWAY_DOMAIN}/graphql`,
         credentials: 'include',
-        headers: {
-            'X-XSRF-TOKEN': getCsrfToken(),
-        },
     });
 
     client = new ApolloClient({
         cache: new InMemoryCache(),
-        link: from([errorLink, loggingLink, httpLink]),
+        link: from([errorLink, csrfLink, loggingLink, httpLink]),
     });
 
     return client;
