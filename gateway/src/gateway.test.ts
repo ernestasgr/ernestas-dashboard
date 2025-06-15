@@ -117,8 +117,6 @@ describe("gateway", () => {
 		});
 
 		it("should return false for token with wrong type", () => {
-			// This would need a proper JWT library to create test tokens
-			// For now, just test invalid cases
 			const result = validateAccessToken("wrong.type.token", testSecret);
 			expect(result).toBe(false);
 		});

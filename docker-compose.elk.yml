@@ -8,3 +8,15 @@ services:
     environment:
       LOGGING_LOGSTASH_SERVER: logstash:5044
       SPRING_PROFILES_ACTIVE: elk
+
+  gateway:
+    depends_on:
+      auth:
+        condition: service_started
+      logstash:
+        condition: service_healthy
+    environment:
+      ENABLE_LOGSTASH: "true"
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5044
+      LOG_LEVEL: info
