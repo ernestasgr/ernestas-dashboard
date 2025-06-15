@@ -23,6 +23,8 @@
 		"graphql": "^16.11.0",
 		"jsonwebtoken": "^9.0.2",
 		"node-fetch": "^3.3.2",
+		"winston": "^3.17.0",
+		"winston-logstash-ts": "^0.2.3",
 		"zod": "^3.25.42"
 	},
 	"devDependencies": {
