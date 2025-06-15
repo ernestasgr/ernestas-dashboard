@@ -4,8 +4,8 @@ import {
 	RemoteGraphQLDataSource,
 } from "@apollo/gateway";
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import { expressMiddleware } from "@as-integrations/express5";
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -425,9 +425,9 @@ const startGateway = async () => {
 				context: async ({ req, res }) => ({
 					req,
 					res,
-					requestId: (req as any).requestId || generateRequestId(),
+					requestId: req.requestId || generateRequestId(),
 				}),
-			}) as unknown as express.RequestHandler
+			})
 		);
 
 		app.get("/health", (req, res) => {

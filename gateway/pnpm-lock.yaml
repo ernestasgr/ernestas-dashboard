@@ -14,6 +14,9 @@ importers:
       '@apollo/server':
         specifier: ^4.12.2
         version: 4.12.2(encoding@0.1.13)(graphql@16.11.0)
+      '@as-integrations/express5':
+        specifier: ^1.1.0
+        version: 1.1.0(@apollo/server@4.12.2(encoding@0.1.13)(graphql@16.11.0))(express@5.1.0)
       '@sentry/node':
         specifier: ^9.29.0
         version: 9.29.0
@@ -193,6 +196,13 @@ packages:
   '@apollo/utils.withrequired@2.0.1':
     resolution: {integrity: sha512-YBDiuAX9i1lLc6GeTy1m7DGLFn/gMnvXqlalOIMjM7DeOgIacEjjfwPqb0M1CQ2v11HhR15d1NmxJoRCfrNqcA==}
     engines: {node: '>=14'}
+
+  '@as-integrations/express5@1.1.0':
+    resolution: {integrity: sha512-rlZU5Rlk4Sm2NDq2bs8BzveelEq39WBUvt4QVj9mVvPet1DuggLFR6nMVdDO6mb07gDLlWCWd+XTHclAEli9PQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@apollo/server': ^4.0.0
+      express: ^5.0.0
 
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
@@ -2570,6 +2580,11 @@ snapshots:
       graphql: 16.11.0
 
   '@apollo/utils.withrequired@2.0.1': {}
+
+  '@as-integrations/express5@1.1.0(@apollo/server@4.12.2(encoding@0.1.13)(graphql@16.11.0))(express@5.1.0)':
+    dependencies:
+      '@apollo/server': 4.12.2(encoding@0.1.13)(graphql@16.11.0)
+      express: 5.1.0
 
   '@colors/colors@1.6.0': {}
 

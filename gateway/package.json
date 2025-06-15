@@ -12,6 +12,7 @@
 	"dependencies": {
 		"@apollo/gateway": "^2.11.0",
 		"@apollo/server": "^4.12.2",
+		"@as-integrations/express5": "^1.1.0",
 		"@sentry/node": "^9.29.0",
 		"@types/body-parser": "^1.19.6",
 		"@types/express": "^5.0.3",
