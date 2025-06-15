@@ -11,9 +11,11 @@ vi.mock("@apollo/gateway", () => ({
 	RemoteGraphQLDataSource: vi.fn(),
 }));
 vi.mock("@apollo/server", () => ({
-	ApolloServer: vi
-		.fn()
-		.mockImplementation(() => ({ start: vi.fn(), stop: vi.fn() })),
+	ApolloServer: vi.fn().mockImplementation(() => ({
+		start: vi.fn(),
+		stop: vi.fn(),
+		assertStarted: vi.fn(),
+	})),
 }));
 vi.mock("@apollo/server/express4", () => ({
 	expressMiddleware: vi.fn(() => (req: any, res: any, next: any) => next()),

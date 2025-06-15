@@ -4,8 +4,8 @@ import {
 	RemoteGraphQLDataSource,
 } from "@apollo/gateway";
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import { expressMiddleware } from "@as-integrations/express5";
 import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -312,72 +312,87 @@ const startGateway = async () => {
 			return res.redirect(env.AUTH_REDIRECT_URL + req.originalUrl);
 		});
 
-		app.use("/graphql", async (req, res, next) => {
-			const requestLogger = addRequestIdToLogger(
-				req.requestId || generateRequestId()
-			);
+		app.use("/graphql", ((req, res, next) => {
+			try {
+				const requestLogger = addRequestIdToLogger(
+					req.requestId || generateRequestId()
+				);
 
-			if (req.method === "POST") {
-				const csrfHeader = req.headers["x-xsrf-token"];
-				const csrfCookie = req.cookies["XSRF-TOKEN"];
+				if (req.method === "POST") {
+					const csrfHeader = req.headers["x-xsrf-token"];
+					const csrfCookie = req.cookies["XSRF-TOKEN"];
 
-				if (!csrfHeader || !csrfCookie || csrfHeader !== csrfCookie) {
-					requestLogger.warn("CSRF token mismatch", {
-						hasHeader: !!csrfHeader,
-						hasCookie: !!csrfCookie,
-						tokensMatch: csrfHeader === csrfCookie,
-					});
-					return res
-						.status(403)
-						.json({ error: "CSRF token mismatch" });
-				}
-
-				if (!isExemptOperation(req.body)) {
-					const accessToken = req.cookies.accessToken;
-
-					if (!accessToken) {
-						requestLogger.warn("Access token missing", {
-							operation: req.body?.operationName,
-							hasRefreshToken: !!req.cookies.refreshToken,
+					if (
+						!csrfHeader ||
+						!csrfCookie ||
+						csrfHeader !== csrfCookie
+					) {
+						requestLogger.warn("CSRF token mismatch", {
+							hasHeader: !!csrfHeader,
+							hasCookie: !!csrfCookie,
+							tokensMatch: csrfHeader === csrfCookie,
 						});
-						return res.status(401).json({
-							errors: [
-								{
-									message: "Access token required",
-									extensions: { code: "UNAUTHENTICATED" },
-								},
-							],
-						});
+						return res
+							.status(403)
+							.json({ error: "CSRF token mismatch" });
 					}
 
-					if (!validateAccessToken(accessToken, env.JWT_SECRET)) {
-						requestLogger.warn("Access token validation failed", {
-							operation: req.body?.operationName,
-						});
-						return res.status(401).json({
-							errors: [
-								{
-									message: "Invalid or expired access token",
-									extensions: { code: "UNAUTHENTICATED" },
-								},
-							],
-						});
-					}
+					if (!isExemptOperation(req.body)) {
+						const accessToken = req.cookies.accessToken;
 
-					requestLogger.debug("Access token validated successfully", {
-						operation: req.body?.operationName,
-					});
-				} else {
-					requestLogger.debug(
-						"Operation exempt from token validation",
-						{
-							operation: req.body?.operationName,
+						if (!accessToken) {
+							requestLogger.warn("Access token missing", {
+								operation: req.body?.operationName,
+								hasRefreshToken: !!req.cookies.refreshToken,
+							});
+							return res.status(401).json({
+								errors: [
+									{
+										message: "Access token required",
+										extensions: { code: "UNAUTHENTICATED" },
+									},
+								],
+							});
 						}
-					);
+
+						if (!validateAccessToken(accessToken, env.JWT_SECRET)) {
+							requestLogger.warn(
+								"Access token validation failed",
+								{
+									operation: req.body?.operationName,
+								}
+							);
+							return res.status(401).json({
+								errors: [
+									{
+										message:
+											"Invalid or expired access token",
+										extensions: { code: "UNAUTHENTICATED" },
+									},
+								],
+							});
+						}
+
+						requestLogger.debug(
+							"Access token validated successfully",
+							{
+								operation: req.body?.operationName,
+							}
+						);
+					} else {
+						requestLogger.debug(
+							"Operation exempt from token validation",
+							{
+								operation: req.body?.operationName,
+							}
+						);
+					}
 				}
+				next();
+			} catch (err) {
+				next(err);
 			}
-			next();
-		});
+		}) as express.RequestHandler);
 
 		app.get("/csrf-token", (req, res) => {
 			const requestLogger = addRequestIdToLogger(
