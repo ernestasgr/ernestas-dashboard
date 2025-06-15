@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HealthController {
     /**
-     * Handles HTTP GET requests to the /health endpoint and returns a simple health status.
+     * Handles HTTP GET requests to the /health endpoint and returns a simple health
+     * status.
      *
      * @return the string "OK" indicating the service is healthy
      */

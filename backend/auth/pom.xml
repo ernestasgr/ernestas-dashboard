@@ -172,6 +172,23 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>3.4.4</version>
 			</plugin>
+			<plugin>
+				<groupId>io.sentry</groupId>
+				<artifactId>sentry-maven-plugin</artifactId>
+				<version>0.5.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<!-- for showing output of sentry-cli -->
+					<debugSentryCli>true</debugSentryCli>
+
+					<org>ernestas-fl</org>
+
+					<project>auth-service</project>
+
+					<!-- in case you're self hosting, provide the URL here -->
+					<url>http://localhost:8000/</url>
+				</configuration>
+				</plugin>
 		</plugins>
 	</build>
 

@@ -6,11 +6,13 @@ import {
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+import * as Sentry from "@sentry/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import "./instrument.ts";
 import logger, {
 	addRequestIdToLogger,
 	createContextLogger,
@@ -420,6 +422,8 @@ const startGateway = async () => {
 			requestLogger.debug("Health check requested");
 			res.status(200).send("OK");
 		});
+
+		Sentry.setupExpressErrorHandler(app);
 
 		app.listen(4000, () => {
 			contextLogger.info("🚀 Apollo Gateway running", {
