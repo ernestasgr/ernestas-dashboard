@@ -3,6 +3,10 @@ query GetWidgets($userId: ID!) {
         id
         type
         title
+        x
+        y
+        width
+        height
         config {
             ... on ClockConfig {
                 timezone
@@ -29,6 +33,10 @@ query GetWidget($id: ID!) {
         id
         type
         title
+        x
+        y
+        width
+        height
         config {
             ... on ClockConfig {
                 timezone
@@ -55,6 +63,10 @@ query GetWidgetsByType($type: String!) {
         id
         type
         title
+        x
+        y
+        width
+        height
         config {
             ... on ClockConfig {
                 timezone
@@ -78,4 +90,98 @@ query GetWidgetsByType($type: String!) {
 
 query GetAvailableWidgetTypes {
     availableWidgetTypes
+}
+
+mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
+    createWidget(userId: $userId, input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation UpdateWidget($input: UpdateWidgetInput!) {
+    updateWidget(input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
+    updateWidgetLayout(input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation DeleteWidget($id: ID!) {
+    deleteWidget(id: $id)
 }

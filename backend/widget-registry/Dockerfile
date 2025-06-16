@@ -1,25 +1,24 @@
 
-# Use the official Node.js image as the base image
 FROM node:24-alpine
 
-# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json to the working directory
 COPY package*.json pnpm-lock.yaml ./
 
 RUN npm install -g pnpm
 
 RUN pnpm install --frozen-lockfile
 
-# Copy the rest of the application files
 COPY . .
 
-# Build the NestJS application
+RUN pnpm prisma generate
 RUN pnpm run build
 
-# Expose the application port
+# Copy entrypoint script and make it executable
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 3000
 
-# Command to run the application
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["node", "dist/main"]

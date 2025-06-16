@@ -1,4 +1,12 @@
-import { Field, ID, ObjectType, createUnionType } from '@nestjs/graphql';
+import {
+    createUnionType,
+    Field,
+    ID,
+    InputType,
+    Int,
+    ObjectType,
+} from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 
 @ObjectType()
 export class Widget {
@@ -13,6 +21,18 @@ export class Widget {
 
     @Field(() => WidgetConfig, { nullable: true })
     config?: typeof WidgetConfig;
+
+    @Field(() => Int)
+    x: number;
+
+    @Field(() => Int)
+    y: number;
+
+    @Field(() => Int)
+    width: number;
+
+    @Field(() => Int)
+    height: number;
 }
 
 @ObjectType()
@@ -63,3 +83,69 @@ export const WidgetConfig = createUnionType({
         return null;
     },
 });
+
+@InputType()
+export class CreateWidgetInput {
+    @Field()
+    type: string;
+
+    @Field({ nullable: true })
+    title?: string;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    config?: any;
+
+    @Field(() => Int)
+    x: number;
+
+    @Field(() => Int)
+    y: number;
+
+    @Field(() => Int)
+    width: number;
+
+    @Field(() => Int)
+    height: number;
+}
+
+@InputType()
+export class UpdateWidgetLayoutInput {
+    @Field(() => ID)
+    id: string;
+
+    @Field(() => Int)
+    x: number;
+
+    @Field(() => Int)
+    y: number;
+
+    @Field(() => Int)
+    width: number;
+
+    @Field(() => Int)
+    height: number;
+}
+
+@InputType()
+export class UpdateWidgetInput {
+    @Field(() => ID)
+    id: string;
+
+    @Field({ nullable: true })
+    title?: string;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    config?: any;
+
+    @Field(() => Int, { nullable: true })
+    x?: number;
+
+    @Field(() => Int, { nullable: true })
+    y?: number;
+
+    @Field(() => Int, { nullable: true })
+    width?: number;
+
+    @Field(() => Int, { nullable: true })
+    height?: number;
+}

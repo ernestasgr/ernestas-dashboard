@@ -3,6 +3,23 @@ type ClockConfig {
     timezone: String!
 }
 
+input CreateWidgetInput {
+    config: JSON
+    height: Float!
+    title: String
+    type: String!
+    width: Float!
+    x: Float!
+    y: Float!
+}
+
+type Mutation {
+    createWidget(input: CreateWidgetInput!, userId: ID!): Widget!
+    deleteWidget(id: ID!): Boolean!
+    updateWidget(input: UpdateWidgetInput!): Widget!
+    updateWidgetLayout(input: UpdateWidgetLayoutInput!): Widget!
+}
+
 type NotesConfig {
     content: String!
     maxLength: Float
@@ -27,9 +44,34 @@ type WeatherConfig {
 
 type Widget {
     config: WidgetConfig
+    height: Float!
     id: ID!
     title: String
     type: String!
+    width: Float!
+    x: Float!
+    y: Float!
 }
 
 union WidgetConfig = ClockConfig | NotesConfig | TasksConfig | WeatherConfig
+
+input UpdateWidgetInput {
+    config: JSON
+    height: Float
+    id: ID!
+    title: String
+    type: String
+    width: Float
+    x: Float
+    y: Float
+}
+
+input UpdateWidgetLayoutInput {
+    height: Float!
+    id: ID!
+    width: Float!
+    x: Float!
+    y: Float!
+}
+
+scalar JSON

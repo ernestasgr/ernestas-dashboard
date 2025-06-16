@@ -123,6 +123,7 @@ function getEnv() {
 		GATEWAY_SECRET: z.string(),
 		FRONTEND_DOMAIN: z.string().url(),
 		JWT_SECRET: z.string().min(1, "JWT secret is required"),
+		NODE_ENV: z.string().default("development"),
 	});
 
 	try {
@@ -319,6 +320,12 @@ const startGateway = async () => {
 		});
 
 		app.use("/graphql", ((req, res, next) => {
+			if (env.NODE_ENV !== "production") {
+				// it's useful to codegen the schema from introspection or test out queries in playground in development
+				next();
+				return;
+			}
+
 			try {
 				const requestLogger = addRequestIdToLogger(
 					req.requestId || generateRequestId()

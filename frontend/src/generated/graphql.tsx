@@ -28,6 +28,7 @@ export interface Scalars {
     Boolean: { input: boolean; output: boolean };
     Int: { input: number; output: number };
     Float: { input: number; output: number };
+    JSON: { input: unknown; output: unknown };
 }
 
 export interface AuthPayload {
@@ -42,6 +43,16 @@ export interface ClockConfig {
     timezone: Scalars['String']['output'];
 }
 
+export interface CreateWidgetInput {
+    config?: InputMaybe<Scalars['JSON']['input']>;
+    height: Scalars['Int']['input'];
+    title?: InputMaybe<Scalars['String']['input']>;
+    type: Scalars['String']['input'];
+    width: Scalars['Int']['input'];
+    x: Scalars['Int']['input'];
+    y: Scalars['Int']['input'];
+}
+
 export interface MessageResult {
     __typename?: 'MessageResult';
     message: Scalars['String']['output'];
@@ -49,8 +60,29 @@ export interface MessageResult {
 
 export interface Mutation {
     __typename?: 'Mutation';
+    createWidget: Widget;
+    deleteWidget: Scalars['Boolean']['output'];
     logout: MessageResult;
     refresh: MessageResult;
+    updateWidget: Widget;
+    updateWidgetLayout: Widget;
+}
+
+export interface MutationCreateWidgetArgs {
+    input: CreateWidgetInput;
+    userId: Scalars['ID']['input'];
+}
+
+export interface MutationDeleteWidgetArgs {
+    id: Scalars['ID']['input'];
+}
+
+export interface MutationUpdateWidgetArgs {
+    input: UpdateWidgetInput;
+}
+
+export interface MutationUpdateWidgetLayoutArgs {
+    input: UpdateWidgetLayoutInput;
 }
 
 export interface NotesConfig {
@@ -86,6 +118,24 @@ export interface TasksConfig {
     defaultCategory?: Maybe<Scalars['String']['output']>;
 }
 
+export interface UpdateWidgetInput {
+    config?: InputMaybe<Scalars['JSON']['input']>;
+    height?: InputMaybe<Scalars['Int']['input']>;
+    id: Scalars['ID']['input'];
+    title?: InputMaybe<Scalars['String']['input']>;
+    width?: InputMaybe<Scalars['Int']['input']>;
+    x?: InputMaybe<Scalars['Int']['input']>;
+    y?: InputMaybe<Scalars['Int']['input']>;
+}
+
+export interface UpdateWidgetLayoutInput {
+    height: Scalars['Int']['input'];
+    id: Scalars['ID']['input'];
+    width: Scalars['Int']['input'];
+    x: Scalars['Int']['input'];
+    y: Scalars['Int']['input'];
+}
+
 export interface WeatherConfig {
     __typename?: 'WeatherConfig';
     location: Scalars['String']['output'];
@@ -95,9 +145,13 @@ export interface WeatherConfig {
 export interface Widget {
     __typename?: 'Widget';
     config?: Maybe<WidgetConfig>;
+    height: Scalars['Int']['output'];
     id: Scalars['ID']['output'];
     title?: Maybe<Scalars['String']['output']>;
     type: Scalars['String']['output'];
+    width: Scalars['Int']['output'];
+    x: Scalars['Int']['output'];
+    y: Scalars['Int']['output'];
 }
 
 export type WidgetConfig =
@@ -131,6 +185,10 @@ export interface GetWidgetsQuery {
         id: string;
         type: string;
         title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -167,6 +225,10 @@ export interface GetWidgetQuery {
         id: string;
         type: string;
         title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -203,6 +265,10 @@ export interface GetWidgetsByTypeQuery {
         id: string;
         type: string;
         title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -235,6 +301,136 @@ export type GetAvailableWidgetTypesQueryVariables = Exact<
 export interface GetAvailableWidgetTypesQuery {
     __typename?: 'Query';
     availableWidgetTypes: string[];
+}
+
+export type CreateWidgetMutationVariables = Exact<{
+    userId: Scalars['ID']['input'];
+    input: CreateWidgetInput;
+}>;
+
+export interface CreateWidgetMutation {
+    __typename?: 'Mutation';
+    createWidget: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    };
+}
+
+export type UpdateWidgetMutationVariables = Exact<{
+    input: UpdateWidgetInput;
+}>;
+
+export interface UpdateWidgetMutation {
+    __typename?: 'Mutation';
+    updateWidget: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    };
+}
+
+export type UpdateWidgetLayoutMutationVariables = Exact<{
+    input: UpdateWidgetLayoutInput;
+}>;
+
+export interface UpdateWidgetLayoutMutation {
+    __typename?: 'Mutation';
+    updateWidgetLayout: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    };
+}
+
+export type DeleteWidgetMutationVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export interface DeleteWidgetMutation {
+    __typename?: 'Mutation';
+    deleteWidget: boolean;
 }
 
 export const MeDocument = gql`
@@ -343,6 +539,10 @@ export const GetWidgetsDocument = gql`
             id
             type
             title
+            x
+            y
+            width
+            height
             config {
                 ... on ClockConfig {
                     timezone
@@ -443,6 +643,10 @@ export const GetWidgetDocument = gql`
             id
             type
             title
+            x
+            y
+            width
+            height
             config {
                 ... on ClockConfig {
                     timezone
@@ -543,6 +747,10 @@ export const GetWidgetsByTypeDocument = gql`
             id
             type
             title
+            x
+            y
+            width
+            height
             config {
                 ... on ClockConfig {
                     timezone
@@ -713,4 +921,275 @@ export type GetAvailableWidgetTypesSuspenseQueryHookResult = ReturnType<
 export type GetAvailableWidgetTypesQueryResult = Apollo.QueryResult<
     GetAvailableWidgetTypesQuery,
     GetAvailableWidgetTypesQueryVariables
+>;
+export const CreateWidgetDocument = gql`
+    mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
+        createWidget(userId: $userId, input: $input) {
+            id
+            type
+            title
+            x
+            y
+            width
+            height
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+export type CreateWidgetMutationFn = Apollo.MutationFunction<
+    CreateWidgetMutation,
+    CreateWidgetMutationVariables
+>;
+
+/**
+ * __useCreateWidgetMutation__
+ *
+ * To run a mutation, you first call `useCreateWidgetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateWidgetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createWidgetMutation, { data, loading, error }] = useCreateWidgetMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateWidgetMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        CreateWidgetMutation,
+        CreateWidgetMutationVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useMutation<
+        CreateWidgetMutation,
+        CreateWidgetMutationVariables
+    >(CreateWidgetDocument, options);
+}
+export type CreateWidgetMutationHookResult = ReturnType<
+    typeof useCreateWidgetMutation
+>;
+export type CreateWidgetMutationResult =
+    Apollo.MutationResult<CreateWidgetMutation>;
+export type CreateWidgetMutationOptions = Apollo.BaseMutationOptions<
+    CreateWidgetMutation,
+    CreateWidgetMutationVariables
+>;
+export const UpdateWidgetDocument = gql`
+    mutation UpdateWidget($input: UpdateWidgetInput!) {
+        updateWidget(input: $input) {
+            id
+            type
+            title
+            x
+            y
+            width
+            height
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+export type UpdateWidgetMutationFn = Apollo.MutationFunction<
+    UpdateWidgetMutation,
+    UpdateWidgetMutationVariables
+>;
+
+/**
+ * __useUpdateWidgetMutation__
+ *
+ * To run a mutation, you first call `useUpdateWidgetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateWidgetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateWidgetMutation, { data, loading, error }] = useUpdateWidgetMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateWidgetMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        UpdateWidgetMutation,
+        UpdateWidgetMutationVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useMutation<
+        UpdateWidgetMutation,
+        UpdateWidgetMutationVariables
+    >(UpdateWidgetDocument, options);
+}
+export type UpdateWidgetMutationHookResult = ReturnType<
+    typeof useUpdateWidgetMutation
+>;
+export type UpdateWidgetMutationResult =
+    Apollo.MutationResult<UpdateWidgetMutation>;
+export type UpdateWidgetMutationOptions = Apollo.BaseMutationOptions<
+    UpdateWidgetMutation,
+    UpdateWidgetMutationVariables
+>;
+export const UpdateWidgetLayoutDocument = gql`
+    mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
+        updateWidgetLayout(input: $input) {
+            id
+            type
+            title
+            x
+            y
+            width
+            height
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+export type UpdateWidgetLayoutMutationFn = Apollo.MutationFunction<
+    UpdateWidgetLayoutMutation,
+    UpdateWidgetLayoutMutationVariables
+>;
+
+/**
+ * __useUpdateWidgetLayoutMutation__
+ *
+ * To run a mutation, you first call `useUpdateWidgetLayoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateWidgetLayoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateWidgetLayoutMutation, { data, loading, error }] = useUpdateWidgetLayoutMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateWidgetLayoutMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        UpdateWidgetLayoutMutation,
+        UpdateWidgetLayoutMutationVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useMutation<
+        UpdateWidgetLayoutMutation,
+        UpdateWidgetLayoutMutationVariables
+    >(UpdateWidgetLayoutDocument, options);
+}
+export type UpdateWidgetLayoutMutationHookResult = ReturnType<
+    typeof useUpdateWidgetLayoutMutation
+>;
+export type UpdateWidgetLayoutMutationResult =
+    Apollo.MutationResult<UpdateWidgetLayoutMutation>;
+export type UpdateWidgetLayoutMutationOptions = Apollo.BaseMutationOptions<
+    UpdateWidgetLayoutMutation,
+    UpdateWidgetLayoutMutationVariables
+>;
+export const DeleteWidgetDocument = gql`
+    mutation DeleteWidget($id: ID!) {
+        deleteWidget(id: $id)
+    }
+`;
+export type DeleteWidgetMutationFn = Apollo.MutationFunction<
+    DeleteWidgetMutation,
+    DeleteWidgetMutationVariables
+>;
+
+/**
+ * __useDeleteWidgetMutation__
+ *
+ * To run a mutation, you first call `useDeleteWidgetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteWidgetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteWidgetMutation, { data, loading, error }] = useDeleteWidgetMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteWidgetMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        DeleteWidgetMutation,
+        DeleteWidgetMutationVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useMutation<
+        DeleteWidgetMutation,
+        DeleteWidgetMutationVariables
+    >(DeleteWidgetDocument, options);
+}
+export type DeleteWidgetMutationHookResult = ReturnType<
+    typeof useDeleteWidgetMutation
+>;
+export type DeleteWidgetMutationResult =
+    Apollo.MutationResult<DeleteWidgetMutation>;
+export type DeleteWidgetMutationOptions = Apollo.BaseMutationOptions<
+    DeleteWidgetMutation,
+    DeleteWidgetMutationVariables
 >;

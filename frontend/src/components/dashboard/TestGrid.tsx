@@ -235,7 +235,6 @@ const TaskWidget = ({ widget }: WidgetProps) => {
     );
 };
 
-// Widget renderer helper
 const renderWidget = (widget: Widget) => {
     switch (widget.type) {
         case 'clock':
@@ -302,13 +301,12 @@ const MyGrid = () => {
             </div>
         );
     }
-
-    const layout = widgetsData.widgets.map((widget, index) => ({
+    const layout = widgetsData.widgets.map((widget) => ({
         i: widget.id,
-        x: (index % 4) * 3,
-        y: Math.floor(index / 4) * 4,
-        w: 3,
-        h: 4,
+        x: widget.x,
+        y: widget.y,
+        w: widget.width,
+        h: widget.height,
     }));
 
     return (
