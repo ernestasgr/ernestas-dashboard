@@ -36,6 +36,12 @@ export interface AuthPayload {
     name?: Maybe<Scalars['String']['output']>;
 }
 
+export interface ClockConfig {
+    __typename?: 'ClockConfig';
+    format?: Maybe<Scalars['String']['output']>;
+    timezone: Scalars['String']['output'];
+}
+
 export interface MessageResult {
     __typename?: 'MessageResult';
     message: Scalars['String']['output'];
@@ -47,16 +53,58 @@ export interface Mutation {
     refresh: MessageResult;
 }
 
-export interface Query {
-    __typename?: 'Query';
-    me: AuthPayload;
+export interface NotesConfig {
+    __typename?: 'NotesConfig';
+    content: Scalars['String']['output'];
+    maxLength?: Maybe<Scalars['Float']['output']>;
 }
 
-export interface User {
-    __typename?: 'User';
-    email: Scalars['String']['output'];
-    name?: Maybe<Scalars['String']['output']>;
+export interface Query {
+    __typename?: 'Query';
+    availableWidgetTypes: Scalars['String']['output'][];
+    me: AuthPayload;
+    widget?: Maybe<Widget>;
+    widgets: Widget[];
+    widgetsByType: Widget[];
 }
+
+export interface QueryWidgetArgs {
+    id: Scalars['ID']['input'];
+}
+
+export interface QueryWidgetsArgs {
+    userId: Scalars['ID']['input'];
+}
+
+export interface QueryWidgetsByTypeArgs {
+    type: Scalars['String']['input'];
+}
+
+export interface TasksConfig {
+    __typename?: 'TasksConfig';
+    categories: Scalars['String']['output'][];
+    defaultCategory?: Maybe<Scalars['String']['output']>;
+}
+
+export interface WeatherConfig {
+    __typename?: 'WeatherConfig';
+    location: Scalars['String']['output'];
+    units?: Maybe<Scalars['String']['output']>;
+}
+
+export interface Widget {
+    __typename?: 'Widget';
+    config?: Maybe<WidgetConfig>;
+    id: Scalars['ID']['output'];
+    title?: Maybe<Scalars['String']['output']>;
+    type: Scalars['String']['output'];
+}
+
+export type WidgetConfig =
+    | ClockConfig
+    | NotesConfig
+    | TasksConfig
+    | WeatherConfig;
 
 export type MeQueryVariables = Exact<Record<string, never>>;
 

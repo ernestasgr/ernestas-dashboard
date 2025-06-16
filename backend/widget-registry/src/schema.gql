@@ -1,0 +1,35 @@
+type ClockConfig {
+    format: String
+    timezone: String!
+}
+
+type NotesConfig {
+    content: String!
+    maxLength: Float
+}
+
+type Query {
+    availableWidgetTypes: [String!]!
+    widget(id: ID!): Widget
+    widgets(userId: ID!): [Widget!]!
+    widgetsByType(type: String!): [Widget!]!
+}
+
+type TasksConfig {
+    categories: [String!]!
+    defaultCategory: String
+}
+
+type WeatherConfig {
+    location: String!
+    units: String
+}
+
+type Widget {
+    config: WidgetConfig
+    id: ID!
+    title: String
+    type: String!
+}
+
+union WidgetConfig = ClockConfig | NotesConfig | TasksConfig | WeatherConfig

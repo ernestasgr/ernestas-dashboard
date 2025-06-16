@@ -2,7 +2,21 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    await app.listen(process.env.PORT ?? 3000);
+    const app = await NestFactory.create(AppModule, {
+        logger: ['error', 'warn', 'log', 'debug'],
+    });
+
+    // Enable CORS for development
+    app.enableCors({
+        origin: true,
+        credentials: true,
+    });
+
+    const port = process.env.PORT ?? 3001;
+    await app.listen(port);
+    console.log(
+        `🧩 Widget Registry Service running on http://localhost:${port}`,
+    );
+    console.log(`🚀 GraphQL Playground: http://localhost:${port}/graphql`);
 }
 bootstrap();
