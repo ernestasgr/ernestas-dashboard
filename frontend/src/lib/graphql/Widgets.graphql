@@ -1,0 +1,81 @@
+query GetWidgets($userId: ID!) {
+    widgets(userId: $userId) {
+        id
+        type
+        title
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetWidget($id: ID!) {
+    widget(id: $id) {
+        id
+        type
+        title
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetWidgetsByType($type: String!) {
+    widgetsByType(type: $type) {
+        id
+        type
+        title
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetAvailableWidgetTypes {
+    availableWidgetTypes
+}

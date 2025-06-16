@@ -120,6 +120,123 @@ export interface RefreshMutation {
     refresh: { __typename?: 'MessageResult'; message: string };
 }
 
+export type GetWidgetsQueryVariables = Exact<{
+    userId: Scalars['ID']['input'];
+}>;
+
+export interface GetWidgetsQuery {
+    __typename?: 'Query';
+    widgets: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    }[];
+}
+
+export type GetWidgetQueryVariables = Exact<{
+    id: Scalars['ID']['input'];
+}>;
+
+export interface GetWidgetQuery {
+    __typename?: 'Query';
+    widget?: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    } | null;
+}
+
+export type GetWidgetsByTypeQueryVariables = Exact<{
+    type: Scalars['String']['input'];
+}>;
+
+export interface GetWidgetsByTypeQuery {
+    __typename?: 'Query';
+    widgetsByType: {
+        __typename?: 'Widget';
+        id: string;
+        type: string;
+        title?: string | null;
+        config?:
+            | {
+                  __typename?: 'ClockConfig';
+                  timezone: string;
+                  format?: string | null;
+              }
+            | {
+                  __typename?: 'NotesConfig';
+                  content: string;
+                  maxLength?: number | null;
+              }
+            | {
+                  __typename?: 'TasksConfig';
+                  categories: string[];
+                  defaultCategory?: string | null;
+              }
+            | {
+                  __typename?: 'WeatherConfig';
+                  location: string;
+                  units?: string | null;
+              }
+            | null;
+    }[];
+}
+
+export type GetAvailableWidgetTypesQueryVariables = Exact<
+    Record<string, never>
+>;
+
+export interface GetAvailableWidgetTypesQuery {
+    __typename?: 'Query';
+    availableWidgetTypes: string[];
+}
+
 export const MeDocument = gql`
     query Me {
         me {
@@ -219,4 +336,381 @@ export type RefreshMutationResult = Apollo.MutationResult<RefreshMutation>;
 export type RefreshMutationOptions = Apollo.BaseMutationOptions<
     RefreshMutation,
     RefreshMutationVariables
+>;
+export const GetWidgetsDocument = gql`
+    query GetWidgets($userId: ID!) {
+        widgets(userId: $userId) {
+            id
+            type
+            title
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetWidgetsQuery__
+ *
+ * To run a query within a React component, call `useGetWidgetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWidgetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWidgetsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetWidgetsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        GetWidgetsQuery,
+        GetWidgetsQueryVariables
+    > &
+        (
+            | { variables: GetWidgetsQueryVariables; skip?: boolean }
+            | { skip: boolean }
+        ),
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useQuery<GetWidgetsQuery, GetWidgetsQueryVariables>(
+        GetWidgetsDocument,
+        options,
+    );
+}
+export function useGetWidgetsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        GetWidgetsQuery,
+        GetWidgetsQueryVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useLazyQuery<GetWidgetsQuery, GetWidgetsQueryVariables>(
+        GetWidgetsDocument,
+        options,
+    );
+}
+export function useGetWidgetsSuspenseQuery(
+    baseOptions?:
+        | Apollo.SkipToken
+        | Apollo.SuspenseQueryHookOptions<
+              GetWidgetsQuery,
+              GetWidgetsQueryVariables
+          >,
+) {
+    const options =
+        baseOptions === Apollo.skipToken
+            ? baseOptions
+            : { ...defaultOptions, ...baseOptions };
+    return Apollo.useSuspenseQuery<GetWidgetsQuery, GetWidgetsQueryVariables>(
+        GetWidgetsDocument,
+        options,
+    );
+}
+export type GetWidgetsQueryHookResult = ReturnType<typeof useGetWidgetsQuery>;
+export type GetWidgetsLazyQueryHookResult = ReturnType<
+    typeof useGetWidgetsLazyQuery
+>;
+export type GetWidgetsSuspenseQueryHookResult = ReturnType<
+    typeof useGetWidgetsSuspenseQuery
+>;
+export type GetWidgetsQueryResult = Apollo.QueryResult<
+    GetWidgetsQuery,
+    GetWidgetsQueryVariables
+>;
+export const GetWidgetDocument = gql`
+    query GetWidget($id: ID!) {
+        widget(id: $id) {
+            id
+            type
+            title
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetWidgetQuery__
+ *
+ * To run a query within a React component, call `useGetWidgetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWidgetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWidgetQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetWidgetQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        GetWidgetQuery,
+        GetWidgetQueryVariables
+    > &
+        (
+            | { variables: GetWidgetQueryVariables; skip?: boolean }
+            | { skip: boolean }
+        ),
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useQuery<GetWidgetQuery, GetWidgetQueryVariables>(
+        GetWidgetDocument,
+        options,
+    );
+}
+export function useGetWidgetLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        GetWidgetQuery,
+        GetWidgetQueryVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useLazyQuery<GetWidgetQuery, GetWidgetQueryVariables>(
+        GetWidgetDocument,
+        options,
+    );
+}
+export function useGetWidgetSuspenseQuery(
+    baseOptions?:
+        | Apollo.SkipToken
+        | Apollo.SuspenseQueryHookOptions<
+              GetWidgetQuery,
+              GetWidgetQueryVariables
+          >,
+) {
+    const options =
+        baseOptions === Apollo.skipToken
+            ? baseOptions
+            : { ...defaultOptions, ...baseOptions };
+    return Apollo.useSuspenseQuery<GetWidgetQuery, GetWidgetQueryVariables>(
+        GetWidgetDocument,
+        options,
+    );
+}
+export type GetWidgetQueryHookResult = ReturnType<typeof useGetWidgetQuery>;
+export type GetWidgetLazyQueryHookResult = ReturnType<
+    typeof useGetWidgetLazyQuery
+>;
+export type GetWidgetSuspenseQueryHookResult = ReturnType<
+    typeof useGetWidgetSuspenseQuery
+>;
+export type GetWidgetQueryResult = Apollo.QueryResult<
+    GetWidgetQuery,
+    GetWidgetQueryVariables
+>;
+export const GetWidgetsByTypeDocument = gql`
+    query GetWidgetsByType($type: String!) {
+        widgetsByType(type: $type) {
+            id
+            type
+            title
+            config {
+                ... on ClockConfig {
+                    timezone
+                    format
+                }
+                ... on WeatherConfig {
+                    location
+                    units
+                }
+                ... on NotesConfig {
+                    content
+                    maxLength
+                }
+                ... on TasksConfig {
+                    categories
+                    defaultCategory
+                }
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetWidgetsByTypeQuery__
+ *
+ * To run a query within a React component, call `useGetWidgetsByTypeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWidgetsByTypeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWidgetsByTypeQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *   },
+ * });
+ */
+export function useGetWidgetsByTypeQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        GetWidgetsByTypeQuery,
+        GetWidgetsByTypeQueryVariables
+    > &
+        (
+            | { variables: GetWidgetsByTypeQueryVariables; skip?: boolean }
+            | { skip: boolean }
+        ),
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useQuery<
+        GetWidgetsByTypeQuery,
+        GetWidgetsByTypeQueryVariables
+    >(GetWidgetsByTypeDocument, options);
+}
+export function useGetWidgetsByTypeLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        GetWidgetsByTypeQuery,
+        GetWidgetsByTypeQueryVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useLazyQuery<
+        GetWidgetsByTypeQuery,
+        GetWidgetsByTypeQueryVariables
+    >(GetWidgetsByTypeDocument, options);
+}
+export function useGetWidgetsByTypeSuspenseQuery(
+    baseOptions?:
+        | Apollo.SkipToken
+        | Apollo.SuspenseQueryHookOptions<
+              GetWidgetsByTypeQuery,
+              GetWidgetsByTypeQueryVariables
+          >,
+) {
+    const options =
+        baseOptions === Apollo.skipToken
+            ? baseOptions
+            : { ...defaultOptions, ...baseOptions };
+    return Apollo.useSuspenseQuery<
+        GetWidgetsByTypeQuery,
+        GetWidgetsByTypeQueryVariables
+    >(GetWidgetsByTypeDocument, options);
+}
+export type GetWidgetsByTypeQueryHookResult = ReturnType<
+    typeof useGetWidgetsByTypeQuery
+>;
+export type GetWidgetsByTypeLazyQueryHookResult = ReturnType<
+    typeof useGetWidgetsByTypeLazyQuery
+>;
+export type GetWidgetsByTypeSuspenseQueryHookResult = ReturnType<
+    typeof useGetWidgetsByTypeSuspenseQuery
+>;
+export type GetWidgetsByTypeQueryResult = Apollo.QueryResult<
+    GetWidgetsByTypeQuery,
+    GetWidgetsByTypeQueryVariables
+>;
+export const GetAvailableWidgetTypesDocument = gql`
+    query GetAvailableWidgetTypes {
+        availableWidgetTypes
+    }
+`;
+
+/**
+ * __useGetAvailableWidgetTypesQuery__
+ *
+ * To run a query within a React component, call `useGetAvailableWidgetTypesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAvailableWidgetTypesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAvailableWidgetTypesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAvailableWidgetTypesQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        GetAvailableWidgetTypesQuery,
+        GetAvailableWidgetTypesQueryVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useQuery<
+        GetAvailableWidgetTypesQuery,
+        GetAvailableWidgetTypesQueryVariables
+    >(GetAvailableWidgetTypesDocument, options);
+}
+export function useGetAvailableWidgetTypesLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        GetAvailableWidgetTypesQuery,
+        GetAvailableWidgetTypesQueryVariables
+    >,
+) {
+    const options = { ...defaultOptions, ...baseOptions };
+    return Apollo.useLazyQuery<
+        GetAvailableWidgetTypesQuery,
+        GetAvailableWidgetTypesQueryVariables
+    >(GetAvailableWidgetTypesDocument, options);
+}
+export function useGetAvailableWidgetTypesSuspenseQuery(
+    baseOptions?:
+        | Apollo.SkipToken
+        | Apollo.SuspenseQueryHookOptions<
+              GetAvailableWidgetTypesQuery,
+              GetAvailableWidgetTypesQueryVariables
+          >,
+) {
+    const options =
+        baseOptions === Apollo.skipToken
+            ? baseOptions
+            : { ...defaultOptions, ...baseOptions };
+    return Apollo.useSuspenseQuery<
+        GetAvailableWidgetTypesQuery,
+        GetAvailableWidgetTypesQueryVariables
+    >(GetAvailableWidgetTypesDocument, options);
+}
+export type GetAvailableWidgetTypesQueryHookResult = ReturnType<
+    typeof useGetAvailableWidgetTypesQuery
+>;
+export type GetAvailableWidgetTypesLazyQueryHookResult = ReturnType<
+    typeof useGetAvailableWidgetTypesLazyQuery
+>;
+export type GetAvailableWidgetTypesSuspenseQueryHookResult = ReturnType<
+    typeof useGetAvailableWidgetTypesSuspenseQuery
+>;
+export type GetAvailableWidgetTypesQueryResult = Apollo.QueryResult<
+    GetAvailableWidgetTypesQuery,
+    GetAvailableWidgetTypesQueryVariables
 >;
