@@ -81,7 +81,7 @@ jobs:
                   JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
                   POSTGRES_USER=${{ secrets.POSTGRES_USER }}
                   POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-                  POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+                  POSTGRES_DB_AUTH=${{ secrets.POSTGRES_DB_AUTH }}
                   AUTH_URL=${{ secrets.AUTH_URL }}
                   AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
                   GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}

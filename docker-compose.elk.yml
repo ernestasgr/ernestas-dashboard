@@ -1,7 +1,7 @@
 services:
   auth:
     depends_on:
-      db:
+      auth-db:
         condition: service_started
       logstash:
         condition: service_healthy
