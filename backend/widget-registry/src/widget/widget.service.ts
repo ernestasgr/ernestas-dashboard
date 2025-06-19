@@ -36,9 +36,7 @@ export class WidgetService {
             default:
                 return undefined;
         }
-    }
-
-    /**
+    } /**
      * Helper method to convert database widget to domain widget
      */
     private mapToWidget(dbWidget: any): Widget {
@@ -51,6 +49,9 @@ export class WidgetService {
             y: dbWidget.y,
             width: dbWidget.width,
             height: dbWidget.height,
+            backgroundColor: dbWidget.backgroundColor ?? undefined,
+            textColor: dbWidget.textColor ?? undefined,
+            backgroundImage: dbWidget.backgroundImage ?? undefined,
         };
     } /**
      * Get all widgets for a specific user
@@ -90,6 +91,9 @@ export class WidgetService {
                 y: input.y,
                 width: input.width,
                 height: input.height,
+                backgroundColor: input.backgroundColor,
+                textColor: input.textColor,
+                backgroundImage: input.backgroundImage,
             },
         });
 
@@ -106,6 +110,12 @@ export class WidgetService {
         if (input.y !== undefined) updateData.y = input.y;
         if (input.width !== undefined) updateData.width = input.width;
         if (input.height !== undefined) updateData.height = input.height;
+        if (input.backgroundColor !== undefined)
+            updateData.backgroundColor = input.backgroundColor;
+        if (input.textColor !== undefined)
+            updateData.textColor = input.textColor;
+        if (input.backgroundImage !== undefined)
+            updateData.backgroundImage = input.backgroundImage;
 
         const widget = await this.prisma.userWidget.update({
             where: { id: input.id },

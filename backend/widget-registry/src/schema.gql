@@ -4,8 +4,11 @@ type ClockConfig {
 }
 
 input CreateWidgetInput {
+    backgroundColor: String
+    backgroundImage: String
     config: JSON
     height: Float!
+    textColor: String
     title: String
     type: String!
     width: Float!
@@ -43,9 +46,12 @@ type WeatherConfig {
 }
 
 type Widget {
+    backgroundColor: String
+    backgroundImage: String
     config: WidgetConfig
     height: Float!
     id: ID!
+    textColor: String
     title: String
     type: String!
     width: Float!
@@ -56,9 +62,12 @@ type Widget {
 union WidgetConfig = ClockConfig | NotesConfig | TasksConfig | WeatherConfig
 
 input UpdateWidgetInput {
+    backgroundColor: String
+    backgroundImage: String
     config: JSON
     height: Float
     id: ID!
+    textColor: String
     title: String
     type: String
     width: Float

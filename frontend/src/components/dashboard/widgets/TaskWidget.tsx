@@ -1,6 +1,7 @@
 'use client';
 
 import { TasksConfig, Widget } from '@/generated/graphql';
+import { getWidgetClasses, getWidgetStyles } from '@/lib/utils/widgetStyles';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -9,9 +10,15 @@ interface TaskWidgetProps {
     widget: Widget;
     onEdit: (widget: Widget) => void;
     onDelete: (widgetId: string) => void;
+    onStyleEdit?: (widget: Widget) => void;
 }
 
-export const TaskWidget = ({ widget, onEdit, onDelete }: TaskWidgetProps) => {
+export const TaskWidget = ({
+    widget,
+    onEdit,
+    onDelete,
+    onStyleEdit,
+}: TaskWidgetProps) => {
     const config = widget.config as TasksConfig | null;
     const [tasks, setTasks] = useState([
         {
@@ -33,7 +40,6 @@ export const TaskWidget = ({ widget, onEdit, onDelete }: TaskWidgetProps) => {
             category: 'urgent',
         },
     ]);
-
     const toggleTask = (id: number) => {
         setTasks(
             tasks.map((task) =>
@@ -42,12 +48,18 @@ export const TaskWidget = ({ widget, onEdit, onDelete }: TaskWidgetProps) => {
         );
     };
 
+    const baseClasses =
+        'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40';
+    const dynamicStyles = getWidgetStyles(widget);
+    const finalClasses = getWidgetClasses(widget, baseClasses);
+
     return (
-        <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40'>
+        <div className={finalClasses} style={dynamicStyles}>
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-purple-600 dark:text-purple-400' />

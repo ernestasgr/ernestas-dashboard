@@ -7,6 +7,9 @@ query GetWidgets($userId: ID!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone
@@ -37,6 +40,9 @@ query GetWidget($id: ID!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone
@@ -67,6 +73,9 @@ query GetWidgetsByType($type: String!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone
@@ -101,6 +110,9 @@ mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone
@@ -131,6 +143,9 @@ mutation UpdateWidget($input: UpdateWidgetInput!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone
@@ -161,6 +176,9 @@ mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
         y
         width
         height
+        backgroundColor
+        textColor
+        backgroundImage
         config {
             ... on ClockConfig {
                 timezone

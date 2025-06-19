@@ -33,6 +33,15 @@ export class Widget {
 
     @Field(() => Int)
     height: number;
+
+    @Field({ nullable: true })
+    backgroundColor?: string;
+
+    @Field({ nullable: true })
+    textColor?: string;
+
+    @Field({ nullable: true })
+    backgroundImage?: string;
 }
 
 @ObjectType()
@@ -106,6 +115,15 @@ export class CreateWidgetInput {
 
     @Field(() => Int)
     height: number;
+
+    @Field({ nullable: true })
+    backgroundColor?: string;
+
+    @Field({ nullable: true })
+    textColor?: string;
+
+    @Field({ nullable: true })
+    backgroundImage?: string;
 }
 
 @InputType()
@@ -148,4 +166,13 @@ export class UpdateWidgetInput {
 
     @Field(() => Int, { nullable: true })
     height?: number;
+
+    @Field({ nullable: true })
+    backgroundColor?: string;
+
+    @Field({ nullable: true })
+    textColor?: string;
+
+    @Field({ nullable: true })
+    backgroundImage?: string;
 }

@@ -44,8 +44,11 @@ export interface ClockConfig {
 }
 
 export interface CreateWidgetInput {
+    backgroundColor?: InputMaybe<Scalars['String']['input']>;
+    backgroundImage?: InputMaybe<Scalars['String']['input']>;
     config?: InputMaybe<Scalars['JSON']['input']>;
     height: Scalars['Int']['input'];
+    textColor?: InputMaybe<Scalars['String']['input']>;
     title?: InputMaybe<Scalars['String']['input']>;
     type: Scalars['String']['input'];
     width: Scalars['Int']['input'];
@@ -119,9 +122,12 @@ export interface TasksConfig {
 }
 
 export interface UpdateWidgetInput {
+    backgroundColor?: InputMaybe<Scalars['String']['input']>;
+    backgroundImage?: InputMaybe<Scalars['String']['input']>;
     config?: InputMaybe<Scalars['JSON']['input']>;
     height?: InputMaybe<Scalars['Int']['input']>;
     id: Scalars['ID']['input'];
+    textColor?: InputMaybe<Scalars['String']['input']>;
     title?: InputMaybe<Scalars['String']['input']>;
     width?: InputMaybe<Scalars['Int']['input']>;
     x?: InputMaybe<Scalars['Int']['input']>;
@@ -144,9 +150,12 @@ export interface WeatherConfig {
 
 export interface Widget {
     __typename?: 'Widget';
+    backgroundColor?: Maybe<Scalars['String']['output']>;
+    backgroundImage?: Maybe<Scalars['String']['output']>;
     config?: Maybe<WidgetConfig>;
     height: Scalars['Int']['output'];
     id: Scalars['ID']['output'];
+    textColor?: Maybe<Scalars['String']['output']>;
     title?: Maybe<Scalars['String']['output']>;
     type: Scalars['String']['output'];
     width: Scalars['Int']['output'];
@@ -189,6 +198,9 @@ export interface GetWidgetsQuery {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -229,6 +241,9 @@ export interface GetWidgetQuery {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -269,6 +284,9 @@ export interface GetWidgetsByTypeQuery {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -319,6 +337,9 @@ export interface CreateWidgetMutation {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -359,6 +380,9 @@ export interface UpdateWidgetMutation {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -399,6 +423,9 @@ export interface UpdateWidgetLayoutMutation {
         y: number;
         width: number;
         height: number;
+        backgroundColor?: string | null;
+        textColor?: string | null;
+        backgroundImage?: string | null;
         config?:
             | {
                   __typename?: 'ClockConfig';
@@ -543,6 +570,9 @@ export const GetWidgetsDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone
@@ -647,6 +677,9 @@ export const GetWidgetDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone
@@ -751,6 +784,9 @@ export const GetWidgetsByTypeDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone
@@ -932,6 +968,9 @@ export const CreateWidgetDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone
@@ -1007,6 +1046,9 @@ export const UpdateWidgetDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone
@@ -1081,6 +1123,9 @@ export const UpdateWidgetLayoutDocument = gql`
             y
             width
             height
+            backgroundColor
+            textColor
+            backgroundImage
             config {
                 ... on ClockConfig {
                     timezone

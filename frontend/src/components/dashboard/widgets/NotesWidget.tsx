@@ -1,6 +1,7 @@
 'use client';
 
 import { NotesConfig, Widget } from '@/generated/graphql';
+import { getWidgetClasses, getWidgetStyles } from '@/lib/utils/widgetStyles';
 import { GripVertical, StickyNote } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -9,20 +10,32 @@ interface NotesWidgetProps {
     widget: Widget;
     onEdit: (widget: Widget) => void;
     onDelete: (widgetId: string) => void;
+    onStyleEdit?: (widget: Widget) => void;
 }
 
-export const NotesWidget = ({ widget, onEdit, onDelete }: NotesWidgetProps) => {
+export const NotesWidget = ({
+    widget,
+    onEdit,
+    onDelete,
+    onStyleEdit,
+}: NotesWidgetProps) => {
     const config = widget.config as NotesConfig | null;
     const [notes, setNotes] = useState(
         config?.content ?? 'Click to add notes...',
     );
 
+    const baseClasses =
+        'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40';
+    const dynamicStyles = getWidgetStyles(widget);
+    const finalClasses = getWidgetClasses(widget, baseClasses);
+
     return (
-        <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40'>
+        <div className={finalClasses} style={dynamicStyles}>
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-yellow-600 dark:text-yellow-400' />

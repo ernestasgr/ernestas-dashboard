@@ -1,6 +1,7 @@
 'use client';
 
 import { WeatherConfig, Widget } from '@/generated/graphql';
+import { getWidgetClasses, getWidgetStyles } from '@/lib/utils/widgetStyles';
 import { CloudSun, GripVertical } from 'lucide-react';
 import { WidgetActions } from '../WidgetActions';
 
@@ -8,21 +9,30 @@ interface WeatherWidgetProps {
     widget: Widget;
     onEdit: (widget: Widget) => void;
     onDelete: (widgetId: string) => void;
+    onStyleEdit?: (widget: Widget) => void;
 }
 
 export const WeatherWidget = ({
     widget,
     onEdit,
     onDelete,
+    onStyleEdit,
 }: WeatherWidgetProps) => {
     const config = widget.config as WeatherConfig | null;
 
+    const baseClasses =
+        'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-green-50 via-green-100 to-green-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-green-900/20 dark:via-green-800/30 dark:to-green-700/40';
+    const dynamicStyles = getWidgetStyles(widget);
+    const finalClasses = getWidgetClasses(widget, baseClasses);
+
     return (
-        <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-green-50 via-green-100 to-green-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-green-900/20 dark:via-green-800/30 dark:to-green-700/40'>
+        <div className={finalClasses} style={dynamicStyles}>
+            {' '}
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-green-600 dark:text-green-400' />

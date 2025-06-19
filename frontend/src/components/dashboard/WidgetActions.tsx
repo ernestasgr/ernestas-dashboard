@@ -10,19 +10,21 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Widget, useDeleteWidgetMutation } from '@/generated/graphql';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Palette, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface WidgetActionsProps {
     widget: Widget;
     onEdit: (widget: Widget) => void;
     onDelete: (widgetId: string) => void;
+    onStyleEdit?: (widget: Widget) => void;
 }
 
 export function WidgetActions({
     widget,
     onEdit,
     onDelete,
+    onStyleEdit,
 }: WidgetActionsProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleteWidget, { loading: deleting }] = useDeleteWidgetMutation();
@@ -56,6 +58,18 @@ export function WidgetActions({
                     >
                         <Edit2 className='h-3 w-3' />
                     </Button>
+                    {onStyleEdit && (
+                        <Button
+                            size='icon'
+                            variant='ghost'
+                            className='h-6 w-6 bg-white/90 shadow-sm hover:bg-white'
+                            onClick={() => {
+                                onStyleEdit(widget);
+                            }}
+                        >
+                            <Palette className='h-3 w-3' />
+                        </Button>
+                    )}
                     <Button
                         size='icon'
                         variant='ghost'

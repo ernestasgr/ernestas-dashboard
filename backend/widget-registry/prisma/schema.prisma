@@ -23,6 +23,11 @@ model UserWidget {
   width  Int
   height Int
 
+  // Style properties
+  backgroundColor String?
+  textColor       String?
+  backgroundImage String?
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
