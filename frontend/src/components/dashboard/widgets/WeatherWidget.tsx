@@ -10,7 +10,11 @@ interface WeatherWidgetProps {
     onDelete: (widgetId: string) => void;
 }
 
-export const WeatherWidget = ({ widget, onEdit, onDelete }: WeatherWidgetProps) => {
+export const WeatherWidget = ({
+    widget,
+    onEdit,
+    onDelete,
+}: WeatherWidgetProps) => {
     const config = widget.config as WeatherConfig | null;
 
     return (

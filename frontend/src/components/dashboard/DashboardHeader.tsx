@@ -7,10 +7,10 @@ interface DashboardHeaderProps {
     onAddWidget: () => void;
 }
 
-export const DashboardHeader = ({ 
-    showCoordinates, 
-    onToggleCoordinates, 
-    onAddWidget 
+export const DashboardHeader = ({
+    showCoordinates,
+    onToggleCoordinates,
+    onAddWidget,
 }: DashboardHeaderProps) => {
     return (
         <div className='mb-4 flex items-center justify-between'>

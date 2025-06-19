@@ -9,24 +9,26 @@ interface EmptyDashboardStateProps {
     windowWidth: number;
 }
 
-export const EmptyDashboardState = ({ 
-    showCoordinates, 
-    onToggleCoordinates, 
+export const EmptyDashboardState = ({
+    showCoordinates,
+    onToggleCoordinates,
     onAddWidget,
-    windowWidth 
+    windowWidth,
 }: EmptyDashboardStateProps) => {
     return (
         <div className='w-full p-4'>
             <div className='mb-4 flex items-center justify-between'>
                 <h2 className='text-2xl font-bold'>My Dashboard</h2>
-                <div className='flex items-center space-x-2'>                        <Button
-                            variant={showCoordinates ? 'default' : 'outline'}
-                            size='sm'
-                            onClick={onToggleCoordinates}
-                        >
-                            <Grid3X3 className='mr-2 h-4 w-4' />
-                            {showCoordinates ? 'Hide Grid' : 'Show Grid'}
-                        </Button>
+                <div className='flex items-center space-x-2'>
+                    {' '}
+                    <Button
+                        variant={showCoordinates ? 'default' : 'outline'}
+                        size='sm'
+                        onClick={onToggleCoordinates}
+                    >
+                        <Grid3X3 className='mr-2 h-4 w-4' />
+                        {showCoordinates ? 'Hide Grid' : 'Show Grid'}
+                    </Button>
                     <Button onClick={onAddWidget}>
                         <Plus className='mr-2 h-4 w-4' />
                         Add Your First Widget

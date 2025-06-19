@@ -10,7 +10,11 @@ interface WidgetRendererProps {
     onDelete: (widgetId: string) => void;
 }
 
-export const WidgetRenderer = ({ widget, onEdit, onDelete }: WidgetRendererProps) => {
+export const WidgetRenderer = ({
+    widget,
+    onEdit,
+    onDelete,
+}: WidgetRendererProps) => {
     switch (widget.type) {
         case 'clock':
             return (

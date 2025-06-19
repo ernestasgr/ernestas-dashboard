@@ -6,7 +6,11 @@ interface CoordinateGridProps {
     widgets: Widget[];
 }
 
-export const CoordinateGrid = ({ showCoordinates, windowWidth, widgets }: CoordinateGridProps) => {
+export const CoordinateGrid = ({
+    showCoordinates,
+    windowWidth,
+    widgets,
+}: CoordinateGridProps) => {
     if (!showCoordinates) return null;
 
     const cols = 12;
