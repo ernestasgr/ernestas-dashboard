@@ -1,5 +1,6 @@
 'use client';
 
+import { ErrorDisplay } from '@/components/ui/error-display';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,23 +11,45 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    validateWidgetConfig,
+    WidgetType,
+} from '@/lib/validation/widget-schemas';
+import { useEffect, useState } from 'react';
 
 interface WidgetConfigFieldsProps {
     type: string;
     config: Record<string, unknown>;
     onConfigUpdate: (field: string, value: unknown) => void;
+    onValidationChange?: (hasErrors: boolean) => void;
 }
 
 export function WidgetConfigFields({
     type,
     config,
     onConfigUpdate,
+    onValidationChange,
 }: WidgetConfigFieldsProps) {
+    const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
+    useEffect(() => {
+        const validation = validateWidgetConfig(type as WidgetType, config);
+        if (validation.success) {
+            setValidationErrors([]);
+            onValidationChange?.(false);
+        } else {
+            setValidationErrors(validation.errors);
+            onValidationChange?.(true);
+        }
+    }, [config, type, onValidationChange]);
     const renderClockConfig = () => {
         const clockConfig = config as {
             timezone?: string;
             format?: string;
         };
+
+        const timezoneError =
+            !clockConfig.timezone || clockConfig.timezone.trim() === '';
 
         return (
             <div className='grid grid-cols-2 gap-4'>
@@ -39,7 +62,13 @@ export function WidgetConfigFields({
                             onConfigUpdate('timezone', e.target.value);
                         }}
                         placeholder='UTC'
+                        className={timezoneError ? 'border-red-500' : ''}
                     />
+                    {timezoneError && (
+                        <p className='text-sm text-red-600'>
+                            Timezone is required
+                        </p>
+                    )}
                 </div>
                 <div className='space-y-2'>
                     <Label htmlFor='format'>Format</Label>
@@ -61,12 +90,14 @@ export function WidgetConfigFields({
             </div>
         );
     };
-
     const renderWeatherConfig = () => {
         const weatherConfig = config as {
             location?: string;
             units?: string;
         };
+
+        const locationError =
+            !weatherConfig.location || weatherConfig.location.trim() === '';
 
         return (
             <div className='grid grid-cols-2 gap-4'>
@@ -79,7 +110,13 @@ export function WidgetConfigFields({
                             onConfigUpdate('location', e.target.value);
                         }}
                         placeholder='New York, NY'
+                        className={locationError ? 'border-red-500' : ''}
                     />
+                    {locationError && (
+                        <p className='text-sm text-red-600'>
+                            Location is required
+                        </p>
+                    )}
                 </div>
                 <div className='space-y-2'>
                     <Label htmlFor='units'>Units</Label>
@@ -141,12 +178,14 @@ export function WidgetConfigFields({
             </>
         );
     };
-
     const renderTasksConfig = () => {
         const tasksConfig = config as {
             categories?: string[];
             defaultCategory?: string;
         };
+
+        const categoriesError =
+            !tasksConfig.categories || tasksConfig.categories.length === 0;
 
         return (
             <>
@@ -167,7 +206,13 @@ export function WidgetConfigFields({
                             );
                         }}
                         placeholder='personal, work, urgent'
+                        className={categoriesError ? 'border-red-500' : ''}
                     />
+                    {categoriesError && (
+                        <p className='text-sm text-red-600'>
+                            At least one category is required
+                        </p>
+                    )}
                 </div>
                 <div className='space-y-2'>
                     <Label htmlFor='defaultCategory'>Default Category</Label>
@@ -183,16 +228,35 @@ export function WidgetConfigFields({
             </>
         );
     };
-
     switch (type) {
         case 'clock':
-            return renderClockConfig();
+            return (
+                <>
+                    {renderClockConfig()}
+                    <ErrorDisplay errors={validationErrors} />
+                </>
+            );
         case 'weather':
-            return renderWeatherConfig();
+            return (
+                <>
+                    {renderWeatherConfig()}
+                    <ErrorDisplay errors={validationErrors} />
+                </>
+            );
         case 'notes':
-            return renderNotesConfig();
+            return (
+                <>
+                    {renderNotesConfig()}
+                    <ErrorDisplay errors={validationErrors} />
+                </>
+            );
         case 'tasks':
-            return renderTasksConfig();
+            return (
+                <>
+                    {renderTasksConfig()}
+                    <ErrorDisplay errors={validationErrors} />
+                </>
+            );
         default:
             return null;
     }

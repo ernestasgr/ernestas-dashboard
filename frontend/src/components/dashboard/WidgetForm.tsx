@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { ErrorDisplay } from '@/components/ui/error-display';
 import {
     CreateWidgetInput,
     UpdateWidgetInput,
@@ -17,7 +18,9 @@ import {
     useMeQuery,
     useUpdateWidgetMutation,
 } from '@/generated/graphql';
+import { useState } from 'react';
 import { useWidgetForm } from './hooks/useWidgetForm';
+import { useWidgetValidation } from './hooks/useWidgetValidation';
 import { WidgetBasicFields } from './WidgetBasicFields';
 import { WidgetConfigFields } from './WidgetConfigFields';
 import { WidgetPositionFields } from './WidgetPositionFields';
@@ -42,6 +45,7 @@ export function WidgetForm({
     const [updateWidget, { loading: updating }] = useUpdateWidgetMutation();
     const isEditing = !!widget;
     const loading = creating || updating;
+    const [configHasErrors, setConfigHasErrors] = useState(false);
 
     const {
         formData,
@@ -52,10 +56,24 @@ export function WidgetForm({
         resetForm,
     } = useWidgetForm({ widget, open });
 
+    const { errors, hasErrors, validateForm, clearErrors } =
+        useWidgetValidation({
+            isEditing,
+        });
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!meData?.me.email) return;
+
+        const isValid = validateForm({
+            ...formData,
+            id: widget?.id,
+        });
+
+        if (!isValid || configHasErrors) {
+            return;
+        }
 
         try {
             if (isEditing) {
@@ -95,9 +113,9 @@ export function WidgetForm({
                     onWidgetCreated(result.data.createWidget);
                 }
             }
-
             onOpenChange(false);
             resetForm();
+            clearErrors();
         } catch (error) {
             console.error('Error saving widget:', error);
         }
@@ -123,7 +141,6 @@ export function WidgetForm({
                     className='space-y-6'
                 >
                     <div className='space-y-4'>
-                        {' '}
                         <WidgetBasicFields
                             title={formData.title}
                             type={formData.type}
@@ -144,8 +161,23 @@ export function WidgetForm({
                             type={formData.type}
                             config={formData.config}
                             onConfigUpdate={updateConfigField}
+                            onValidationChange={setConfigHasErrors}
                         />
                     </div>
+
+                    {hasErrors && (
+                        <div className='space-y-2'>
+                            {Object.entries(errors).map(
+                                ([field, fieldErrors]) => (
+                                    <ErrorDisplay
+                                        key={field}
+                                        errors={fieldErrors}
+                                        className='mt-2'
+                                    />
+                                ),
+                            )}
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button
@@ -156,8 +188,11 @@ export function WidgetForm({
                             }}
                         >
                             Cancel
-                        </Button>
-                        <Button type='submit' disabled={loading}>
+                        </Button>{' '}
+                        <Button
+                            type='submit'
+                            disabled={loading || hasErrors || configHasErrors}
+                        >
                             {loading
                                 ? 'Saving...'
                                 : isEditing
