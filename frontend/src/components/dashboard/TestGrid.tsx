@@ -15,6 +15,7 @@ import {
     CheckSquare,
     Clock,
     CloudSun,
+    Grid3X3,
     GripVertical,
     Plus,
     StickyNote,
@@ -309,6 +310,7 @@ const MyGrid = () => {
     const [windowWidth, setWindowWidth] = useState(1200);
     const [showWidgetForm, setShowWidgetForm] = useState(false);
     const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
+    const [showCoordinates, setShowCoordinates] = useState(false);
     const [, setPreviousLayout] = useState<GridLayout.Layout[]>([]);
     const layoutUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedLayoutRef = useRef<GridLayout.Layout[]>([]);
@@ -442,6 +444,107 @@ const MyGrid = () => {
         setShowWidgetForm(true);
     };
 
+    const renderCoordinateGrid = () => {
+        if (!showCoordinates) return null;
+
+        const cols = 12;
+        const rowHeight = 60;
+        const margin = [10, 10]; // Same as react-grid-layout default margin
+        const containerPadding = [0, 0]; // Same as react-grid-layout default containerPadding
+
+        const availableWidth = windowWidth - containerPadding[0] * 2;
+        const colWidth = (availableWidth - margin[0] * (cols - 1)) / cols;
+
+        const maxY = widgetsData?.widgets
+            ? widgetsData.widgets.reduce(
+                  (max, widget) => Math.max(max, widget.y + widget.height),
+                  0,
+              )
+            : 0;
+        const minRows = Math.max(10, maxY + 2); // Show at least 10 rows, or enough to fit all widgets plus 2 extra
+        const gridItems = [];
+        const axisLabels = [];
+
+        for (let col = 0; col < cols; col++) {
+            const left = col * (colWidth + margin[0]);
+            axisLabels.push(
+                <div
+                    key={`col-header-${col.toString()}`}
+                    className='pointer-events-none absolute flex items-center justify-center border border-blue-300 bg-blue-100/90 font-mono text-sm font-bold text-blue-700'
+                    style={{
+                        left: `${left.toString()}px`,
+                        top: '-30px',
+                        width: `${colWidth.toString()}px`,
+                        height: '28px',
+                        zIndex: 20,
+                    }}
+                >
+                    {col}
+                </div>,
+            );
+        }
+
+        for (let row = 0; row < minRows; row++) {
+            const top = row * (rowHeight + margin[1]);
+            axisLabels.push(
+                <div
+                    key={`row-header-${row.toString()}`}
+                    className='pointer-events-none absolute flex items-center justify-center border border-blue-300 bg-blue-100/90 font-mono text-sm font-bold text-blue-700'
+                    style={{
+                        left: '-40px',
+                        top: `${top.toString()}px`,
+                        width: '38px',
+                        height: `${rowHeight.toString()}px`,
+                        zIndex: 20,
+                    }}
+                >
+                    {row}
+                </div>,
+            );
+        }
+
+        for (let row = 0; row < minRows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const left = col * (colWidth + margin[0]);
+                const top = row * (rowHeight + margin[1]);
+                gridItems.push(
+                    <div
+                        key={`grid-${row.toString()}-${col.toString()}`}
+                        className='pointer-events-none absolute border border-slate-300/40 bg-slate-100/20'
+                        style={{
+                            left: `${left.toString()}px`,
+                            top: `${top.toString()}px`,
+                            width: `${colWidth.toString()}px`,
+                            height: `${rowHeight.toString()}px`,
+                        }}
+                    />,
+                );
+            }
+        }
+
+        return (
+            <div
+                className='pointer-events-none absolute inset-0 z-0'
+                style={{ marginTop: '30px', marginLeft: '40px' }}
+            >
+                <div className='absolute inset-0'>{axisLabels}</div>
+                <div className='absolute inset-0'>{gridItems}</div>
+                <div
+                    className='pointer-events-none absolute flex items-center justify-center border border-blue-400 bg-blue-200/90 font-mono text-xs font-bold text-blue-800'
+                    style={{
+                        left: '-40px',
+                        top: '-30px',
+                        width: '38px',
+                        height: '28px',
+                        zIndex: 25,
+                    }}
+                >
+                    X,Y
+                </div>
+            </div>
+        );
+    };
+
     if (loading) {
         return (
             <div className='w-full p-4'>
@@ -459,16 +562,38 @@ const MyGrid = () => {
             </div>
         );
     }
-
     if (!widgetsData?.widgets || widgetsData.widgets.length === 0) {
         return (
             <div className='w-full p-4'>
-                <div className='space-y-4 text-center'>
-                    <div>No widgets available</div>
-                    <Button onClick={handleAddWidget}>
-                        <Plus className='mr-2 h-4 w-4' />
-                        Add Your First Widget
-                    </Button>
+                <div className='mb-4 flex items-center justify-between'>
+                    <h2 className='text-2xl font-bold'>My Dashboard</h2>
+                    <div className='flex items-center space-x-2'>
+                        <Button
+                            variant={showCoordinates ? 'default' : 'outline'}
+                            size='sm'
+                            onClick={() => {
+                                setShowCoordinates(!showCoordinates);
+                            }}
+                        >
+                            <Grid3X3 className='mr-2 h-4 w-4' />
+                            {showCoordinates ? 'Hide Grid' : 'Show Grid'}
+                        </Button>
+                        <Button onClick={handleAddWidget}>
+                            <Plus className='mr-2 h-4 w-4' />
+                            Add Your First Widget
+                        </Button>
+                    </div>
+                </div>
+                <div className='relative min-h-[400px]'>
+                    {renderCoordinateGrid()}
+                    <div className='space-y-4 pt-20 text-center'>
+                        <div>No widgets available</div>
+                        <div className='text-sm text-slate-600'>
+                            {showCoordinates
+                                ? 'Use the grid coordinates to position your first widget!'
+                                : 'Toggle the grid to see coordinates for positioning.'}
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -484,36 +609,52 @@ const MyGrid = () => {
 
     return (
         <div className='w-full p-4'>
+            {' '}
             <div className='mb-4 flex items-center justify-between'>
                 <h2 className='text-2xl font-bold'>My Dashboard</h2>
-                <Button onClick={handleAddWidget}>
-                    <Plus className='mr-2 h-4 w-4' />
-                    Add Widget
-                </Button>
+                <div className='flex items-center space-x-2'>
+                    <Button
+                        variant={showCoordinates ? 'default' : 'outline'}
+                        size='sm'
+                        onClick={() => {
+                            setShowCoordinates(!showCoordinates);
+                        }}
+                    >
+                        <Grid3X3 className='mr-2 h-4 w-4' />
+                        {showCoordinates ? 'Hide Grid' : 'Show Grid'}
+                    </Button>
+                    <Button onClick={handleAddWidget}>
+                        <Plus className='mr-2 h-4 w-4' />
+                        Add Widget
+                    </Button>
+                </div>{' '}
             </div>
-
-            <GridLayout
-                className='layout'
-                layout={layout}
-                cols={12}
-                rowHeight={60}
-                width={windowWidth}
-                isDraggable={true}
-                isResizable={true}
-                draggableHandle='.drag-handle'
-                onLayoutChange={handleLayoutChange}
-            >
-                {widgetsData.widgets.map((widget) => (
-                    <div key={widget.id}>
-                        {renderWidget(
-                            widget,
-                            handleEditWidget,
-                            handleDeleteWidget,
-                        )}
-                    </div>
-                ))}
-            </GridLayout>
-
+            <div className={`relative ${showCoordinates ? 'pt-8 pl-10' : ''}`}>
+                {renderCoordinateGrid()}{' '}
+                <GridLayout
+                    className='layout'
+                    layout={layout}
+                    cols={12}
+                    rowHeight={60}
+                    width={windowWidth}
+                    margin={[10, 10]}
+                    containerPadding={[0, 0]}
+                    isDraggable={true}
+                    isResizable={true}
+                    draggableHandle='.drag-handle'
+                    onLayoutChange={handleLayoutChange}
+                >
+                    {widgetsData.widgets.map((widget) => (
+                        <div key={widget.id} className='relative z-10'>
+                            {renderWidget(
+                                widget,
+                                handleEditWidget,
+                                handleDeleteWidget,
+                            )}
+                        </div>
+                    ))}
+                </GridLayout>
+            </div>
             <WidgetForm
                 open={showWidgetForm}
                 onOpenChange={setShowWidgetForm}
