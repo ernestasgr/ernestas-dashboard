@@ -1,11 +1,13 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import {
     ClockConfig,
     NotesConfig,
     TasksConfig,
     useGetWidgetsQuery,
     useMeQuery,
+    useUpdateWidgetLayoutMutation,
     WeatherConfig,
     Widget,
 } from '@/generated/graphql';
@@ -14,16 +16,21 @@ import {
     Clock,
     CloudSun,
     GripVertical,
+    Plus,
     StickyNote,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
+import { WidgetActions } from './WidgetActions';
+import { WidgetForm } from './WidgetForm';
 
 interface WidgetProps {
     widget: Widget;
+    onEdit: (widget: Widget) => void;
+    onDelete: (widgetId: string) => void;
 }
 
-const ClockWidget = ({ widget }: WidgetProps) => {
+const ClockWidget = ({ widget, onEdit, onDelete }: WidgetProps) => {
     const [time, setTime] = useState(new Date());
     const config = widget.config as ClockConfig | null;
 
@@ -50,6 +57,11 @@ const ClockWidget = ({ widget }: WidgetProps) => {
 
     return (
         <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-blue-900/20 dark:via-blue-800/30 dark:to-blue-700/40'>
+            <WidgetActions
+                widget={widget}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-blue-600 dark:text-blue-400' />
             </div>
@@ -73,11 +85,16 @@ const ClockWidget = ({ widget }: WidgetProps) => {
     );
 };
 
-const WeatherWidget = ({ widget }: WidgetProps) => {
+const WeatherWidget = ({ widget, onEdit, onDelete }: WidgetProps) => {
     const config = widget.config as WeatherConfig | null;
 
     return (
         <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-green-50 via-green-100 to-green-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-green-900/20 dark:via-green-800/30 dark:to-green-700/40'>
+            <WidgetActions
+                widget={widget}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-green-600 dark:text-green-400' />
             </div>
@@ -109,7 +126,7 @@ const WeatherWidget = ({ widget }: WidgetProps) => {
     );
 };
 
-const NotesWidget = ({ widget }: WidgetProps) => {
+const NotesWidget = ({ widget, onEdit, onDelete }: WidgetProps) => {
     const config = widget.config as NotesConfig | null;
     const [notes, setNotes] = useState(
         config?.content ?? 'Click to add notes...',
@@ -117,6 +134,11 @@ const NotesWidget = ({ widget }: WidgetProps) => {
 
     return (
         <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40'>
+            <WidgetActions
+                widget={widget}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-yellow-600 dark:text-yellow-400' />
             </div>
@@ -153,7 +175,7 @@ const NotesWidget = ({ widget }: WidgetProps) => {
     );
 };
 
-const TaskWidget = ({ widget }: WidgetProps) => {
+const TaskWidget = ({ widget, onEdit, onDelete }: WidgetProps) => {
     const config = widget.config as TasksConfig | null;
     const [tasks, setTasks] = useState([
         {
@@ -186,6 +208,11 @@ const TaskWidget = ({ widget }: WidgetProps) => {
 
     return (
         <div className='group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40'>
+            <WidgetActions
+                widget={widget}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                 <GripVertical className='h-5 w-5 text-purple-600 dark:text-purple-400' />
             </div>
@@ -235,16 +262,44 @@ const TaskWidget = ({ widget }: WidgetProps) => {
     );
 };
 
-const renderWidget = (widget: Widget) => {
+const renderWidget = (
+    widget: Widget,
+    onEdit: (widget: Widget) => void,
+    onDelete: (widgetId: string) => void,
+) => {
     switch (widget.type) {
         case 'clock':
-            return <ClockWidget widget={widget} />;
+            return (
+                <ClockWidget
+                    widget={widget}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
+            );
         case 'weather':
-            return <WeatherWidget widget={widget} />;
+            return (
+                <WeatherWidget
+                    widget={widget}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
+            );
         case 'notes':
-            return <NotesWidget widget={widget} />;
+            return (
+                <NotesWidget
+                    widget={widget}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
+            );
         case 'tasks':
-            return <TaskWidget widget={widget} />;
+            return (
+                <TaskWidget
+                    widget={widget}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
+            );
         default:
             return <div>Unknown widget type: {widget.type}</div>;
     }
@@ -252,13 +307,20 @@ const renderWidget = (widget: Widget) => {
 
 const MyGrid = () => {
     const [windowWidth, setWindowWidth] = useState(1200);
+    const [showWidgetForm, setShowWidgetForm] = useState(false);
+    const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
+    const [, setPreviousLayout] = useState<GridLayout.Layout[]>([]);
+    const layoutUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSavedLayoutRef = useRef<GridLayout.Layout[]>([]);
 
     const { data: meData } = useMeQuery();
+    const [updateWidgetLayout] = useUpdateWidgetLayoutMutation();
 
     const {
         data: widgetsData,
         loading,
         error,
+        refetch,
     } = useGetWidgetsQuery({
         variables: { userId: meData?.me.email ?? '' },
         skip: !meData?.me.email,
@@ -275,6 +337,110 @@ const MyGrid = () => {
             window.removeEventListener('resize', updateWidth);
         };
     }, []);
+    useEffect(() => {
+        if (widgetsData?.widgets) {
+            const layout = widgetsData.widgets.map((widget) => ({
+                i: widget.id,
+                x: widget.x,
+                y: widget.y,
+                w: widget.width,
+                h: widget.height,
+            }));
+            setPreviousLayout(layout);
+            lastSavedLayoutRef.current = layout;
+        }
+    }, [widgetsData?.widgets]);
+
+    useEffect(() => {
+        return () => {
+            if (layoutUpdateTimeoutRef.current) {
+                clearTimeout(layoutUpdateTimeoutRef.current);
+            }
+        };
+    }, []);
+    const debouncedUpdateLayout = useCallback(
+        (layout: GridLayout.Layout[]) => {
+            if (layoutUpdateTimeoutRef.current) {
+                clearTimeout(layoutUpdateTimeoutRef.current);
+            }
+
+            layoutUpdateTimeoutRef.current = setTimeout(() => {
+                const changedItems = layout.filter((item) => {
+                    const prevItem = lastSavedLayoutRef.current.find(
+                        (prev) => prev.i === item.i,
+                    );
+                    return (
+                        !prevItem ||
+                        prevItem.x !== item.x ||
+                        prevItem.y !== item.y ||
+                        prevItem.w !== item.w ||
+                        prevItem.h !== item.h
+                    );
+                });
+
+                if (changedItems.length > 0) {
+                    changedItems.forEach((item) => {
+                        updateWidgetLayout({
+                            variables: {
+                                input: {
+                                    id: item.i,
+                                    x: item.x,
+                                    y: item.y,
+                                    width: item.w,
+                                    height: item.h,
+                                },
+                            },
+                            optimisticResponse: {
+                                // @ts-expect-error type is deliberately excluded, because searching for the type of widget being updated takes time and so causes minor visual glitches
+                                updateWidgetLayout: {
+                                    __typename: 'Widget',
+                                    id: item.i,
+                                    x: item.x,
+                                    y: item.y,
+                                    width: item.w,
+                                    height: item.h,
+                                },
+                            },
+                        }).catch((error: unknown) => {
+                            console.error(
+                                'Error updating widget layout:',
+                                error,
+                            );
+                        });
+                    });
+
+                    lastSavedLayoutRef.current = layout;
+                }
+            }, 300);
+        },
+        [updateWidgetLayout],
+    );
+    const handleLayoutChange = (layout: GridLayout.Layout[]) => {
+        debouncedUpdateLayout(layout);
+    };
+
+    const handleEditWidget = (widget: Widget) => {
+        setEditingWidget(widget);
+        setShowWidgetForm(true);
+    };
+
+    const handleDeleteWidget = () => {
+        void refetch();
+    };
+
+    const handleWidgetCreated = () => {
+        void refetch();
+    };
+
+    const handleWidgetUpdated = () => {
+        void refetch();
+        setEditingWidget(null);
+    };
+
+    const handleAddWidget = () => {
+        setEditingWidget(null);
+        setShowWidgetForm(true);
+    };
 
     if (loading) {
         return (
@@ -297,10 +463,17 @@ const MyGrid = () => {
     if (!widgetsData?.widgets || widgetsData.widgets.length === 0) {
         return (
             <div className='w-full p-4'>
-                <div className='text-center'>No widgets available</div>
+                <div className='space-y-4 text-center'>
+                    <div>No widgets available</div>
+                    <Button onClick={handleAddWidget}>
+                        <Plus className='mr-2 h-4 w-4' />
+                        Add Your First Widget
+                    </Button>
+                </div>
             </div>
         );
     }
+
     const layout = widgetsData.widgets.map((widget) => ({
         i: widget.id,
         x: widget.x,
@@ -311,6 +484,14 @@ const MyGrid = () => {
 
     return (
         <div className='w-full p-4'>
+            <div className='mb-4 flex items-center justify-between'>
+                <h2 className='text-2xl font-bold'>My Dashboard</h2>
+                <Button onClick={handleAddWidget}>
+                    <Plus className='mr-2 h-4 w-4' />
+                    Add Widget
+                </Button>
+            </div>
+
             <GridLayout
                 className='layout'
                 layout={layout}
@@ -320,11 +501,26 @@ const MyGrid = () => {
                 isDraggable={true}
                 isResizable={true}
                 draggableHandle='.drag-handle'
+                onLayoutChange={handleLayoutChange}
             >
                 {widgetsData.widgets.map((widget) => (
-                    <div key={widget.id}>{renderWidget(widget)}</div>
+                    <div key={widget.id}>
+                        {renderWidget(
+                            widget,
+                            handleEditWidget,
+                            handleDeleteWidget,
+                        )}
+                    </div>
                 ))}
             </GridLayout>
+
+            <WidgetForm
+                open={showWidgetForm}
+                onOpenChange={setShowWidgetForm}
+                widget={editingWidget}
+                onWidgetCreated={handleWidgetCreated}
+                onWidgetUpdated={handleWidgetUpdated}
+            />
         </div>
     );
 };

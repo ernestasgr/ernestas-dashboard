@@ -14,7 +14,6 @@ COPY . .
 RUN pnpm prisma generate
 RUN pnpm run build
 
-# Copy entrypoint script and make it executable
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
