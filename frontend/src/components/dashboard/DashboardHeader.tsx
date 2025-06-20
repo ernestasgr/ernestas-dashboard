@@ -20,11 +20,12 @@ export const DashboardHeader = ({
                     variant={showCoordinates ? 'default' : 'outline'}
                     size='sm'
                     onClick={onToggleCoordinates}
+                    className='cursor-pointer'
                 >
                     <Grid3X3 className='mr-2 h-4 w-4' />
                     {showCoordinates ? 'Hide Grid' : 'Show Grid'}
                 </Button>
-                <Button onClick={onAddWidget}>
+                <Button onClick={onAddWidget} className='cursor-pointer'>
                     <Plus className='mr-2 h-4 w-4' />
                     Add Widget
                 </Button>

@@ -48,6 +48,7 @@ export interface CreateWidgetInput {
     backgroundImage?: InputMaybe<Scalars['String']['input']>;
     config?: InputMaybe<Scalars['JSON']['input']>;
     height: Scalars['Int']['input'];
+    iconColor?: InputMaybe<Scalars['String']['input']>;
     textColor?: InputMaybe<Scalars['String']['input']>;
     title?: InputMaybe<Scalars['String']['input']>;
     type: Scalars['String']['input'];
@@ -126,6 +127,7 @@ export interface UpdateWidgetInput {
     backgroundImage?: InputMaybe<Scalars['String']['input']>;
     config?: InputMaybe<Scalars['JSON']['input']>;
     height?: InputMaybe<Scalars['Int']['input']>;
+    iconColor?: InputMaybe<Scalars['String']['input']>;
     id: Scalars['ID']['input'];
     textColor?: InputMaybe<Scalars['String']['input']>;
     title?: InputMaybe<Scalars['String']['input']>;
@@ -154,6 +156,7 @@ export interface Widget {
     backgroundImage?: Maybe<Scalars['String']['output']>;
     config?: Maybe<WidgetConfig>;
     height: Scalars['Int']['output'];
+    iconColor?: Maybe<Scalars['String']['output']>;
     id: Scalars['ID']['output'];
     textColor?: Maybe<Scalars['String']['output']>;
     title?: Maybe<Scalars['String']['output']>;
@@ -200,6 +203,7 @@ export interface GetWidgetsQuery {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -243,6 +247,7 @@ export interface GetWidgetQuery {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -286,6 +291,7 @@ export interface GetWidgetsByTypeQuery {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -339,6 +345,7 @@ export interface CreateWidgetMutation {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -382,6 +389,7 @@ export interface UpdateWidgetMutation {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -425,6 +433,7 @@ export interface UpdateWidgetLayoutMutation {
         height: number;
         backgroundColor?: string | null;
         textColor?: string | null;
+        iconColor?: string | null;
         backgroundImage?: string | null;
         config?:
             | {
@@ -572,6 +581,7 @@ export const GetWidgetsDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {
@@ -679,6 +689,7 @@ export const GetWidgetDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {
@@ -786,6 +797,7 @@ export const GetWidgetsByTypeDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {
@@ -970,6 +982,7 @@ export const CreateWidgetDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {
@@ -1048,6 +1061,7 @@ export const UpdateWidgetDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {
@@ -1125,6 +1139,7 @@ export const UpdateWidgetLayoutDocument = gql`
             height
             backgroundColor
             textColor
+            iconColor
             backgroundImage
             config {
                 ... on ClockConfig {

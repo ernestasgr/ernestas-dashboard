@@ -41,6 +41,9 @@ export class Widget {
     textColor?: string;
 
     @Field({ nullable: true })
+    iconColor?: string;
+
+    @Field({ nullable: true })
     backgroundImage?: string;
 }
 
@@ -123,6 +126,9 @@ export class CreateWidgetInput {
     textColor?: string;
 
     @Field({ nullable: true })
+    iconColor?: string;
+
+    @Field({ nullable: true })
     backgroundImage?: string;
 }
 
@@ -172,6 +178,9 @@ export class UpdateWidgetInput {
 
     @Field({ nullable: true })
     textColor?: string;
+
+    @Field({ nullable: true })
+    iconColor?: string;
 
     @Field({ nullable: true })
     backgroundImage?: string;

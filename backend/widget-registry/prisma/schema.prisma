@@ -17,18 +17,16 @@ model UserWidget {
   title  String?
   config Json?
 
-  // Grid layout properties
   x      Int
   y      Int
   width  Int
   height Int
 
-  // Style properties
   backgroundColor String?
   textColor       String?
   backgroundImage String?
+  iconColor       String?
 
-  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

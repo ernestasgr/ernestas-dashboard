@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Widget, useDeleteWidgetMutation } from '@/generated/graphql';
+import { getWidgetIconStyles } from '@/lib/utils/widgetStyles';
 import { Edit2, Palette, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -28,6 +29,8 @@ export function WidgetActions({
 }: WidgetActionsProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleteWidget, { loading: deleting }] = useDeleteWidgetMutation();
+
+    const { backgroundStyles } = getWidgetIconStyles(widget);
 
     const handleDelete = async () => {
         try {
@@ -50,10 +53,15 @@ export function WidgetActions({
                 <div className='flex space-x-1'>
                     <Button
                         size='icon'
-                        variant='ghost'
-                        className='h-6 w-6 bg-white/90 shadow-sm hover:bg-white'
+                        className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
                         onClick={() => {
                             onEdit(widget);
+                        }}
+                        style={{
+                            ...backgroundStyles,
+                            ...(widget.textColor
+                                ? { color: widget.textColor }
+                                : {}),
                         }}
                     >
                         <Edit2 className='h-3 w-3' />
@@ -61,10 +69,15 @@ export function WidgetActions({
                     {onStyleEdit && (
                         <Button
                             size='icon'
-                            variant='ghost'
-                            className='h-6 w-6 bg-white/90 shadow-sm hover:bg-white'
+                            className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
                             onClick={() => {
                                 onStyleEdit(widget);
+                            }}
+                            style={{
+                                ...backgroundStyles,
+                                ...(widget.textColor
+                                    ? { color: widget.textColor }
+                                    : {}),
                             }}
                         >
                             <Palette className='h-3 w-3' />
@@ -72,10 +85,15 @@ export function WidgetActions({
                     )}
                     <Button
                         size='icon'
-                        variant='ghost'
-                        className='h-6 w-6 bg-white/90 text-red-600 shadow-sm hover:bg-white hover:text-red-700'
+                        className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
                         onClick={() => {
                             setShowDeleteDialog(true);
+                        }}
+                        style={{
+                            ...backgroundStyles,
+                            ...(widget.textColor
+                                ? { color: widget.textColor }
+                                : {}),
                         }}
                     >
                         <Trash2 className='h-3 w-3' />
@@ -100,6 +118,11 @@ export function WidgetActions({
                                 setShowDeleteDialog(false);
                             }}
                             disabled={deleting}
+                            className={
+                                deleting
+                                    ? 'cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            }
                         >
                             Cancel
                         </Button>{' '}
@@ -109,6 +132,11 @@ export function WidgetActions({
                                 void handleDelete();
                             }}
                             disabled={deleting}
+                            className={
+                                deleting
+                                    ? 'cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            }
                         >
                             {deleting ? 'Deleting...' : 'Delete'}
                         </Button>

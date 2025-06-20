@@ -9,6 +9,7 @@ query GetWidgets($userId: ID!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {
@@ -42,6 +43,7 @@ query GetWidget($id: ID!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {
@@ -75,6 +77,7 @@ query GetWidgetsByType($type: String!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {
@@ -112,6 +115,7 @@ mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {
@@ -145,6 +149,7 @@ mutation UpdateWidget($input: UpdateWidgetInput!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {
@@ -178,6 +183,7 @@ mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
         height
         backgroundColor
         textColor
+        iconColor
         backgroundImage
         config {
             ... on ClockConfig {

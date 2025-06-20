@@ -9,6 +9,7 @@ input CreateWidgetInput {
     config: JSON
     height: Float!
     textColor: String
+    iconColor: String
     title: String
     type: String!
     width: Float!
@@ -52,6 +53,7 @@ type Widget {
     height: Float!
     id: ID!
     textColor: String
+    iconColor: String
     title: String
     type: String!
     width: Float!
@@ -68,6 +70,7 @@ input UpdateWidgetInput {
     height: Float
     id: ID!
     textColor: String
+    iconColor: String
     title: String
     type: String
     width: Float

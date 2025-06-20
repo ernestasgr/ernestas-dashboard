@@ -186,12 +186,18 @@ export function WidgetForm({
                             onClick={() => {
                                 onOpenChange(false);
                             }}
+                            className='cursor-pointer'
                         >
                             Cancel
                         </Button>{' '}
                         <Button
                             type='submit'
                             disabled={loading || hasErrors || configHasErrors}
+                            className={
+                                loading || hasErrors || configHasErrors
+                                    ? 'cursor-not-allowed'
+                                    : 'cursor-pointer'
+                            }
                         >
                             {loading
                                 ? 'Saving...'

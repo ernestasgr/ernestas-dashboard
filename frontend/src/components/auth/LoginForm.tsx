@@ -27,7 +27,7 @@ const LoginForm: React.FC = () => {
                                 onClick={() => {
                                     handleLogin(provider);
                                 }}
-                                className='w-full'
+                                className='w-full cursor-pointer'
                                 disabled={loadingProvider !== null}
                                 name={`login-with-${provider}`}
                             >

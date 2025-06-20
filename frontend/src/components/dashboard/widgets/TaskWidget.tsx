@@ -1,7 +1,12 @@
 'use client';
 
 import { TasksConfig, Widget } from '@/generated/graphql';
-import { getWidgetClasses, getWidgetStyles } from '@/lib/utils/widgetStyles';
+import {
+    getWidgetClasses,
+    getWidgetIconStyles,
+    getWidgetItemColors,
+    getWidgetStyles,
+} from '@/lib/utils/widgetStyles';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -47,10 +52,11 @@ export const TaskWidget = ({
             ),
         );
     };
-
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40';
     const dynamicStyles = getWidgetStyles(widget);
+    const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
+    const itemColors = getWidgetItemColors(widget);
     const finalClasses = getWidgetClasses(widget, baseClasses);
 
     return (
@@ -60,24 +66,55 @@ export const TaskWidget = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onStyleEdit={onStyleEdit}
-            />
+            />{' '}
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical className='h-5 w-5 text-purple-600 dark:text-purple-400' />
+                <GripVertical
+                    className='h-5 w-5 text-purple-600 dark:text-purple-400'
+                    style={foregroundStyles}
+                />
             </div>
             <div className='flex h-full flex-col p-6'>
+                {' '}
                 <div className='mb-4 flex items-center space-x-3'>
-                    <div className='flex items-center justify-center rounded-full bg-purple-200/50 p-2 dark:bg-purple-800/50'>
-                        <CheckSquare className='h-6 w-6 text-purple-700 dark:text-purple-300' />
+                    <div
+                        className='flex items-center justify-center rounded-full bg-purple-200/50 p-2 dark:bg-purple-800/50'
+                        style={backgroundStyles}
+                    >
+                        <CheckSquare
+                            className='h-6 w-6 text-purple-700 dark:text-purple-300'
+                            style={{
+                                ...foregroundStyles,
+                                ...(widget.textColor
+                                    ? { color: widget.textColor }
+                                    : {}),
+                            }}
+                        />
                     </div>
-                    <h3 className='text-lg font-semibold text-purple-800 dark:text-purple-200'>
+                    <h3
+                        className='text-lg font-semibold text-purple-800 dark:text-purple-200'
+                        style={
+                            widget.textColor ? { color: widget.textColor } : {}
+                        }
+                    >
                         {widget.title}
                     </h3>
-                </div>
+                </div>{' '}
                 <div className='flex-1 space-y-3 overflow-y-auto'>
                     {tasks.map((task) => (
                         <div
                             key={task.id}
-                            className='flex items-center space-x-3 rounded-lg bg-purple-100/50 p-3 transition-all hover:bg-purple-200/50 dark:bg-purple-800/20 dark:hover:bg-purple-700/30'
+                            className='flex items-center space-x-3 rounded-lg p-3 transition-all'
+                            style={{
+                                backgroundColor: itemColors.lightBackground,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    itemColors.mediumBackground;
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    itemColors.lightBackground;
+                            }}
                         >
                             <input
                                 type='checkbox'
@@ -85,11 +122,20 @@ export const TaskWidget = ({
                                 onChange={() => {
                                     toggleTask(task.id);
                                 }}
-                                className='h-4 w-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500 dark:border-purple-600 dark:bg-purple-800/50'
+                                className='h-4 w-4 rounded border transition-all'
+                                style={{
+                                    borderColor: itemColors.border,
+                                    accentColor: itemColors.accent,
+                                }}
                             />
                             <div className='flex-1'>
                                 <span
-                                    className={`text-sm transition-all ${task.completed ? 'text-purple-500 line-through dark:text-purple-400' : 'text-purple-700 dark:text-purple-300'}`}
+                                    className={`text-sm transition-all ${task.completed ? 'line-through' : ''}`}
+                                    style={{
+                                        color: task.completed
+                                            ? itemColors.secondaryText
+                                            : itemColors.primaryText,
+                                    }}
                                 >
                                     {task.text}
                                 </span>
@@ -97,7 +143,12 @@ export const TaskWidget = ({
                                     config.categories.includes(
                                         task.category,
                                     ) && (
-                                        <div className='mt-1 text-xs text-purple-600 dark:text-purple-400'>
+                                        <div
+                                            className='mt-1 text-xs'
+                                            style={{
+                                                color: itemColors.secondaryText,
+                                            }}
+                                        >
                                             {task.category}
                                         </div>
                                     )}

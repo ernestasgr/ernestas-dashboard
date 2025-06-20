@@ -36,7 +36,9 @@ export class WidgetService {
             default:
                 return undefined;
         }
-    } /**
+    }
+
+    /**
      * Helper method to convert database widget to domain widget
      */
     private mapToWidget(dbWidget: any): Widget {
@@ -51,9 +53,12 @@ export class WidgetService {
             height: dbWidget.height,
             backgroundColor: dbWidget.backgroundColor ?? undefined,
             textColor: dbWidget.textColor ?? undefined,
+            iconColor: dbWidget.iconColor ?? undefined,
             backgroundImage: dbWidget.backgroundImage ?? undefined,
         };
-    } /**
+    }
+
+    /**
      * Get all widgets for a specific user
      */
     async getWidgetsForUser(userId: string): Promise<Widget[]> {
@@ -63,7 +68,9 @@ export class WidgetService {
         });
 
         return userWidgets.map((widget) => this.mapToWidget(widget));
-    } /**
+    }
+
+    /**
      * Get a specific widget by ID
      */
     async getWidgetById(id: string): Promise<Widget | null> {
@@ -74,7 +81,9 @@ export class WidgetService {
         if (!widget) return null;
 
         return this.mapToWidget(widget);
-    } /**
+    }
+
+    /**
      * Create a new widget for a user
      */
     async createWidget(
@@ -93,12 +102,15 @@ export class WidgetService {
                 height: input.height,
                 backgroundColor: input.backgroundColor,
                 textColor: input.textColor,
+                iconColor: input.iconColor,
                 backgroundImage: input.backgroundImage,
             },
         });
 
         return this.mapToWidget(widget);
-    } /**
+    }
+
+    /**
      * Update a widget
      */
     async updateWidget(input: UpdateWidgetInput): Promise<Widget> {
@@ -116,6 +128,8 @@ export class WidgetService {
             updateData.textColor = input.textColor;
         if (input.backgroundImage !== undefined)
             updateData.backgroundImage = input.backgroundImage;
+        if (input.iconColor !== undefined)
+            updateData.iconColor = input.iconColor;
 
         const widget = await this.prisma.userWidget.update({
             where: { id: input.id },
@@ -123,7 +137,9 @@ export class WidgetService {
         });
 
         return this.mapToWidget(widget);
-    } /**
+    }
+
+    /**
      * Update widget layout (position and size)
      */
     async updateWidgetLayout(input: UpdateWidgetLayoutInput): Promise<Widget> {
@@ -152,7 +168,9 @@ export class WidgetService {
         } catch {
             return false;
         }
-    } /**
+    }
+
+    /**
      * Get widgets by type
      */
     async getWidgetsByType(type: string): Promise<Widget[]> {
@@ -173,7 +191,9 @@ export class WidgetService {
         });
 
         return results.map((result) => result.type);
-    } /**
+    }
+
+    /**
      * Seed initial widgets for a user (for demo purposes)
      */
     async seedUserWidgets(userId: string): Promise<Widget[]> {

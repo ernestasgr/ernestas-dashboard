@@ -1,7 +1,12 @@
 'use client';
 
 import { NotesConfig, Widget } from '@/generated/graphql';
-import { getWidgetClasses, getWidgetStyles } from '@/lib/utils/widgetStyles';
+import {
+    getWidgetClasses,
+    getWidgetIconStyles,
+    getWidgetItemColors,
+    getWidgetStyles,
+} from '@/lib/utils/widgetStyles';
 import { GripVertical, StickyNote } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -23,10 +28,11 @@ export const NotesWidget = ({
     const [notes, setNotes] = useState(
         config?.content ?? 'Click to add notes...',
     );
-
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40';
     const dynamicStyles = getWidgetStyles(widget);
+    const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
+    const itemColors = getWidgetItemColors(widget);
     const finalClasses = getWidgetClasses(widget, baseClasses);
 
     return (
@@ -36,19 +42,39 @@ export const NotesWidget = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onStyleEdit={onStyleEdit}
-            />
+            />{' '}
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical className='h-5 w-5 text-yellow-600 dark:text-yellow-400' />
+                <GripVertical
+                    className='h-5 w-5 text-yellow-600 dark:text-yellow-400'
+                    style={foregroundStyles}
+                />
             </div>
             <div className='flex h-full flex-col p-6'>
+                {' '}
                 <div className='mb-4 flex items-center space-x-3'>
-                    <div className='flex items-center justify-center rounded-full bg-yellow-200/50 p-2 dark:bg-yellow-800/50'>
-                        <StickyNote className='h-6 w-6 text-yellow-700 dark:text-yellow-300' />
+                    <div
+                        className='flex items-center justify-center rounded-full bg-yellow-200/50 p-2 dark:bg-yellow-800/50'
+                        style={backgroundStyles}
+                    >
+                        <StickyNote
+                            className='h-6 w-6 text-yellow-700 dark:text-yellow-300'
+                            style={{
+                                ...foregroundStyles,
+                                ...(widget.textColor
+                                    ? { color: widget.textColor }
+                                    : {}),
+                            }}
+                        />
                     </div>
-                    <h3 className='text-lg font-semibold text-yellow-800 dark:text-yellow-200'>
+                    <h3
+                        className='text-lg font-semibold text-yellow-800 dark:text-yellow-200'
+                        style={
+                            widget.textColor ? { color: widget.textColor } : {}
+                        }
+                    >
                         {widget.title}
                     </h3>
-                </div>
+                </div>{' '}
                 <textarea
                     value={notes}
                     onChange={(e) => {
@@ -59,12 +85,30 @@ export const NotesWidget = ({
                             setNotes(e.target.value);
                         }
                     }}
-                    className='flex-1 resize-none rounded-lg border border-yellow-300/50 bg-yellow-50/80 p-3 text-sm text-yellow-800 placeholder-yellow-500 backdrop-blur-sm transition-all focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 focus:outline-none dark:border-yellow-600/30 dark:bg-yellow-900/20 dark:text-yellow-200 dark:placeholder-yellow-400'
+                    className='flex-1 resize-none rounded-lg border backdrop-blur-sm transition-all focus:ring-2 focus:outline-none'
+                    style={{
+                        backgroundColor: itemColors.lightBackground,
+                        borderColor: itemColors.border,
+                        color: itemColors.primaryText,
+                        padding: '0.75rem',
+                        fontSize: '0.875rem',
+                    }}
+                    onFocus={(e) => {
+                        e.target.style.borderColor = itemColors.accent;
+                        e.target.style.boxShadow = `0 0 0 2px ${itemColors.focusRing}`;
+                    }}
+                    onBlur={(e) => {
+                        e.target.style.borderColor = itemColors.border;
+                        e.target.style.boxShadow = 'none';
+                    }}
                     placeholder='Add your notes here...'
                     maxLength={config?.maxLength ?? undefined}
                 />
                 {config?.maxLength && (
-                    <div className='mt-2 text-xs text-yellow-600 dark:text-yellow-400'>
+                    <div
+                        className='mt-2 text-xs'
+                        style={{ color: itemColors.secondaryText }}
+                    >
                         {notes.length}/{config.maxLength} characters
                     </div>
                 )}
