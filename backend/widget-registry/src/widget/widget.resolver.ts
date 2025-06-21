@@ -17,9 +17,9 @@ export class WidgetResolver {
     ): Promise<Widget[]> {
         // Seed widgets if user doesn't have any (for demo)
         const widgets = await this.widgetService.getWidgetsForUser(userId);
-        if (widgets.length === 0) {
-            return this.widgetService.seedUserWidgets(userId);
-        }
+        // if (widgets.length === 0) {
+        //     return this.widgetService.seedUserWidgets(userId);
+        // }
         return widgets;
     }
 

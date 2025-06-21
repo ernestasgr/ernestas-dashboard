@@ -186,6 +186,9 @@ services:
             - node_modules/
         - action: rebuild
           path: ./backend/widget-registry/package.json
+    volumes:
+      - ./backend/widget-registry/prisma:/usr/src/app/prisma
+
   widget-registry-db:
     image: postgres:latest
     container_name: widget-registry-db

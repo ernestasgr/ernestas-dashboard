@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,24 +8,21 @@ datasource db {
 }
 
 model UserWidget {
-  id     String  @id @default(cuid())
-  userId String
-  type   String
-  title  String?
-  config Json?
-
-  x      Int
-  y      Int
-  width  Int
-  height Int
-
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  title           String?
+  config          Json?
+  x               Int
+  y               Int
+  width           Int
+  height          Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   backgroundColor String?
-  textColor       String?
   backgroundImage String?
+  textColor       String?
   iconColor       String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@map("user_widgets")
 }

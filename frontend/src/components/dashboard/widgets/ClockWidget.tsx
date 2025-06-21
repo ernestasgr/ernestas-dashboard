@@ -60,18 +60,15 @@ export const ClockWidget = ({
                 onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical
-                    className='h-5 w-5 text-blue-600 dark:text-blue-400'
-                    style={foregroundStyles}
-                />
+                <GripVertical className='h-5 w-5' style={foregroundStyles} />
             </div>
             <div className='flex h-full flex-col items-center justify-center p-6'>
                 <div
-                    className='mb-3 flex items-center justify-center rounded-full bg-blue-200/50 p-3 dark:bg-blue-800/50'
+                    className='mb-3 flex items-center justify-center rounded-full p-2'
                     style={backgroundStyles}
                 >
                     <Clock
-                        className='h-8 w-8 text-blue-700 dark:text-blue-300'
+                        className='h-8 w-8'
                         style={{
                             ...foregroundStyles,
                             ...(widget.textColor
@@ -82,7 +79,7 @@ export const ClockWidget = ({
                 </div>
                 <div className='text-center'>
                     <h3
-                        className='mb-2 text-lg font-semibold text-blue-800 dark:text-blue-200'
+                        className='mb-2 text-lg font-semibold'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }
@@ -90,7 +87,7 @@ export const ClockWidget = ({
                         {widget.title}
                     </h3>
                     <div
-                        className='text-4xl font-bold text-blue-800 dark:text-blue-200'
+                        className='text-4xl font-bold'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }
@@ -98,7 +95,7 @@ export const ClockWidget = ({
                         {formatTime(time)}
                     </div>
                     <div
-                        className='mt-2 text-sm font-medium text-blue-600 dark:text-blue-400'
+                        className='font-medium0 mt-2 text-sm'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }

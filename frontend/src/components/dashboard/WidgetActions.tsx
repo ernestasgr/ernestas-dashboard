@@ -104,7 +104,7 @@ export function WidgetActions({
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Widget</DialogTitle>{' '}
+                        <DialogTitle>Delete Widget</DialogTitle>
                         <DialogDescription>
                             Are you sure you want to delete &quot;
                             {widget.title ?? widget.type}&quot;? This action
@@ -125,7 +125,7 @@ export function WidgetActions({
                             }
                         >
                             Cancel
-                        </Button>{' '}
+                        </Button>
                         <Button
                             variant='destructive'
                             onClick={() => {

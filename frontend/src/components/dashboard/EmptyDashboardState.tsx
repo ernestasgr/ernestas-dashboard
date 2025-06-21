@@ -20,7 +20,6 @@ export const EmptyDashboardState = ({
             <div className='mb-4 flex items-center justify-between'>
                 <h2 className='text-2xl font-bold'>My Dashboard</h2>
                 <div className='flex items-center space-x-2'>
-                    {' '}
                     <Button
                         variant={showCoordinates ? 'default' : 'outline'}
                         size='sm'

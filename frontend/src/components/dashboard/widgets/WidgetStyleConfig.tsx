@@ -16,8 +16,9 @@ import {
     WIDGET_BACKGROUND_PRESETS,
     WIDGET_COLOR_PRESETS,
     WIDGET_GRADIENT_PRESETS,
+    colorToHex,
     isGradientBackground,
-} from '@/lib/utils/widgetStyles';
+} from '@/lib/utils/widget-styling';
 import { Image, Palette, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 
@@ -143,7 +144,7 @@ export const WidgetStyleConfig = ({
             </CardHeader>
             <CardContent className='space-y-4'>
                 <div className='space-y-2'>
-                    <Label className='text-sm font-medium'>Preview</Label>{' '}
+                    <Label className='text-sm font-medium'>Preview</Label>
                     <div
                         className='border-border flex h-16 w-full items-center justify-center rounded-md border text-sm font-medium'
                         style={{
@@ -259,7 +260,6 @@ export const WidgetStyleConfig = ({
                                 Background Color
                             </Label>
                             <div className='flex gap-2'>
-                                {' '}
                                 <Input
                                     id='backgroundColor'
                                     type='color'
@@ -298,7 +298,7 @@ export const WidgetStyleConfig = ({
                                 <Input
                                     id='textColor'
                                     type='color'
-                                    value={textColor}
+                                    value={colorToHex(textColor)}
                                     onChange={(e) => {
                                         setTextColor(e.target.value);
                                     }}
@@ -319,7 +319,7 @@ export const WidgetStyleConfig = ({
                                 <Input
                                     id='iconColor'
                                     type='color'
-                                    value={iconColor}
+                                    value={colorToHex(iconColor)}
                                     onChange={(e) => {
                                         setIconColor(e.target.value);
                                     }}
@@ -378,7 +378,7 @@ export const WidgetStyleConfig = ({
                                         setBackgroundImage('');
                                     }
                                 }}
-                            />{' '}
+                            />
                             <p className='text-muted-foreground text-xs'>
                                 Use CSS gradient syntax. Combines with patterns
                                 for unique effects.
@@ -427,7 +427,7 @@ export const WidgetStyleConfig = ({
                             />
                         </div>
                     </TabsContent>
-                </Tabs>{' '}
+                </Tabs>
                 <div className='flex gap-2 pt-4'>
                     <Button
                         onClick={() => {

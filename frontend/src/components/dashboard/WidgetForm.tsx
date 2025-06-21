@@ -189,7 +189,7 @@ export function WidgetForm({
                             className='cursor-pointer'
                         >
                             Cancel
-                        </Button>{' '}
+                        </Button>
                         <Button
                             type='submit'
                             disabled={loading || hasErrors || configHasErrors}

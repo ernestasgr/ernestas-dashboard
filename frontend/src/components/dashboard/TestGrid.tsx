@@ -68,15 +68,24 @@ const MyGrid = () => {
             </div>
         );
     }
-
     if (!widgetsData?.widgets || widgetsData.widgets.length === 0) {
         return (
-            <EmptyDashboardState
-                showCoordinates={showCoordinates}
-                onToggleCoordinates={handleToggleCoordinates}
-                onAddWidget={handleAddWidget}
-                windowWidth={windowWidth}
-            />
+            <>
+                <EmptyDashboardState
+                    showCoordinates={showCoordinates}
+                    onToggleCoordinates={handleToggleCoordinates}
+                    onAddWidget={handleAddWidget}
+                    windowWidth={windowWidth}
+                />
+                <WidgetForm
+                    key={showWidgetForm ? 'open' : 'closed'}
+                    open={showWidgetForm}
+                    onOpenChange={setShowWidgetForm}
+                    widget={editingWidget}
+                    onWidgetCreated={handleWidgetCreated}
+                    onWidgetUpdated={handleWidgetUpdated}
+                />
+            </>
         );
     }
 
@@ -126,6 +135,7 @@ const MyGrid = () => {
                 </GridLayout>
             </div>
             <WidgetForm
+                key={showWidgetForm ? 'open' : 'closed'}
                 open={showWidgetForm}
                 onOpenChange={setShowWidgetForm}
                 widget={editingWidget}

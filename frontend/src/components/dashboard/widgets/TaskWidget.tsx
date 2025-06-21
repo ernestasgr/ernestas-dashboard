@@ -66,22 +66,18 @@ export const TaskWidget = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onStyleEdit={onStyleEdit}
-            />{' '}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical
-                    className='h-5 w-5 text-purple-600 dark:text-purple-400'
-                    style={foregroundStyles}
-                />
+                <GripVertical className='h-5 w-5' style={foregroundStyles} />
             </div>
             <div className='flex h-full flex-col p-6'>
-                {' '}
                 <div className='mb-4 flex items-center space-x-3'>
                     <div
-                        className='flex items-center justify-center rounded-full bg-purple-200/50 p-2 dark:bg-purple-800/50'
+                        className='flex items-center justify-center rounded-full p-2'
                         style={backgroundStyles}
                     >
                         <CheckSquare
-                            className='h-6 w-6 text-purple-700 dark:text-purple-300'
+                            className='h-6 w-6'
                             style={{
                                 ...foregroundStyles,
                                 ...(widget.textColor
@@ -91,14 +87,14 @@ export const TaskWidget = ({
                         />
                     </div>
                     <h3
-                        className='text-lg font-semibold text-purple-800 dark:text-purple-200'
+                        className='text-lg font-semibold'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }
                     >
                         {widget.title}
                     </h3>
-                </div>{' '}
+                </div>
                 <div className='flex-1 space-y-3 overflow-y-auto'>
                     {tasks.map((task) => (
                         <div
@@ -109,7 +105,7 @@ export const TaskWidget = ({
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor =
-                                    itemColors.mediumBackground;
+                                    itemColors.darkBackground;
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.backgroundColor =

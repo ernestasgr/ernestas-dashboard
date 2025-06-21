@@ -42,22 +42,18 @@ export const NotesWidget = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onStyleEdit={onStyleEdit}
-            />{' '}
+            />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical
-                    className='h-5 w-5 text-yellow-600 dark:text-yellow-400'
-                    style={foregroundStyles}
-                />
+                <GripVertical className='h-5 w-5' style={foregroundStyles} />
             </div>
             <div className='flex h-full flex-col p-6'>
-                {' '}
                 <div className='mb-4 flex items-center space-x-3'>
                     <div
-                        className='flex items-center justify-center rounded-full bg-yellow-200/50 p-2 dark:bg-yellow-800/50'
+                        className='flex items-center justify-center rounded-full p-2'
                         style={backgroundStyles}
                     >
                         <StickyNote
-                            className='h-6 w-6 text-yellow-700 dark:text-yellow-300'
+                            className='h-6 w-6'
                             style={{
                                 ...foregroundStyles,
                                 ...(widget.textColor
@@ -67,14 +63,14 @@ export const NotesWidget = ({
                         />
                     </div>
                     <h3
-                        className='text-lg font-semibold text-yellow-800 dark:text-yellow-200'
+                        className='text-lg font-semibold'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }
                     >
                         {widget.title}
                     </h3>
-                </div>{' '}
+                </div>
                 <textarea
                     value={notes}
                     onChange={(e) => {
@@ -91,7 +87,6 @@ export const NotesWidget = ({
                         borderColor: itemColors.border,
                         color: itemColors.primaryText,
                         padding: '0.75rem',
-                        fontSize: '0.875rem',
                     }}
                     onFocus={(e) => {
                         e.target.style.borderColor = itemColors.accent;

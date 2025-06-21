@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     ClockConfig,
@@ -13,6 +13,8 @@ import {
 
 @Injectable()
 export class WidgetService {
+    private readonly logger = new Logger(WidgetService.name);
+
     constructor(private prisma: PrismaService) {}
 
     /**
@@ -101,8 +103,10 @@ export class WidgetService {
                 width: input.width,
                 height: input.height,
                 backgroundColor: input.backgroundColor,
-                textColor: input.textColor,
-                iconColor: input.iconColor,
+                textColor:
+                    input.textColor ?? getDefaultTextColorForType(input.type),
+                iconColor:
+                    input.iconColor ?? getDefaultIconColorForType(input.type),
                 backgroundImage: input.backgroundImage,
             },
         });
@@ -116,6 +120,15 @@ export class WidgetService {
     async updateWidget(input: UpdateWidgetInput): Promise<Widget> {
         const updateData: any = {};
 
+        const existingWidget = await this.prisma.userWidget.findUnique({
+            where: { id: input.id },
+        });
+
+        if (!existingWidget) {
+            throw new Error(`Widget with ID ${input.id} not found`);
+        }
+        this.logger.log(input);
+        this.logger.log(existingWidget.type ?? 'unknown type');
         if (input.title !== undefined) updateData.title = input.title;
         if (input.config !== undefined) updateData.config = input.config;
         if (input.x !== undefined) updateData.x = input.x;
@@ -124,12 +137,18 @@ export class WidgetService {
         if (input.height !== undefined) updateData.height = input.height;
         if (input.backgroundColor !== undefined)
             updateData.backgroundColor = input.backgroundColor;
-        if (input.textColor !== undefined)
-            updateData.textColor = input.textColor;
+        if (input.textColor) updateData.textColor = input.textColor;
+        else
+            updateData.textColor = getDefaultTextColorForType(
+                existingWidget.type,
+            );
         if (input.backgroundImage !== undefined)
             updateData.backgroundImage = input.backgroundImage;
-        if (input.iconColor !== undefined)
-            updateData.iconColor = input.iconColor;
+        if (input.iconColor) updateData.iconColor = input.iconColor;
+        else
+            updateData.iconColor = getDefaultIconColorForType(
+                existingWidget.type,
+            );
 
         const widget = await this.prisma.userWidget.update({
             where: { id: input.id },
@@ -267,5 +286,39 @@ export class WidgetService {
             ),
         );
         return createdWidgets.map((widget) => this.mapToWidget(widget));
+    }
+}
+
+/**
+ * Returns a default icon color (hex string) for a given widget type.
+ * Falls back to a neutral color if the type is unknown.
+ */
+function getDefaultIconColorForType(type: string): string {
+    switch (type) {
+        case 'clock':
+            return 'oklch(42.4% 0.199 265.638 / 0.5)';
+        case 'weather':
+            return 'oklch(44.8% 0.119 151.328 / 0.5)';
+        case 'notes':
+            return 'oklch(47.6% 0.114 61.907 / 0.5)';
+        case 'tasks':
+            return 'oklch(43.8% 0.218 303.724 / 0.5)';
+        default:
+            return '#364153';
+    }
+}
+
+function getDefaultTextColorForType(type: string): string {
+    switch (type) {
+        case 'clock':
+            return 'oklch(80.9% 0.105 251.813)';
+        case 'weather':
+            return 'oklch(79.2% 0.209 151.711)';
+        case 'notes':
+            return 'oklch(85.2% 0.199 91.936)';
+        case 'tasks':
+            return 'oklch(71.4% 0.203 305.504)';
+        default:
+            return '#364153';
     }
 }
