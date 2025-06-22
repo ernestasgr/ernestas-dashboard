@@ -1,4 +1,3 @@
-// src/test/java/com/ernestas/auth/security/OAuth2LoginSuccessHandlerTest.java
 package com.ernestas.auth.security;
 
 import static org.mockito.ArgumentMatchers.anyInt;

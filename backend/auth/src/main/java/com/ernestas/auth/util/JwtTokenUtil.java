@@ -127,11 +127,10 @@ public class JwtTokenUtil {
                 return false;
             }
 
-            // For refresh tokens, also validate against database storage
             if ("refresh".equals(expectedType)) {
                 String tokenId = (String) claims.get("tokenId");
                 if (tokenId == null) {
-                    return false; // Old tokens without tokenId are invalid
+                    return false;
                 }
 
                 return refreshTokenService.validateRefreshToken(tokenId, token).isPresent();
