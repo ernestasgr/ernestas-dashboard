@@ -81,6 +81,10 @@ export const useWidgetLayout = () => {
 
                 if (changedItems.length > 0) {
                     changedItems.forEach((item) => {
+                        const currentWidget = widgetsData?.widgets.find(
+                            (widget) => widget.id === item.i,
+                        );
+
                         updateWidgetLayout({
                             variables: {
                                 input: {
@@ -91,17 +95,27 @@ export const useWidgetLayout = () => {
                                     height: item.h,
                                 },
                             },
-                            optimisticResponse: {
-                                // @ts-expect-error type is deliberately excluded, because searching for the type of widget being updated takes time and so causes minor visual glitches
-                                updateWidgetLayout: {
-                                    __typename: 'Widget',
-                                    id: item.i,
-                                    x: item.x,
-                                    y: item.y,
-                                    width: item.w,
-                                    height: item.h,
-                                },
-                            },
+                            optimisticResponse: currentWidget
+                                ? {
+                                      updateWidgetLayout: {
+                                          __typename: 'Widget' as const,
+                                          id: item.i,
+                                          type: currentWidget.type,
+                                          title: currentWidget.title,
+                                          x: item.x,
+                                          y: item.y,
+                                          width: item.w,
+                                          height: item.h,
+                                          backgroundColor:
+                                              currentWidget.backgroundColor,
+                                          textColor: currentWidget.textColor,
+                                          iconColor: currentWidget.iconColor,
+                                          backgroundImage:
+                                              currentWidget.backgroundImage,
+                                          config: currentWidget.config,
+                                      },
+                                  }
+                                : undefined,
                         }).catch((error: unknown) => {
                             console.error(
                                 'Error updating widget layout:',
@@ -114,7 +128,7 @@ export const useWidgetLayout = () => {
                 }
             }, 300);
         },
-        [updateWidgetLayout],
+        [updateWidgetLayout, widgetsData?.widgets],
     );
 
     const handleLayoutChange = (layout: GridLayout.Layout[]) => {
