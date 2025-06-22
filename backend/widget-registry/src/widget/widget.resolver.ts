@@ -15,12 +15,7 @@ export class WidgetResolver {
     async getWidgets(
         @Args('userId', { type: () => ID }) userId: string,
     ): Promise<Widget[]> {
-        // Seed widgets if user doesn't have any (for demo)
-        const widgets = await this.widgetService.getWidgetsForUser(userId);
-        // if (widgets.length === 0) {
-        //     return this.widgetService.seedUserWidgets(userId);
-        // }
-        return widgets;
+        return await this.widgetService.getWidgetsForUser(userId);
     }
 
     @Query(() => Widget, { name: 'widget', nullable: true })

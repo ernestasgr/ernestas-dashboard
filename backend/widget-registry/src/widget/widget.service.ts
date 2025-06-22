@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LoggerService } from 'src/logger/logger.service';
+import { LoggerService } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     ClockConfig,
@@ -295,7 +295,7 @@ export class WidgetService {
  * Returns a default icon color (hex string) for a given widget type.
  * Falls back to a neutral color if the type is unknown.
  */
-function getDefaultIconColorForType(type: string): string {
+export function getDefaultIconColorForType(type: string): string {
     switch (type) {
         case 'clock':
             return 'oklch(42.4% 0.199 265.638 / 0.5)';
@@ -310,7 +310,7 @@ function getDefaultIconColorForType(type: string): string {
     }
 }
 
-function getDefaultTextColorForType(type: string): string {
+export function getDefaultTextColorForType(type: string): string {
     switch (type) {
         case 'clock':
             return 'oklch(80.9% 0.105 251.813)';
