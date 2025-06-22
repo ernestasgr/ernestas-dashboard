@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { LoggerService } from 'src/logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
     ClockConfig,
@@ -13,9 +14,10 @@ import {
 
 @Injectable()
 export class WidgetService {
-    private readonly logger = new Logger(WidgetService.name);
-
-    constructor(private prisma: PrismaService) {}
+    constructor(
+        private prisma: PrismaService,
+        private readonly logger: LoggerService,
+    ) {}
 
     /**
      * Helper method to parse widget config based on type
@@ -127,7 +129,7 @@ export class WidgetService {
         if (!existingWidget) {
             throw new Error(`Widget with ID ${input.id} not found`);
         }
-        this.logger.log(input);
+        this.logger.log(JSON.stringify(input));
         this.logger.log(existingWidget.type ?? 'unknown type');
         if (input.title !== undefined) updateData.title = input.title;
         if (input.config !== undefined) updateData.config = input.config;

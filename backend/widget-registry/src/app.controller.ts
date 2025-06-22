@@ -17,4 +17,9 @@ export class AppController {
             service: 'widget-registry',
         };
     }
+
+    @Get('debug-sentry')
+    getError() {
+        throw new Error('My first Sentry error!');
+    }
 }
