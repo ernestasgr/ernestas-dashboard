@@ -3,12 +3,11 @@ FROM node:24-alpine AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json pnpm-lock.yaml ./
+COPY prisma ./prisma/
 RUN npm install -g pnpm
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-
-RUN pnpm prisma generate
 
 RUN pnpm build
 

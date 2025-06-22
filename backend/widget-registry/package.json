@@ -4,9 +4,11 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "UNLICENSED",  
   "scripts": {
-    "build": "nest build",
+    "postinstall": "prisma generate",
+    "pretest": "prisma generate",
+    "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
