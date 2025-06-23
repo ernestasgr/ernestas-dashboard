@@ -1,13 +1,23 @@
 services:
   auth:
     depends_on:
-      db:
+      auth-db:
         condition: service_started
       logstash:
         condition: service_healthy
     environment:
       LOGGING_LOGSTASH_SERVER: logstash:5044
       SPRING_PROFILES_ACTIVE: elk
+
+  widget-registry:
+    depends_on:
+      logstash:
+        condition: service_healthy
+    environment:
+      ENABLE_LOGSTASH: "true"
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5044
+      LOG_LEVEL: info
 
   gateway:
     depends_on:

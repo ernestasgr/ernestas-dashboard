@@ -1,4 +1,7 @@
 name: CI
+permissions:
+    contents: read
+    pull-requests: write
 
 on:
     push:
@@ -54,6 +57,21 @@ jobs:
             - name: Run gateway unit tests
               run: pnpm test
 
+    widget-registry-unit-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend/widget-registry
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: lts/*
+            - name: Install dependencies
+              run: npm install -g pnpm && pnpm install
+            - name: Run widget registry unit tests
+              run: pnpm test
+
     e2e-tests:
         runs-on: ubuntu-latest
         defaults:
@@ -78,7 +96,8 @@ jobs:
                   JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
                   POSTGRES_USER=${{ secrets.POSTGRES_USER }}
                   POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-                  POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+                  POSTGRES_DB_AUTH=${{ secrets.POSTGRES_DB_AUTH }}
+                  POSTGRES_DB_WIDGET_REGISTRY=${{ secrets.POSTGRES_DB_WIDGET_REGISTRY }}
                   AUTH_URL=${{ secrets.AUTH_URL }}
                   AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
                   GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}

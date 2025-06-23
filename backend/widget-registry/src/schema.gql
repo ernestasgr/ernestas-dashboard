@@ -1,0 +1,89 @@
+type ClockConfig {
+    format: String
+    timezone: String!
+}
+
+input CreateWidgetInput {
+    backgroundColor: String
+    backgroundImage: String
+    config: JSON
+    height: Float!
+    textColor: String
+    iconColor: String
+    title: String
+    type: String!
+    width: Float!
+    x: Float!
+    y: Float!
+}
+
+type Mutation {
+    createWidget(input: CreateWidgetInput!, userId: ID!): Widget!
+    deleteWidget(id: ID!): Boolean!
+    updateWidget(input: UpdateWidgetInput!): Widget!
+    updateWidgetLayout(input: UpdateWidgetLayoutInput!): Widget!
+}
+
+type NotesConfig {
+    content: String!
+    maxLength: Float
+}
+
+type Query {
+    availableWidgetTypes: [String!]!
+    widget(id: ID!): Widget
+    widgets(userId: ID!): [Widget!]!
+    widgetsByType(type: String!): [Widget!]!
+}
+
+type TasksConfig {
+    categories: [String!]!
+    defaultCategory: String
+}
+
+type WeatherConfig {
+    location: String!
+    units: String
+}
+
+type Widget {
+    backgroundColor: String
+    backgroundImage: String
+    config: WidgetConfig
+    height: Float!
+    id: ID!
+    textColor: String
+    iconColor: String
+    title: String
+    type: String!
+    width: Float!
+    x: Float!
+    y: Float!
+}
+
+union WidgetConfig = ClockConfig | NotesConfig | TasksConfig | WeatherConfig
+
+input UpdateWidgetInput {
+    backgroundColor: String
+    backgroundImage: String
+    config: JSON
+    height: Float
+    id: ID!
+    textColor: String
+    iconColor: String
+    title: String
+    type: String
+    width: Float
+    x: Float
+    y: Float
+}
+
+input UpdateWidgetLayoutInput {
+    height: Float!
+    id: ID!
+    width: Float!
+    x: Float!
+    y: Float!
+}
+
+scalar JSON

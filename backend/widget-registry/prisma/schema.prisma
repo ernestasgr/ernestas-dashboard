@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserWidget {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  title           String?
+  config          Json?
+  x               Int
+  y               Int
+  width           Int
+  height          Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  backgroundColor String?
+  backgroundImage String?
+  textColor       String?
+  iconColor       String?
+
+  @@map("user_widgets")
+}

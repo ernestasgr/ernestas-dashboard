@@ -146,9 +146,6 @@
     background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiM0YzRmNjkiIGZpbGwtcnVsZT0iZXZlbm9kZCIgb3BhY2l0eT0iLjMiPjxwYXRoIGQ9Im0wIDBoNnY2aC02eiIvPjwvZz48L3N2Zz4=');
     background-position: bottom right;
     padding: 0 3px 3px 0;
-    background-repeat: no-repeat;
-    background-origin: content-box;
-    box-sizing: border-box;
     cursor: se-resize;
 }
 

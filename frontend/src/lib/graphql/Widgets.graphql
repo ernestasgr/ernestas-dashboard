@@ -1,0 +1,211 @@
+query GetWidgets($userId: ID!) {
+    widgets(userId: $userId) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetWidget($id: ID!) {
+    widget(id: $id) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetWidgetsByType($type: String!) {
+    widgetsByType(type: $type) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+query GetAvailableWidgetTypes {
+    availableWidgetTypes
+}
+
+mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
+    createWidget(userId: $userId, input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation UpdateWidget($input: UpdateWidgetInput!) {
+    updateWidget(input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
+    updateWidgetLayout(input: $input) {
+        id
+        type
+        title
+        x
+        y
+        width
+        height
+        backgroundColor
+        textColor
+        iconColor
+        backgroundImage
+        config {
+            ... on ClockConfig {
+                timezone
+                format
+            }
+            ... on WeatherConfig {
+                location
+                units
+            }
+            ... on NotesConfig {
+                content
+                maxLength
+            }
+            ... on TasksConfig {
+                categories
+                defaultCategory
+            }
+        }
+    }
+}
+
+mutation DeleteWidget($id: ID!) {
+    deleteWidget(id: $id)
+}

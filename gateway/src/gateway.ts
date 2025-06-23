@@ -123,6 +123,7 @@ function getEnv() {
 		GATEWAY_SECRET: z.string(),
 		FRONTEND_DOMAIN: z.string().url(),
 		JWT_SECRET: z.string().min(1, "JWT secret is required"),
+		NODE_ENV: z.string().default("development"),
 	});
 
 	try {
@@ -188,13 +189,19 @@ const startGateway = async () => {
 	contextLogger.info("Starting Apollo Gateway", {
 		nodeEnv: process.env.NODE_ENV,
 	});
-
 	try {
 		await waitForService(`${env.AUTH_URL}/health`);
+		await waitForService("http://widget-registry:3001/health");
 
 		const gateway = new ApolloGateway({
 			supergraphSdl: new IntrospectAndCompose({
-				subgraphs: [{ name: "auth", url: `${env.AUTH_URL}/graphql` }],
+				subgraphs: [
+					{ name: "auth", url: `${env.AUTH_URL}/graphql` },
+					{
+						name: "widget-registry",
+						url: "http://widget-registry:3001/graphql",
+					},
+				],
 			}),
 			buildService({ name, url }) {
 				return new RemoteGraphQLDataSource({
@@ -313,6 +320,12 @@ const startGateway = async () => {
 		});
 
 		app.use("/graphql", ((req, res, next) => {
+			if (env.NODE_ENV !== "production") {
+				// it's useful to codegen the schema from introspection or test out queries in playground in development
+				next();
+				return;
+			}
+
 			try {
 				const requestLogger = addRequestIdToLogger(
 					req.requestId || generateRequestId()
