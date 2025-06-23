@@ -95,7 +95,7 @@ export const ClockWidget = ({
                         {formatTime(time)}
                     </div>
                     <div
-                        className='font-medium0 mt-2 text-sm'
+                        className='mt-2 text-sm font-medium'
                         style={
                             widget.textColor ? { color: widget.textColor } : {}
                         }
