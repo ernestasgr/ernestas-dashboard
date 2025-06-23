@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",  
+  "license": "UNLICENSED",
   "scripts": {
     "postinstall": "prisma generate",
     "pretest": "prisma generate",
@@ -32,6 +32,7 @@
     "@apollo/subgraph": "^2.11.0",
     "@nestjs/apollo": "^13.1.0",
     "@nestjs/common": "^11.1.3",
+    "@nestjs/config": "^3.3.0",
     "@nestjs/core": "^11.1.3",
     "@nestjs/graphql": "^13.1.0",
     "@nestjs/platform-express": "^11.1.3",

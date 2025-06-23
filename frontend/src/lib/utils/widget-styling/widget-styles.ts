@@ -8,14 +8,12 @@ import { applyBackgroundStyles } from './background-strategy';
 export const getWidgetStyles = (widget: Widget): React.CSSProperties => {
     const styles: React.CSSProperties = {};
 
-    // Apply background styles using the strategy pattern
     const backgroundStyles = applyBackgroundStyles(
         widget.backgroundColor,
         widget.backgroundImage,
     );
     Object.assign(styles, backgroundStyles);
 
-    // Apply text color if specified
     if (widget.textColor) {
         styles.color = widget.textColor;
     }

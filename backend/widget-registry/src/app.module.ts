@@ -3,17 +3,22 @@ import {
     ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GatewayAuthGuard } from './guards/gateway-auth.guard';
 import { LoggerModule } from './logger/logger.module';
 import { WidgetModule } from './widget/widget.module';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
         SentryModule.forRoot(),
         GraphQLModule.forRoot<ApolloFederationDriverConfig>({
             driver: ApolloFederationDriver,
@@ -33,6 +38,10 @@ import { WidgetModule } from './widget/widget.module';
         {
             provide: APP_FILTER,
             useClass: SentryGlobalFilter,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: GatewayAuthGuard,
         },
         AppService,
     ],
