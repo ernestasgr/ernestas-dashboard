@@ -140,14 +140,14 @@ export class WidgetService {
         if (input.backgroundColor !== undefined)
             updateData.backgroundColor = input.backgroundColor;
         if (input.textColor) updateData.textColor = input.textColor;
-        else
+        else if (!existingWidget.textColor)
             updateData.textColor = getDefaultTextColorForType(
                 existingWidget.type,
             );
         if (input.backgroundImage !== undefined)
             updateData.backgroundImage = input.backgroundImage;
         if (input.iconColor) updateData.iconColor = input.iconColor;
-        else
+        else if (!existingWidget.iconColor)
             updateData.iconColor = getDefaultIconColorForType(
                 existingWidget.type,
             );
