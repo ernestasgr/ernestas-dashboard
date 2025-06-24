@@ -18,8 +18,10 @@ export const weatherConfigSchema = z.object({
 });
 
 export const notesConfigSchema = z.object({
-    content: z.string().default(''),
     maxLength: z.number().min(1).max(2000).default(500),
+    visibleLabels: z.array(z.string()).optional(),
+    showGrid: z.boolean().default(true),
+    gridColumns: z.number().min(1).default(3),
 });
 
 export const tasksConfigSchema = z.object({

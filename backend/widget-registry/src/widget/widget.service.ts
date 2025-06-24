@@ -255,8 +255,10 @@ export class WidgetService {
                 type: 'notes',
                 title: 'Quick Notes',
                 config: {
-                    content: 'Remember to check the dashboard layout',
                     maxLength: 500,
+                    visibleLabels: null, // Show all notes
+                    showGrid: true,
+                    gridColumns: 2,
                 } as any,
                 x: 6,
                 y: 0,

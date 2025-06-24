@@ -15,9 +15,14 @@ export async function initCsrfToken(gatewayBaseUrl: string): Promise<void> {
         const res = await fetch(`${gatewayBaseUrl}/csrf-token`, {
             credentials: 'include',
         });
-        const data = await res.json();
-        if (typeof data.token === 'string') {
-            csrfToken = data.token;
+        const data: unknown = await res.json();
+        if (
+            typeof data === 'object' &&
+            data !== null &&
+            'token' in data &&
+            typeof (data as { token: unknown }).token === 'string'
+        ) {
+            csrfToken = (data as { token: string }).token;
             console.log('CSRF token initialized');
         } else {
             console.warn('Invalid CSRF token response');

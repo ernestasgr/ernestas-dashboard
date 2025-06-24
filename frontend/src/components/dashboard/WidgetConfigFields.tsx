@@ -10,7 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import {
     validateWidgetConfig,
     WidgetType,
@@ -138,29 +137,18 @@ export function WidgetConfigFields({
             </div>
         );
     };
-
     const renderNotesConfig = () => {
         const notesConfig = config as {
-            content?: string;
             maxLength?: number;
+            visibleLabels?: string[];
+            showGrid?: boolean;
+            gridColumns?: number;
         };
 
         return (
             <>
                 <div className='space-y-2'>
-                    <Label htmlFor='content'>Content</Label>
-                    <Textarea
-                        id='content'
-                        value={notesConfig.content ?? ''}
-                        onChange={(e) => {
-                            onConfigUpdate('content', e.target.value);
-                        }}
-                        placeholder='Enter your notes...'
-                        rows={4}
-                    />
-                </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='maxLength'>Max Length</Label>
+                    <Label htmlFor='maxLength'>Max Length per Note</Label>
                     <Input
                         id='maxLength'
                         type='number'
@@ -175,6 +163,60 @@ export function WidgetConfigFields({
                         max={2000}
                     />
                 </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='visibleLabels'>
+                        Visible Labels (comma-separated, leave empty for all)
+                    </Label>
+                    <Input
+                        id='visibleLabels'
+                        value={notesConfig.visibleLabels?.join(', ') ?? ''}
+                        onChange={(e) => {
+                            const labels = e.target.value
+                                .split(',')
+                                .map((l) => l.trim())
+                                .filter((l) => l);
+                            onConfigUpdate(
+                                'visibleLabels',
+                                labels.length > 0 ? labels : undefined,
+                            );
+                        }}
+                        placeholder='work, personal, important'
+                    />
+                </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='showGrid'>Show as Grid</Label>
+                    <Select
+                        value={notesConfig.showGrid ? 'true' : 'false'}
+                        onValueChange={(value) => {
+                            onConfigUpdate('showGrid', value === 'true');
+                        }}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='true'>Grid Layout</SelectItem>
+                            <SelectItem value='false'>List Layout</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                {notesConfig.showGrid && (
+                    <div className='space-y-2'>
+                        <Label htmlFor='gridColumns'>Grid Columns</Label>
+                        <Input
+                            id='gridColumns'
+                            type='number'
+                            value={notesConfig.gridColumns ?? 3}
+                            onChange={(e) => {
+                                onConfigUpdate(
+                                    'gridColumns',
+                                    parseInt(e.target.value) || 3,
+                                );
+                            }}
+                            min={1}
+                        />
+                    </div>
+                )}
             </>
         );
     };

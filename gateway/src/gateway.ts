@@ -192,6 +192,7 @@ const startGateway = async () => {
 	try {
 		await waitForService(`${env.AUTH_URL}/health`);
 		await waitForService("http://widget-registry:3001/health");
+		await waitForService("http://notes:8000/health");
 
 		const gateway = new ApolloGateway({
 			supergraphSdl: new IntrospectAndCompose({
@@ -200,6 +201,10 @@ const startGateway = async () => {
 					{
 						name: "widget-registry",
 						url: "http://widget-registry:3001/graphql",
+					},
+					{
+						name: "notes",
+						url: "http://notes:8000/graphql",
 					},
 				],
 			}),

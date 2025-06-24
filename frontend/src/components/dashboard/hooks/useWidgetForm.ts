@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 const DEFAULT_CONFIGS = {
     clock: { timezone: 'UTC', format: '24h' },
     weather: { location: 'New York, NY', units: 'metric' },
-    notes: { content: '', maxLength: 500 },
+    notes: { maxLength: 500, showGrid: true, gridColumns: 3 },
     tasks: {
         categories: ['personal', 'work', 'urgent'],
         defaultCategory: 'personal',

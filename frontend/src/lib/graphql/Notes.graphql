@@ -1,0 +1,83 @@
+query GetNotes($filter: NotesFilterInput!) {
+    notes(filter: $filter) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+    }
+}
+
+query GetNote($id: ID!) {
+    note(id: $id) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+    }
+}
+
+mutation CreateNote($input: CreateNoteInput!) {
+    createNote(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+    }
+}
+
+mutation UpdateNote($input: UpdateNoteInput!) {
+    updateNote(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+    }
+}
+
+mutation UpdateNoteLayout($input: UpdateNoteLayoutInput!) {
+    updateNoteLayout(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+    }
+}
+
+mutation DeleteNote($id: ID!) {
+    deleteNote(id: $id)
+}

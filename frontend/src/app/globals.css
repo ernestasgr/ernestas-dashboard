@@ -201,3 +201,26 @@
 .dark .react-grid-item.react-grid-placeholder {
     background: rgba(255, 255, 255, 0.1);
 }
+
+.react-grid-item .note-card {
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box;
+}
+
+.notes-grid-container .react-grid-layout {
+    min-height: 100%;
+}
+
+.notes-grid-container .react-grid-item {
+    box-sizing: border-box;
+}
+
+.note-card .note-drag-handle:hover {
+    opacity: 1 !important;
+}
+
+.note-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
