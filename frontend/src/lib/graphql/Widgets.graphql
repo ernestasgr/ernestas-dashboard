@@ -25,6 +25,10 @@ query GetWidgets($userId: ID!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -61,6 +65,10 @@ query GetWidget($id: ID!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -97,6 +105,10 @@ query GetWidgetsByType($type: String!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -137,6 +149,10 @@ mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -173,6 +189,10 @@ mutation UpdateWidget($input: UpdateWidgetInput!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -209,6 +229,10 @@ mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
                 visibleLabels
                 showGrid
                 gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories

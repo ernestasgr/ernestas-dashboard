@@ -1,9 +1,11 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { Textarea } from '@/components/ui/textarea';
 import type { Note } from '@/hooks/useNotes';
-import { X } from 'lucide-react';
+import { Edit3, Eye, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface NoteModalProps {
@@ -27,12 +29,14 @@ export const NoteModal = ({
     const [content, setContent] = useState(note?.content ?? '');
     const [labels, setLabels] = useState<string[]>(note?.labels ?? []);
     const [newLabel, setNewLabel] = useState('');
+    const [isPreviewMode, setIsPreviewMode] = useState(false);
 
     useEffect(() => {
         setTitle(note?.title ?? '');
         setContent(note?.content ?? '');
         setLabels(note?.labels ?? []);
         setNewLabel('');
+        setIsPreviewMode(false);
     }, [note]);
 
     if (!isOpen) return null;
@@ -91,20 +95,61 @@ export const NoteModal = ({
                     </div>
 
                     <div>
-                        <Label htmlFor='note-content'>Content</Label>
-                        <Textarea
-                            id='note-content'
-                            value={content}
-                            onChange={(e) => {
-                                if (e.target.value.length <= maxLength) {
-                                    setContent(e.target.value);
-                                }
-                            }}
-                            placeholder='Enter note content...'
-                            rows={8}
-                            className='mt-1'
-                            maxLength={maxLength}
-                        />
+                        <div className='mb-1 flex items-center justify-between'>
+                            <Label htmlFor='note-content'>Content</Label>
+                            <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => {
+                                    setIsPreviewMode(!isPreviewMode);
+                                }}
+                                className='h-7 px-2 text-xs'
+                            >
+                                {isPreviewMode ? (
+                                    <>
+                                        <Edit3 className='mr-1 h-3 w-3' />
+                                        Edit
+                                    </>
+                                ) : (
+                                    <>
+                                        <Eye className='mr-1 h-3 w-3' />
+                                        Preview
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+
+                        {isPreviewMode ? (
+                            <div className='max-h-64 min-h-[12rem] overflow-y-auto rounded-md border bg-gray-50 p-3 dark:bg-gray-900'>
+                                {content.trim() ? (
+                                    <MarkdownRenderer
+                                        content={content}
+                                        variant='modal'
+                                        className='prose prose-sm max-w-none'
+                                    />
+                                ) : (
+                                    <p className='text-gray-500 italic'>
+                                        Nothing to preview...
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <Textarea
+                                id='note-content'
+                                value={content}
+                                onChange={(e) => {
+                                    if (e.target.value.length <= maxLength) {
+                                        setContent(e.target.value);
+                                    }
+                                }}
+                                placeholder='Enter note content...'
+                                rows={8}
+                                className='mt-1'
+                                maxLength={maxLength}
+                            />
+                        )}
+
                         <div className='mt-1 text-sm text-gray-500'>
                             {content.length}/{maxLength} characters
                         </div>
@@ -114,9 +159,10 @@ export const NoteModal = ({
                         <Label>Labels</Label>
                         <div className='mt-1 flex flex-wrap gap-2'>
                             {labels.map((label) => (
-                                <span
+                                <Badge
                                     key={label}
-                                    className='inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-sm dark:bg-gray-700'
+                                    variant='secondary'
+                                    className='inline-flex items-center gap-1'
                                 >
                                     {label}
                                     <button
@@ -127,7 +173,7 @@ export const NoteModal = ({
                                     >
                                         <X className='h-3 w-3' />
                                     </button>
-                                </span>
+                                </Badge>
                             ))}
                         </div>
                         <div className='mt-2 flex gap-2'>

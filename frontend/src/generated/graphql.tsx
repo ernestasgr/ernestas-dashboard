@@ -42,6 +42,27 @@ export type CreateNoteInput = {
   y?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type CreateNoteWithObsidianSyncInput = {
+  content: Scalars['String']['input'];
+  height?: InputMaybe<Scalars['Int']['input']>;
+  labels?: Array<Scalars['String']['input']>;
+  obsidianApiUrl?: InputMaybe<Scalars['String']['input']>;
+  obsidianAuthKey?: InputMaybe<Scalars['String']['input']>;
+  syncToObsidian?: Scalars['Boolean']['input'];
+  title: Scalars['String']['input'];
+  widgetId: Scalars['ID']['input'];
+  width?: InputMaybe<Scalars['Int']['input']>;
+  x?: InputMaybe<Scalars['Int']['input']>;
+  y?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CreateOrUpdateObsidianFileInput = {
+  apiUrl: Scalars['String']['input'];
+  authKey: Scalars['String']['input'];
+  content: Scalars['String']['input'];
+  filePath: Scalars['String']['input'];
+};
+
 export type CreateWidgetInput = {
   backgroundColor?: InputMaybe<Scalars['String']['input']>;
   backgroundImage?: InputMaybe<Scalars['String']['input']>;
@@ -56,6 +77,13 @@ export type CreateWidgetInput = {
   y: Scalars['Int']['input'];
 };
 
+export type DeleteNoteWithObsidianSyncInput = {
+  id: Scalars['ID']['input'];
+  obsidianApiUrl?: InputMaybe<Scalars['String']['input']>;
+  obsidianAuthKey?: InputMaybe<Scalars['String']['input']>;
+  syncToObsidian?: Scalars['Boolean']['input'];
+};
+
 export type MessageResult = {
   __typename?: 'MessageResult';
   message: Scalars['String']['output'];
@@ -64,13 +92,19 @@ export type MessageResult = {
 export type Mutation = {
   __typename?: 'Mutation';
   createNote: NoteType;
+  createNoteWithObsidianSync: NoteType;
+  createOrUpdateObsidianFile: Scalars['Boolean']['output'];
   createWidget: Widget;
   deleteNote: Scalars['Boolean']['output'];
+  deleteNoteWithObsidianSync: Scalars['Boolean']['output'];
   deleteWidget: Scalars['Boolean']['output'];
   logout: MessageResult;
   refresh: MessageResult;
+  syncObsidianVault: Array<NoteType>;
+  testObsidianConnection: Scalars['Boolean']['output'];
   updateNote: NoteType;
   updateNoteLayout: NoteType;
+  updateNoteWithObsidianSync: NoteType;
   updateWidget: Widget;
   updateWidgetLayout: Widget;
 };
@@ -78,6 +112,16 @@ export type Mutation = {
 
 export type MutationCreateNoteArgs = {
   input: CreateNoteInput;
+};
+
+
+export type MutationCreateNoteWithObsidianSyncArgs = {
+  input: CreateNoteWithObsidianSyncInput;
+};
+
+
+export type MutationCreateOrUpdateObsidianFileArgs = {
+  input: CreateOrUpdateObsidianFileInput;
 };
 
 
@@ -92,8 +136,23 @@ export type MutationDeleteNoteArgs = {
 };
 
 
+export type MutationDeleteNoteWithObsidianSyncArgs = {
+  input: DeleteNoteWithObsidianSyncInput;
+};
+
+
 export type MutationDeleteWidgetArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSyncObsidianVaultArgs = {
+  input: ObsidianSyncInput;
+};
+
+
+export type MutationTestObsidianConnectionArgs = {
+  input: ObsidianTestConnectionInput;
 };
 
 
@@ -104,6 +163,11 @@ export type MutationUpdateNoteArgs = {
 
 export type MutationUpdateNoteLayoutArgs = {
   input: UpdateNoteLayoutInput;
+};
+
+
+export type MutationUpdateNoteWithObsidianSyncArgs = {
+  input: UpdateNoteWithObsidianSyncInput;
 };
 
 
@@ -123,6 +187,8 @@ export type NoteType = {
   height?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   labels: Array<Scalars['String']['output']>;
+  obsidianPath?: Maybe<Scalars['String']['output']>;
+  source: Scalars['String']['output'];
   title: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   widgetId: Scalars['ID']['output'];
@@ -133,8 +199,12 @@ export type NoteType = {
 
 export type NotesConfig = {
   __typename?: 'NotesConfig';
+  enableObsidianSync: Scalars['Boolean']['output'];
   gridColumns: Scalars['Float']['output'];
   maxLength?: Maybe<Scalars['Float']['output']>;
+  obsidianApiUrl?: Maybe<Scalars['String']['output']>;
+  obsidianAuthKey?: Maybe<Scalars['String']['output']>;
+  obsidianVaultName?: Maybe<Scalars['String']['output']>;
   showGrid: Scalars['Boolean']['output'];
   visibleLabels?: Maybe<Array<Scalars['String']['output']>>;
 };
@@ -142,6 +212,17 @@ export type NotesConfig = {
 export type NotesFilterInput = {
   labels?: InputMaybe<Array<Scalars['String']['input']>>;
   widgetId: Scalars['ID']['input'];
+};
+
+export type ObsidianSyncInput = {
+  apiUrl: Scalars['String']['input'];
+  authKey: Scalars['String']['input'];
+  widgetId: Scalars['ID']['input'];
+};
+
+export type ObsidianTestConnectionInput = {
+  apiUrl: Scalars['String']['input'];
+  authKey: Scalars['String']['input'];
 };
 
 export type Query = {
@@ -205,6 +286,20 @@ export type UpdateNoteLayoutInput = {
   y: Scalars['Int']['input'];
 };
 
+export type UpdateNoteWithObsidianSyncInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  height?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['ID']['input'];
+  labels?: InputMaybe<Array<Scalars['String']['input']>>;
+  obsidianApiUrl?: InputMaybe<Scalars['String']['input']>;
+  obsidianAuthKey?: InputMaybe<Scalars['String']['input']>;
+  syncToObsidian?: Scalars['Boolean']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
+  width?: InputMaybe<Scalars['Int']['input']>;
+  x?: InputMaybe<Scalars['Int']['input']>;
+  y?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type UpdateWidgetInput = {
   backgroundColor?: InputMaybe<Scalars['String']['input']>;
   backgroundImage?: InputMaybe<Scalars['String']['input']>;
@@ -261,35 +356,42 @@ export type GetNotesQueryVariables = Exact<{
 }>;
 
 
-export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null }> };
+export type GetNotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null }> };
 
 export type GetNoteQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null } | null };
+export type GetNoteQuery = { __typename?: 'Query', note?: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } | null };
 
 export type CreateNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
 
 
-export type CreateNoteMutation = { __typename?: 'Mutation', createNote: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null } };
+export type CreateNoteMutation = { __typename?: 'Mutation', createNote: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } };
+
+export type CreateNoteWithObsidianSyncMutationVariables = Exact<{
+  input: CreateNoteWithObsidianSyncInput;
+}>;
+
+
+export type CreateNoteWithObsidianSyncMutation = { __typename?: 'Mutation', createNoteWithObsidianSync: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } };
 
 export type UpdateNoteMutationVariables = Exact<{
   input: UpdateNoteInput;
 }>;
 
 
-export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null } };
+export type UpdateNoteMutation = { __typename?: 'Mutation', updateNote: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } };
 
 export type UpdateNoteLayoutMutationVariables = Exact<{
   input: UpdateNoteLayoutInput;
 }>;
 
 
-export type UpdateNoteLayoutMutation = { __typename?: 'Mutation', updateNoteLayout: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null } };
+export type UpdateNoteLayoutMutation = { __typename?: 'Mutation', updateNoteLayout: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } };
 
 export type DeleteNoteMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -297,6 +399,41 @@ export type DeleteNoteMutationVariables = Exact<{
 
 
 export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote: boolean };
+
+export type DeleteNoteWithObsidianSyncMutationVariables = Exact<{
+  input: DeleteNoteWithObsidianSyncInput;
+}>;
+
+
+export type DeleteNoteWithObsidianSyncMutation = { __typename?: 'Mutation', deleteNoteWithObsidianSync: boolean };
+
+export type SyncObsidianVaultMutationVariables = Exact<{
+  input: ObsidianSyncInput;
+}>;
+
+
+export type SyncObsidianVaultMutation = { __typename?: 'Mutation', syncObsidianVault: Array<{ __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null }> };
+
+export type TestObsidianConnectionMutationVariables = Exact<{
+  input: ObsidianTestConnectionInput;
+}>;
+
+
+export type TestObsidianConnectionMutation = { __typename?: 'Mutation', testObsidianConnection: boolean };
+
+export type CreateOrUpdateObsidianFileMutationVariables = Exact<{
+  input: CreateOrUpdateObsidianFileInput;
+}>;
+
+
+export type CreateOrUpdateObsidianFileMutation = { __typename?: 'Mutation', createOrUpdateObsidianFile: boolean };
+
+export type UpdateNoteWithObsidianSyncMutationVariables = Exact<{
+  input: UpdateNoteWithObsidianSyncInput;
+}>;
+
+
+export type UpdateNoteWithObsidianSyncMutation = { __typename?: 'Mutation', updateNoteWithObsidianSync: { __typename?: 'NoteType', id: string, title: string, content: string, labels: Array<string>, widgetId: string, createdAt: any, updatedAt: any, x?: number | null, y?: number | null, width?: number | null, height?: number | null, source: string, obsidianPath?: string | null } };
 
 export type RefreshMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -308,21 +445,21 @@ export type GetWidgetsQueryVariables = Exact<{
 }>;
 
 
-export type GetWidgetsQuery = { __typename?: 'Query', widgets: Array<{ __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null }> };
+export type GetWidgetsQuery = { __typename?: 'Query', widgets: Array<{ __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null }> };
 
 export type GetWidgetQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetWidgetQuery = { __typename?: 'Query', widget?: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } | null };
+export type GetWidgetQuery = { __typename?: 'Query', widget?: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } | null };
 
 export type GetWidgetsByTypeQueryVariables = Exact<{
   type: Scalars['String']['input'];
 }>;
 
 
-export type GetWidgetsByTypeQuery = { __typename?: 'Query', widgetsByType: Array<{ __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null }> };
+export type GetWidgetsByTypeQuery = { __typename?: 'Query', widgetsByType: Array<{ __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null }> };
 
 export type GetAvailableWidgetTypesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -335,21 +472,21 @@ export type CreateWidgetMutationVariables = Exact<{
 }>;
 
 
-export type CreateWidgetMutation = { __typename?: 'Mutation', createWidget: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
+export type CreateWidgetMutation = { __typename?: 'Mutation', createWidget: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
 
 export type UpdateWidgetMutationVariables = Exact<{
   input: UpdateWidgetInput;
 }>;
 
 
-export type UpdateWidgetMutation = { __typename?: 'Mutation', updateWidget: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
+export type UpdateWidgetMutation = { __typename?: 'Mutation', updateWidget: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
 
 export type UpdateWidgetLayoutMutationVariables = Exact<{
   input: UpdateWidgetLayoutInput;
 }>;
 
 
-export type UpdateWidgetLayoutMutation = { __typename?: 'Mutation', updateWidgetLayout: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
+export type UpdateWidgetLayoutMutation = { __typename?: 'Mutation', updateWidgetLayout: { __typename?: 'Widget', id: string, type: string, title?: string | null, x: number, y: number, width: number, height: number, backgroundColor?: string | null, textColor?: string | null, iconColor?: string | null, backgroundImage?: string | null, config?: { __typename?: 'ClockConfig', timezone: string, format?: string | null } | { __typename?: 'NotesConfig', maxLength?: number | null, visibleLabels?: Array<string> | null, showGrid: boolean, gridColumns: number, enableObsidianSync: boolean, obsidianApiUrl?: string | null, obsidianAuthKey?: string | null, obsidianVaultName?: string | null } | { __typename?: 'TasksConfig', categories: Array<string>, defaultCategory?: string | null } | { __typename?: 'WeatherConfig', location: string, units?: string | null } | null } };
 
 export type DeleteWidgetMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -413,6 +550,8 @@ export const GetNotesDocument = gql`
     y
     width
     height
+    source
+    obsidianPath
   }
 }
     `;
@@ -463,6 +602,8 @@ export const GetNoteDocument = gql`
     y
     width
     height
+    source
+    obsidianPath
   }
 }
     `;
@@ -513,6 +654,8 @@ export const CreateNoteDocument = gql`
     y
     width
     height
+    source
+    obsidianPath
   }
 }
     `;
@@ -542,6 +685,51 @@ export function useCreateNoteMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateNoteMutationHookResult = ReturnType<typeof useCreateNoteMutation>;
 export type CreateNoteMutationResult = Apollo.MutationResult<CreateNoteMutation>;
 export type CreateNoteMutationOptions = Apollo.BaseMutationOptions<CreateNoteMutation, CreateNoteMutationVariables>;
+export const CreateNoteWithObsidianSyncDocument = gql`
+    mutation CreateNoteWithObsidianSync($input: CreateNoteWithObsidianSyncInput!) {
+  createNoteWithObsidianSync(input: $input) {
+    id
+    title
+    content
+    labels
+    widgetId
+    createdAt
+    updatedAt
+    x
+    y
+    width
+    height
+    source
+    obsidianPath
+  }
+}
+    `;
+export type CreateNoteWithObsidianSyncMutationFn = Apollo.MutationFunction<CreateNoteWithObsidianSyncMutation, CreateNoteWithObsidianSyncMutationVariables>;
+
+/**
+ * __useCreateNoteWithObsidianSyncMutation__
+ *
+ * To run a mutation, you first call `useCreateNoteWithObsidianSyncMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNoteWithObsidianSyncMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNoteWithObsidianSyncMutation, { data, loading, error }] = useCreateNoteWithObsidianSyncMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateNoteWithObsidianSyncMutation(baseOptions?: Apollo.MutationHookOptions<CreateNoteWithObsidianSyncMutation, CreateNoteWithObsidianSyncMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNoteWithObsidianSyncMutation, CreateNoteWithObsidianSyncMutationVariables>(CreateNoteWithObsidianSyncDocument, options);
+      }
+export type CreateNoteWithObsidianSyncMutationHookResult = ReturnType<typeof useCreateNoteWithObsidianSyncMutation>;
+export type CreateNoteWithObsidianSyncMutationResult = Apollo.MutationResult<CreateNoteWithObsidianSyncMutation>;
+export type CreateNoteWithObsidianSyncMutationOptions = Apollo.BaseMutationOptions<CreateNoteWithObsidianSyncMutation, CreateNoteWithObsidianSyncMutationVariables>;
 export const UpdateNoteDocument = gql`
     mutation UpdateNote($input: UpdateNoteInput!) {
   updateNote(input: $input) {
@@ -556,6 +744,8 @@ export const UpdateNoteDocument = gql`
     y
     width
     height
+    source
+    obsidianPath
   }
 }
     `;
@@ -599,6 +789,8 @@ export const UpdateNoteLayoutDocument = gql`
     y
     width
     height
+    source
+    obsidianPath
   }
 }
     `;
@@ -659,6 +851,189 @@ export function useDeleteNoteMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteNoteMutationHookResult = ReturnType<typeof useDeleteNoteMutation>;
 export type DeleteNoteMutationResult = Apollo.MutationResult<DeleteNoteMutation>;
 export type DeleteNoteMutationOptions = Apollo.BaseMutationOptions<DeleteNoteMutation, DeleteNoteMutationVariables>;
+export const DeleteNoteWithObsidianSyncDocument = gql`
+    mutation DeleteNoteWithObsidianSync($input: DeleteNoteWithObsidianSyncInput!) {
+  deleteNoteWithObsidianSync(input: $input)
+}
+    `;
+export type DeleteNoteWithObsidianSyncMutationFn = Apollo.MutationFunction<DeleteNoteWithObsidianSyncMutation, DeleteNoteWithObsidianSyncMutationVariables>;
+
+/**
+ * __useDeleteNoteWithObsidianSyncMutation__
+ *
+ * To run a mutation, you first call `useDeleteNoteWithObsidianSyncMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteNoteWithObsidianSyncMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteNoteWithObsidianSyncMutation, { data, loading, error }] = useDeleteNoteWithObsidianSyncMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeleteNoteWithObsidianSyncMutation(baseOptions?: Apollo.MutationHookOptions<DeleteNoteWithObsidianSyncMutation, DeleteNoteWithObsidianSyncMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteNoteWithObsidianSyncMutation, DeleteNoteWithObsidianSyncMutationVariables>(DeleteNoteWithObsidianSyncDocument, options);
+      }
+export type DeleteNoteWithObsidianSyncMutationHookResult = ReturnType<typeof useDeleteNoteWithObsidianSyncMutation>;
+export type DeleteNoteWithObsidianSyncMutationResult = Apollo.MutationResult<DeleteNoteWithObsidianSyncMutation>;
+export type DeleteNoteWithObsidianSyncMutationOptions = Apollo.BaseMutationOptions<DeleteNoteWithObsidianSyncMutation, DeleteNoteWithObsidianSyncMutationVariables>;
+export const SyncObsidianVaultDocument = gql`
+    mutation SyncObsidianVault($input: ObsidianSyncInput!) {
+  syncObsidianVault(input: $input) {
+    id
+    title
+    content
+    labels
+    widgetId
+    createdAt
+    updatedAt
+    x
+    y
+    width
+    height
+    source
+    obsidianPath
+  }
+}
+    `;
+export type SyncObsidianVaultMutationFn = Apollo.MutationFunction<SyncObsidianVaultMutation, SyncObsidianVaultMutationVariables>;
+
+/**
+ * __useSyncObsidianVaultMutation__
+ *
+ * To run a mutation, you first call `useSyncObsidianVaultMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSyncObsidianVaultMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [syncObsidianVaultMutation, { data, loading, error }] = useSyncObsidianVaultMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSyncObsidianVaultMutation(baseOptions?: Apollo.MutationHookOptions<SyncObsidianVaultMutation, SyncObsidianVaultMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SyncObsidianVaultMutation, SyncObsidianVaultMutationVariables>(SyncObsidianVaultDocument, options);
+      }
+export type SyncObsidianVaultMutationHookResult = ReturnType<typeof useSyncObsidianVaultMutation>;
+export type SyncObsidianVaultMutationResult = Apollo.MutationResult<SyncObsidianVaultMutation>;
+export type SyncObsidianVaultMutationOptions = Apollo.BaseMutationOptions<SyncObsidianVaultMutation, SyncObsidianVaultMutationVariables>;
+export const TestObsidianConnectionDocument = gql`
+    mutation TestObsidianConnection($input: ObsidianTestConnectionInput!) {
+  testObsidianConnection(input: $input)
+}
+    `;
+export type TestObsidianConnectionMutationFn = Apollo.MutationFunction<TestObsidianConnectionMutation, TestObsidianConnectionMutationVariables>;
+
+/**
+ * __useTestObsidianConnectionMutation__
+ *
+ * To run a mutation, you first call `useTestObsidianConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTestObsidianConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [testObsidianConnectionMutation, { data, loading, error }] = useTestObsidianConnectionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useTestObsidianConnectionMutation(baseOptions?: Apollo.MutationHookOptions<TestObsidianConnectionMutation, TestObsidianConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TestObsidianConnectionMutation, TestObsidianConnectionMutationVariables>(TestObsidianConnectionDocument, options);
+      }
+export type TestObsidianConnectionMutationHookResult = ReturnType<typeof useTestObsidianConnectionMutation>;
+export type TestObsidianConnectionMutationResult = Apollo.MutationResult<TestObsidianConnectionMutation>;
+export type TestObsidianConnectionMutationOptions = Apollo.BaseMutationOptions<TestObsidianConnectionMutation, TestObsidianConnectionMutationVariables>;
+export const CreateOrUpdateObsidianFileDocument = gql`
+    mutation CreateOrUpdateObsidianFile($input: CreateOrUpdateObsidianFileInput!) {
+  createOrUpdateObsidianFile(input: $input)
+}
+    `;
+export type CreateOrUpdateObsidianFileMutationFn = Apollo.MutationFunction<CreateOrUpdateObsidianFileMutation, CreateOrUpdateObsidianFileMutationVariables>;
+
+/**
+ * __useCreateOrUpdateObsidianFileMutation__
+ *
+ * To run a mutation, you first call `useCreateOrUpdateObsidianFileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateOrUpdateObsidianFileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createOrUpdateObsidianFileMutation, { data, loading, error }] = useCreateOrUpdateObsidianFileMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateOrUpdateObsidianFileMutation(baseOptions?: Apollo.MutationHookOptions<CreateOrUpdateObsidianFileMutation, CreateOrUpdateObsidianFileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateOrUpdateObsidianFileMutation, CreateOrUpdateObsidianFileMutationVariables>(CreateOrUpdateObsidianFileDocument, options);
+      }
+export type CreateOrUpdateObsidianFileMutationHookResult = ReturnType<typeof useCreateOrUpdateObsidianFileMutation>;
+export type CreateOrUpdateObsidianFileMutationResult = Apollo.MutationResult<CreateOrUpdateObsidianFileMutation>;
+export type CreateOrUpdateObsidianFileMutationOptions = Apollo.BaseMutationOptions<CreateOrUpdateObsidianFileMutation, CreateOrUpdateObsidianFileMutationVariables>;
+export const UpdateNoteWithObsidianSyncDocument = gql`
+    mutation UpdateNoteWithObsidianSync($input: UpdateNoteWithObsidianSyncInput!) {
+  updateNoteWithObsidianSync(input: $input) {
+    id
+    title
+    content
+    labels
+    widgetId
+    createdAt
+    updatedAt
+    x
+    y
+    width
+    height
+    source
+    obsidianPath
+  }
+}
+    `;
+export type UpdateNoteWithObsidianSyncMutationFn = Apollo.MutationFunction<UpdateNoteWithObsidianSyncMutation, UpdateNoteWithObsidianSyncMutationVariables>;
+
+/**
+ * __useUpdateNoteWithObsidianSyncMutation__
+ *
+ * To run a mutation, you first call `useUpdateNoteWithObsidianSyncMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateNoteWithObsidianSyncMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateNoteWithObsidianSyncMutation, { data, loading, error }] = useUpdateNoteWithObsidianSyncMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateNoteWithObsidianSyncMutation(baseOptions?: Apollo.MutationHookOptions<UpdateNoteWithObsidianSyncMutation, UpdateNoteWithObsidianSyncMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateNoteWithObsidianSyncMutation, UpdateNoteWithObsidianSyncMutationVariables>(UpdateNoteWithObsidianSyncDocument, options);
+      }
+export type UpdateNoteWithObsidianSyncMutationHookResult = ReturnType<typeof useUpdateNoteWithObsidianSyncMutation>;
+export type UpdateNoteWithObsidianSyncMutationResult = Apollo.MutationResult<UpdateNoteWithObsidianSyncMutation>;
+export type UpdateNoteWithObsidianSyncMutationOptions = Apollo.BaseMutationOptions<UpdateNoteWithObsidianSyncMutation, UpdateNoteWithObsidianSyncMutationVariables>;
 export const RefreshDocument = gql`
     mutation Refresh {
   refresh {
@@ -719,6 +1094,10 @@ export const GetWidgetsDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories
@@ -789,6 +1168,10 @@ export const GetWidgetDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories
@@ -859,6 +1242,10 @@ export const GetWidgetsByTypeDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories
@@ -966,6 +1353,10 @@ export const CreateWidgetDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories
@@ -1030,6 +1421,10 @@ export const UpdateWidgetDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories
@@ -1093,6 +1488,10 @@ export const UpdateWidgetLayoutDocument = gql`
         visibleLabels
         showGrid
         gridColumns
+        enableObsidianSync
+        obsidianApiUrl
+        obsidianAuthKey
+        obsidianVaultName
       }
       ... on TasksConfig {
         categories

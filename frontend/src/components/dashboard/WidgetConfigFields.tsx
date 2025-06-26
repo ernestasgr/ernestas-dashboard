@@ -143,6 +143,10 @@ export function WidgetConfigFields({
             visibleLabels?: string[];
             showGrid?: boolean;
             gridColumns?: number;
+            obsidianApiUrl?: string;
+            obsidianAuthKey?: string;
+            obsidianVaultName?: string;
+            enableObsidianSync?: boolean;
         };
 
         return (
@@ -217,6 +221,106 @@ export function WidgetConfigFields({
                         />
                     </div>
                 )}
+
+                {/* Obsidian Integration Section */}
+                <div className='mt-4 border-t pt-4'>
+                    <h3 className='mb-3 text-sm font-medium'>
+                        Obsidian Integration
+                    </h3>
+                    <div className='space-y-2'>
+                        <Label htmlFor='enableObsidianSync'>
+                            Enable Obsidian Sync
+                        </Label>
+                        <Select
+                            value={
+                                notesConfig.enableObsidianSync
+                                    ? 'true'
+                                    : 'false'
+                            }
+                            onValueChange={(value) => {
+                                onConfigUpdate(
+                                    'enableObsidianSync',
+                                    value === 'true',
+                                );
+                            }}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='false'>Disabled</SelectItem>
+                                <SelectItem value='true'>Enabled</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {notesConfig.enableObsidianSync && (
+                        <>
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianApiUrl'>
+                                    Obsidian Local REST API URL
+                                </Label>
+                                <Input
+                                    id='obsidianApiUrl'
+                                    value={notesConfig.obsidianApiUrl ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianApiUrl',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='http://localhost:27123'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Make sure the Obsidian Local REST API plugin
+                                    is installed and running
+                                </p>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianAuthKey'>
+                                    Authorization Key
+                                </Label>
+                                <Input
+                                    id='obsidianAuthKey'
+                                    type='password'
+                                    value={notesConfig.obsidianAuthKey ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianAuthKey',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='Enter your API key'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Found in Obsidian → Settings → Local REST
+                                    API → API Key
+                                </p>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianVaultName'>
+                                    Vault Name (Optional)
+                                </Label>
+                                <Input
+                                    id='obsidianVaultName'
+                                    value={notesConfig.obsidianVaultName ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianVaultName',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='My Vault'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Leave empty to use the default vault
+                                </p>
+                            </div>
+                        </>
+                    )}
+                </div>
             </>
         );
     };

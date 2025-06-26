@@ -1,4 +1,6 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import type { Note } from '@/hooks/useNotes';
 import { WidgetItemColors } from '@/lib/utils/widget-styling/types';
 import { Edit, ExternalLink, GripVertical, Trash2 } from 'lucide-react';
@@ -53,16 +55,15 @@ export const NoteCard = ({
     const primaryTextColor = widgetColors?.primaryText ?? '#1F2937';
     const secondaryTextColor = widgetColors?.secondaryText ?? '#6B7280';
     const accentColor = widgetColors?.accent ?? '#1E40AF';
-    const accentLightColor = widgetColors?.accentLight ?? '#DBEAFE';
 
     return (
         <div
             className={`group relative flex h-full flex-col rounded-lg border p-4 shadow-sm transition-all hover:shadow-md ${className}`}
             style={cardStyles}
         >
-            <div className='mb-2 flex items-start justify-between'>
+            <div className='relative mb-2 flex items-start justify-between'>
                 <h3
-                    className='line-clamp-2 cursor-pointer pr-8 font-semibold transition-colors'
+                    className='line-clamp-2 w-full cursor-pointer pr-8 font-semibold transition-colors'
                     style={{
                         color: primaryTextColor,
                     }}
@@ -78,7 +79,7 @@ export const NoteCard = ({
                 >
                     {note.title}
                 </h3>
-                <div className='flex space-x-1 opacity-0 transition-opacity group-hover:opacity-100'>
+                <div className='absolute top-0 right-0 flex space-x-1 opacity-0 transition-opacity group-hover:opacity-100'>
                     <Button
                         variant='ghost'
                         size='sm'
@@ -133,34 +134,48 @@ export const NoteCard = ({
             </div>
             {note.content && (
                 <div className='min-h-0 flex-1'>
-                    <p
-                        className='mb-3 line-clamp-3 cursor-pointer overflow-hidden text-sm'
-                        style={{
-                            color: secondaryTextColor,
-                        }}
+                    <div
+                        className='mb-3 cursor-pointer overflow-hidden text-sm'
                         onClick={() => {
                             onOpen(note);
                         }}
                     >
-                        {truncatedContent}
-                    </p>
+                        <MarkdownRenderer
+                            content={truncatedContent}
+                            widgetColors={widgetColors}
+                            variant='card'
+                            className='prose prose-sm line-clamp-3 max-w-none'
+                        />
+                    </div>
                 </div>
             )}
             {note.labels.length > 0 && (
                 <div className='mt-auto mb-2 flex flex-wrap gap-1'>
                     {note.labels.map((label) => (
-                        <span
+                        <Badge
                             key={label}
-                            className='rounded-full px-2 py-1 text-xs'
+                            variant='outline'
                             style={{
-                                backgroundColor: accentLightColor,
-                                color: accentColor,
+                                color: primaryTextColor,
+                                borderColor: accentColor,
                             }}
                         >
                             {label}
-                        </span>
+                        </Badge>
                     ))}
                 </div>
+            )}
+            {note.source === 'obsidian' && (
+                <Badge
+                    variant='outline'
+                    style={{
+                        color: primaryTextColor,
+                        borderColor: accentColor,
+                    }}
+                    title={`From Obsidian: ${note.obsidianPath ?? 'Unknown path'}`}
+                >
+                    Obsidian
+                </Badge>
             )}
             <div
                 className='mt-auto text-xs'

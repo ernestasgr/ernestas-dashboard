@@ -1,7 +1,9 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/graphql';
 import { useNotes, type Note } from '@/hooks/useNotes';
 import {
@@ -10,7 +12,13 @@ import {
     getWidgetItemColors,
     getWidgetStyles,
 } from '@/lib/utils/widgetStyles';
-import { Filter, GripVertical, Plus, StickyNote } from 'lucide-react';
+import {
+    Filter,
+    GripVertical,
+    Plus,
+    RefreshCw,
+    StickyNote,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
@@ -42,6 +50,10 @@ export const NotesWidget = ({
         deleteNote,
         getNoteById,
         getFilteredNotes,
+        syncObsidianVault,
+        enableAutoSync,
+        disableAutoSync,
+        isAutoSyncEnabled,
         loading,
         error,
     } = useNotes(widget.id);
@@ -52,6 +64,7 @@ export const NotesWidget = ({
     const [labelFilter, setLabelFilter] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [containerWidth, setContainerWidth] = useState(400);
+    const [isSyncing, setIsSyncing] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const filteredNotes = useMemo(() => {
@@ -111,10 +124,44 @@ export const NotesWidget = ({
         }
     }, [searchParams, getNoteById]);
 
+    // Enable auto-sync when config is available
+    useEffect(() => {
+        if (
+            config?.enableObsidianSync &&
+            config.obsidianApiUrl &&
+            config.obsidianAuthKey
+        ) {
+            if (!isAutoSyncEnabled) {
+                enableAutoSync(config.obsidianApiUrl, config.obsidianAuthKey);
+            }
+        } else {
+            if (isAutoSyncEnabled) {
+                disableAutoSync();
+            }
+        }
+    }, [
+        config?.enableObsidianSync,
+        config?.obsidianApiUrl,
+        config?.obsidianAuthKey,
+        isAutoSyncEnabled,
+        enableAutoSync,
+        disableAutoSync,
+    ]);
+
     const handleCreateNote = (
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
     ) => {
-        void createNote(noteData).catch((error: unknown) => {
+        const obsidianConfig =
+            config?.enableObsidianSync &&
+            config.obsidianApiUrl &&
+            config.obsidianAuthKey
+                ? {
+                      apiUrl: config.obsidianApiUrl,
+                      authKey: config.obsidianAuthKey,
+                  }
+                : undefined;
+
+        void createNote(noteData, obsidianConfig).catch((error: unknown) => {
             console.error('Failed to create note:', error);
         });
     };
@@ -123,13 +170,36 @@ export const NotesWidget = ({
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
     ) => {
         if (!selectedNote) return;
-        void updateNote(selectedNote.id, noteData).catch((error: unknown) => {
-            console.error('Failed to update note:', error);
-        });
+
+        const obsidianConfig =
+            config?.enableObsidianSync &&
+            config.obsidianApiUrl &&
+            config.obsidianAuthKey
+                ? {
+                      apiUrl: config.obsidianApiUrl,
+                      authKey: config.obsidianAuthKey,
+                  }
+                : undefined;
+
+        void updateNote(selectedNote.id, noteData, obsidianConfig).catch(
+            (error: unknown) => {
+                console.error('Failed to update note:', error);
+            },
+        );
     };
 
     const handleDeleteNote = (noteId: string) => {
-        void deleteNote(noteId).catch((error: unknown) => {
+        const obsidianConfig =
+            config?.enableObsidianSync &&
+            config.obsidianApiUrl &&
+            config.obsidianAuthKey
+                ? {
+                      apiUrl: config.obsidianApiUrl,
+                      authKey: config.obsidianAuthKey,
+                  }
+                : undefined;
+
+        void deleteNote(noteId, obsidianConfig).catch((error: unknown) => {
             console.error('Failed to delete note:', error);
         });
     };
@@ -155,6 +225,26 @@ export const NotesWidget = ({
         const url = new URL(window.location.href);
         url.searchParams.delete('noteId');
         window.history.pushState({}, '', url.toString());
+    };
+
+    const handleObsidianSync = async () => {
+        if (!config?.obsidianApiUrl || !config.obsidianAuthKey) {
+            console.warn('Obsidian API URL and Auth Key are required for sync');
+            return;
+        }
+
+        setIsSyncing(true);
+        try {
+            await syncObsidianVault(
+                config.obsidianApiUrl,
+                config.obsidianAuthKey,
+            );
+            console.log('Obsidian vault synced successfully');
+        } catch (error) {
+            console.error('Failed to sync Obsidian vault:', error);
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     const layout = getCurrentLayout();
@@ -227,9 +317,26 @@ export const NotesWidget = ({
                         >
                             {widget.title}
                         </h3>
-                    </div>
-
+                    </div>{' '}
                     <div className='flex items-center space-x-1'>
+                        {config?.enableObsidianSync &&
+                            config.obsidianApiUrl &&
+                            config.obsidianAuthKey && (
+                                <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={() => {
+                                        void handleObsidianSync();
+                                    }}
+                                    className='h-8 w-8 p-0'
+                                    disabled={isSyncing}
+                                    title='Sync with Obsidian'
+                                >
+                                    <RefreshCw
+                                        className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`}
+                                    />
+                                </Button>
+                            )}
                         <Button
                             variant='ghost'
                             size='sm'
@@ -349,9 +456,9 @@ export const NotesWidget = ({
                 onSave={selectedNote ? handleUpdateNote : handleCreateNote}
             />
             {viewNoteModal && selectedNote && (
-                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+                <div className='fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm'>
                     <div
-                        className='mx-4 w-full max-w-2xl rounded-lg p-6 shadow-xl'
+                        className='flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl'
                         style={{
                             backgroundColor:
                                 widgetItemColors.lightBackground || '#FFFFFF',
@@ -359,9 +466,15 @@ export const NotesWidget = ({
                             border: '1px solid',
                         }}
                     >
-                        <div className='mb-4 flex items-center justify-between'>
+                        <div
+                            className='flex flex-shrink-0 items-center justify-between border-b p-6 pb-4'
+                            style={{
+                                borderColor:
+                                    widgetItemColors.border || '#E5E7EB',
+                            }}
+                        >
                             <h2
-                                className='text-xl font-semibold'
+                                className='mr-4 truncate text-xl font-semibold'
                                 style={{
                                     color:
                                         widgetItemColors.primaryText ||
@@ -370,7 +483,7 @@ export const NotesWidget = ({
                             >
                                 {selectedNote.title}
                             </h2>
-                            <div className='flex space-x-2'>
+                            <div className='flex flex-shrink-0 space-x-2'>
                                 <Button
                                     variant='outline'
                                     size='sm'
@@ -390,54 +503,54 @@ export const NotesWidget = ({
                                 </Button>
                             </div>
                         </div>
-                        <div className='space-y-4'>
-                            <div
-                                className='whitespace-pre-wrap'
-                                style={{
-                                    color:
-                                        widgetItemColors.primaryText ||
-                                        '#1F2937',
-                                }}
-                            >
-                                {selectedNote.content}
-                            </div>
-                            {selectedNote.labels.length > 0 && (
-                                <div className='flex flex-wrap gap-2'>
-                                    {selectedNote.labels.map((label) => (
-                                        <span
-                                            key={label}
-                                            className='rounded-full px-3 py-1 text-sm'
-                                            style={{
-                                                backgroundColor:
-                                                    widgetItemColors.accentLight ||
-                                                    '#DBEAFE',
-                                                color:
-                                                    widgetItemColors.accent ||
-                                                    '#1E40AF',
-                                            }}
-                                        >
-                                            {label}
-                                        </span>
-                                    ))}
+                        <div className='min-h-0 flex-1 overflow-y-auto p-6 pt-4'>
+                            <div className='space-y-4'>
+                                <div className='prose prose-sm max-w-none'>
+                                    <MarkdownRenderer
+                                        content={selectedNote.content}
+                                        widgetColors={widgetItemColors}
+                                        variant='modal'
+                                    />
                                 </div>
-                            )}
-                            <div
-                                className='text-sm'
-                                style={{
-                                    color:
-                                        widgetItemColors.secondaryText ||
-                                        '#6B7280',
-                                }}
-                            >
-                                Created:{' '}
-                                {selectedNote.createdAt.toLocaleDateString()}
-                                {selectedNote.updatedAt >
-                                    selectedNote.createdAt && (
-                                    <>
-                                        • Updated:{' '}
-                                        {selectedNote.updatedAt.toLocaleDateString()}
-                                    </>
+                                {selectedNote.labels.length > 0 && (
+                                    <div className='flex flex-wrap gap-2'>
+                                        {selectedNote.labels.map((label) => (
+                                            <Badge
+                                                key={label}
+                                                variant='default'
+                                                style={{
+                                                    backgroundColor:
+                                                        'transparent',
+                                                    color:
+                                                        widgetItemColors.primaryText ||
+                                                        '#1E40AF',
+                                                    borderColor:
+                                                        widgetItemColors.accent,
+                                                }}
+                                            >
+                                                {label}
+                                            </Badge>
+                                        ))}
+                                    </div>
                                 )}
+                                <div
+                                    className='text-sm'
+                                    style={{
+                                        color:
+                                            widgetItemColors.secondaryText ||
+                                            '#6B7280',
+                                    }}
+                                >
+                                    Created:{' '}
+                                    {selectedNote.createdAt.toLocaleDateString()}
+                                    {selectedNote.updatedAt >
+                                        selectedNote.createdAt && (
+                                        <>
+                                            • Updated:{' '}
+                                            {selectedNote.updatedAt.toLocaleDateString()}
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

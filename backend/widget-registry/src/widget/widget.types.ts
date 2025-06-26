@@ -78,6 +78,18 @@ export class NotesConfig {
 
     @Field({ defaultValue: 3 })
     gridColumns?: number;
+
+    @Field({ nullable: true })
+    obsidianApiUrl?: string;
+
+    @Field({ nullable: true })
+    obsidianAuthKey?: string;
+
+    @Field({ nullable: true })
+    obsidianVaultName?: string;
+
+    @Field({ defaultValue: false })
+    enableObsidianSync?: boolean;
 }
 
 @ObjectType()
@@ -100,7 +112,11 @@ export const WidgetConfig = createUnionType({
             'maxLength' in value ||
             'visibleLabels' in value ||
             'showGrid' in value ||
-            'gridColumns' in value
+            'gridColumns' in value ||
+            'obsidianApiUrl' in value ||
+            'obsidianAuthKey' in value ||
+            'obsidianVaultName' in value ||
+            'enableObsidianSync' in value
         )
             return NotesConfig;
         if ('categories' in value) return TasksConfig;

@@ -259,6 +259,10 @@ export class WidgetService {
                     visibleLabels: null, // Show all notes
                     showGrid: true,
                     gridColumns: 2,
+                    enableObsidianSync: false,
+                    obsidianApiUrl: undefined,
+                    obsidianAuthKey: undefined,
+                    obsidianVaultName: undefined,
                 } as any,
                 x: 6,
                 y: 0,
