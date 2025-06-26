@@ -50,7 +50,6 @@ export const NoteCard = ({
           };
 
     const titleHoverColor = widgetColors?.accent ?? '#3B82F6';
-    const buttonHoverColor = widgetColors?.accentLight ?? '#F3F4F6';
     const primaryTextColor = widgetColors?.primaryText ?? '#1F2937';
     const secondaryTextColor = widgetColors?.secondaryText ?? '#6B7280';
     const accentColor = widgetColors?.accent ?? '#1E40AF';
@@ -61,17 +60,6 @@ export const NoteCard = ({
             className={`group relative flex h-full flex-col rounded-lg border p-4 shadow-sm transition-all hover:shadow-md ${className}`}
             style={cardStyles}
         >
-            {isDraggable && (
-                <div
-                    className='note-drag-handle absolute top-2 right-2 z-10 cursor-move rounded p-1 opacity-0 transition-opacity group-hover:opacity-100'
-                    style={{
-                        backgroundColor: buttonHoverColor,
-                        color: secondaryTextColor,
-                    }}
-                >
-                    <GripVertical className='h-4 w-4' />
-                </div>
-            )}
             <div className='mb-2 flex items-start justify-between'>
                 <h3
                     className='line-clamp-2 cursor-pointer pr-8 font-semibold transition-colors'
@@ -131,6 +119,16 @@ export const NoteCard = ({
                             }}
                         />
                     </Button>
+                    {isDraggable && (
+                        <div
+                            className='note-drag-handle cursor-move rounded p-1'
+                            style={{
+                                color: secondaryTextColor,
+                            }}
+                        >
+                            <GripVertical className='h-4 w-4' />
+                        </div>
+                    )}
                 </div>
             </div>
             {note.content && (
