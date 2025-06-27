@@ -61,6 +61,9 @@ export const NotesWidget = ({
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [viewNoteModal, setViewNoteModal] = useState(false);
+    const [viewNoteModalTransition, setViewNoteModalTransition] = useState<
+        'closed' | 'opening' | 'open' | 'closing'
+    >('closed');
     const [labelFilter, setLabelFilter] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [containerWidth, setContainerWidth] = useState(400);
@@ -119,7 +122,14 @@ export const NotesWidget = ({
             const note = getNoteById(noteId);
             if (note) {
                 setSelectedNote(note);
+                setViewNoteModalTransition('opening');
                 setViewNoteModal(true);
+
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        setViewNoteModalTransition('open');
+                    }, 10);
+                });
             }
         }
     }, [searchParams, getNoteById]);
@@ -147,6 +157,24 @@ export const NotesWidget = ({
         enableAutoSync,
         disableAutoSync,
     ]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && viewNoteModal) {
+                closeViewModal();
+            }
+        };
+
+        if (viewNoteModal) {
+            document.addEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'hidden';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'unset';
+        };
+    }, [viewNoteModal]);
 
     const handleCreateNote = (
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
@@ -211,7 +239,14 @@ export const NotesWidget = ({
 
     const handleViewNote = (note: Note) => {
         setSelectedNote(note);
+        setViewNoteModalTransition('opening');
         setViewNoteModal(true);
+
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                setViewNoteModalTransition('open');
+            }, 10);
+        });
 
         const url = new URL(window.location.href);
         url.searchParams.set('noteId', note.id);
@@ -219,8 +254,13 @@ export const NotesWidget = ({
     };
 
     const closeViewModal = () => {
-        setViewNoteModal(false);
-        setSelectedNote(null);
+        setViewNoteModalTransition('closing');
+
+        setTimeout(() => {
+            setViewNoteModal(false);
+            setSelectedNote(null);
+            setViewNoteModalTransition('closed');
+        }, 250);
 
         const url = new URL(window.location.href);
         url.searchParams.delete('noteId');
@@ -456,18 +496,44 @@ export const NotesWidget = ({
                 onSave={selectedNote ? handleUpdateNote : handleCreateNote}
             />
             {viewNoteModal && selectedNote && (
-                <div className='fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm'>
+                <div
+                    className={`fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-4 ${
+                        viewNoteModalTransition === 'open'
+                            ? 'backdrop-enter'
+                            : viewNoteModalTransition === 'closing'
+                              ? 'backdrop-exit'
+                              : ''
+                    }`}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            closeViewModal();
+                        }
+                    }}
+                >
                     <div
-                        className='flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl'
+                        className={`flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${
+                            viewNoteModalTransition === 'open'
+                                ? 'modal-enter'
+                                : viewNoteModalTransition === 'closing'
+                                  ? 'modal-exit'
+                                  : 'translate-y-8 scale-95 opacity-0'
+                        }`}
                         style={{
                             backgroundColor:
                                 widgetItemColors.lightBackground || '#FFFFFF',
                             borderColor: widgetItemColors.border || '#E5E7EB',
                             border: '1px solid',
                         }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                        }}
                     >
                         <div
-                            className='flex flex-shrink-0 items-center justify-between border-b p-6 pb-4'
+                            className={`flex flex-shrink-0 items-center justify-between border-b p-6 pb-4 ${
+                                viewNoteModalTransition === 'open'
+                                    ? 'modal-content-enter'
+                                    : ''
+                            }`}
                             style={{
                                 borderColor:
                                     widgetItemColors.border || '#E5E7EB',
@@ -503,7 +569,13 @@ export const NotesWidget = ({
                                 </Button>
                             </div>
                         </div>
-                        <div className='min-h-0 flex-1 overflow-y-auto p-6 pt-4'>
+                        <div
+                            className={`min-h-0 flex-1 overflow-y-auto p-6 pt-4 ${
+                                viewNoteModalTransition === 'open'
+                                    ? 'modal-content-enter'
+                                    : ''
+                            }`}
+                        >
                             <div className='space-y-4'>
                                 <div className='prose prose-sm max-w-none'>
                                     <MarkdownRenderer
