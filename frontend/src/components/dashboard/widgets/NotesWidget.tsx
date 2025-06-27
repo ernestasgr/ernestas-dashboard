@@ -1,11 +1,11 @@
 'use client';
 
+import { useNotes, type Note } from '@/components/dashboard/hooks/useNotes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/graphql';
-import { useNotes, type Note } from '@/hooks/useNotes';
 import {
     getWidgetClasses,
     getWidgetIconStyles,
@@ -23,6 +23,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
+import { toast } from 'sonner';
 import { WidgetActions } from '../WidgetActions';
 import { useNoteLayout } from '../hooks/useNoteLayout';
 import { NoteCard } from './NoteCard';
@@ -189,9 +190,14 @@ export const NotesWidget = ({
                   }
                 : undefined;
 
-        void createNote(noteData, obsidianConfig).catch((error: unknown) => {
-            console.error('Failed to create note:', error);
-        });
+        void createNote(noteData, obsidianConfig)
+            .then(() => {
+                toast.success('Note created successfully');
+            })
+            .catch((error: unknown) => {
+                console.error('Failed to create note:', error);
+                toast.error('Failed to create note');
+            });
     };
 
     const handleUpdateNote = (
@@ -209,11 +215,14 @@ export const NotesWidget = ({
                   }
                 : undefined;
 
-        void updateNote(selectedNote.id, noteData, obsidianConfig).catch(
-            (error: unknown) => {
+        void updateNote(selectedNote.id, noteData, obsidianConfig)
+            .then(() => {
+                toast.success('Note updated successfully');
+            })
+            .catch((error: unknown) => {
                 console.error('Failed to update note:', error);
-            },
-        );
+                toast.error('Failed to update note');
+            });
     };
 
     const handleDeleteNote = (noteId: string) => {
@@ -227,9 +236,14 @@ export const NotesWidget = ({
                   }
                 : undefined;
 
-        void deleteNote(noteId, obsidianConfig).catch((error: unknown) => {
-            console.error('Failed to delete note:', error);
-        });
+        void deleteNote(noteId, obsidianConfig)
+            .then(() => {
+                toast.success('Note deleted successfully');
+            })
+            .catch((error: unknown) => {
+                console.error('Failed to delete note:', error);
+                toast.error('Failed to delete note');
+            });
     };
 
     const handleEditNote = (note: Note) => {
@@ -270,6 +284,7 @@ export const NotesWidget = ({
     const handleObsidianSync = async () => {
         if (!config?.obsidianApiUrl || !config.obsidianAuthKey) {
             console.warn('Obsidian API URL and Auth Key are required for sync');
+            toast.error('Obsidian API URL and Auth Key are required for sync');
             return;
         }
 
@@ -280,8 +295,10 @@ export const NotesWidget = ({
                 config.obsidianAuthKey,
             );
             console.log('Obsidian vault synced successfully');
+            toast.success('Obsidian vault synced successfully');
         } catch (error) {
             console.error('Failed to sync Obsidian vault:', error);
+            toast.error('Failed to sync Obsidian vault');
         } finally {
             setIsSyncing(false);
         }

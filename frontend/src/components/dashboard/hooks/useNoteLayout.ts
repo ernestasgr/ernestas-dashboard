@@ -1,4 +1,4 @@
-import { Note } from '@/hooks/useNotes';
+import { Note } from '@/components/dashboard/hooks/useNotes';
 import { useCallback, useRef } from 'react';
 import GridLayout from 'react-grid-layout';
 

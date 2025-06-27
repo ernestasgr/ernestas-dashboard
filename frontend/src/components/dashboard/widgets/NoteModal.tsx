@@ -1,10 +1,10 @@
+import type { Note } from '@/components/dashboard/hooks/useNotes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { Textarea } from '@/components/ui/textarea';
-import type { Note } from '@/hooks/useNotes';
 import { Edit3, Eye, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

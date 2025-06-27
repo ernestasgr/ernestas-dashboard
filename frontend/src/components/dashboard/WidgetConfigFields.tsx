@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { ErrorDisplay } from '@/components/ui/error-display';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,11 +11,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useTestObsidianConnectionMutation } from '@/generated/graphql';
 import {
     validateWidgetConfig,
     WidgetType,
 } from '@/lib/validation/widget-schemas';
+import { CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface WidgetConfigFieldsProps {
     type: string;
@@ -30,6 +34,9 @@ export function WidgetConfigFields({
     onValidationChange,
 }: WidgetConfigFieldsProps) {
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const [isTestingConnection, setIsTestingConnection] = useState(false);
+    const [testObsidianConnectionMutation] =
+        useTestObsidianConnectionMutation();
 
     useEffect(() => {
         const validation = validateWidgetConfig(type as WidgetType, config);
@@ -41,6 +48,42 @@ export function WidgetConfigFields({
             onValidationChange?.(true);
         }
     }, [config, type, onValidationChange]);
+
+    const testObsidianConnection = async (apiUrl: string, authKey: string) => {
+        if (!apiUrl || !authKey) {
+            toast.error('API URL and Auth Key are required');
+            return;
+        }
+
+        setIsTestingConnection(true);
+        try {
+            const input = {
+                apiUrl,
+                authKey,
+            };
+
+            const result = await testObsidianConnectionMutation({
+                variables: { input },
+            });
+
+            if (result.data?.testObsidianConnection) {
+                toast.success(
+                    'Connection successful! Obsidian API is working.',
+                );
+            } else {
+                toast.error(
+                    'Connection failed: Unable to connect to Obsidian API',
+                );
+            }
+        } catch (error) {
+            console.error('Connection test failed:', error);
+            toast.error(
+                `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        } finally {
+            setIsTestingConnection(false);
+        }
+    };
     const renderClockConfig = () => {
         const clockConfig = config as {
             timezone?: string;
@@ -297,6 +340,38 @@ export function WidgetConfigFields({
                                     Found in Obsidian → Settings → Local REST
                                     API → API Key
                                 </p>
+                            </div>
+
+                            <div className='flex justify-end'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={() => {
+                                        void testObsidianConnection(
+                                            notesConfig.obsidianApiUrl ?? '',
+                                            notesConfig.obsidianAuthKey ?? '',
+                                        );
+                                    }}
+                                    disabled={
+                                        isTestingConnection ||
+                                        !notesConfig.obsidianApiUrl ||
+                                        !notesConfig.obsidianAuthKey
+                                    }
+                                    className='gap-2'
+                                >
+                                    {isTestingConnection ? (
+                                        <>
+                                            <Loader2 className='h-4 w-4 animate-spin' />
+                                            Testing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className='h-4 w-4' />
+                                            Test Connection
+                                        </>
+                                    )}
+                                </Button>
                             </div>
 
                             <div className='space-y-2'>

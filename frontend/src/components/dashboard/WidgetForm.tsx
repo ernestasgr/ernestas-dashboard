@@ -19,6 +19,7 @@ import {
     useUpdateWidgetMutation,
 } from '@/generated/graphql';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useWidgetForm } from './hooks/useWidgetForm';
 import { useWidgetValidation } from './hooks/useWidgetValidation';
 import { WidgetBasicFields } from './WidgetBasicFields';
@@ -108,6 +109,7 @@ export function WidgetForm({
                 const result = await updateWidget({ variables: { input } });
                 if (result.data?.updateWidget && onWidgetUpdated) {
                     onWidgetUpdated(result.data.updateWidget);
+                    toast.success('Widget updated successfully');
                 }
             } else {
                 const input: CreateWidgetInput = {
@@ -129,6 +131,7 @@ export function WidgetForm({
 
                 if (result.data?.createWidget && onWidgetCreated) {
                     onWidgetCreated(result.data.createWidget);
+                    toast.success('Widget created successfully');
                 }
             }
             onOpenChange(false);
@@ -136,6 +139,11 @@ export function WidgetForm({
             clearErrors();
         } catch (error) {
             console.error('Error saving widget:', error);
+            toast.error(
+                isEditing
+                    ? 'Failed to update widget'
+                    : 'Failed to create widget',
+            );
         }
     };
     return (

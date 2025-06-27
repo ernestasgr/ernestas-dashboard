@@ -1,10 +1,11 @@
+import type { Note } from '@/components/dashboard/hooks/useNotes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
-import type { Note } from '@/hooks/useNotes';
 import { WidgetItemColors } from '@/lib/utils/widget-styling/types';
 import { Edit, ExternalLink, GripVertical, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
+import { toast } from 'sonner';
 
 interface NoteCardProps {
     note: Note;
@@ -36,7 +37,14 @@ export const NoteCard = ({
 
     const handleShare = () => {
         const noteUrl = `${window.location.origin}${window.location.pathname}?noteId=${note.id}`;
-        void navigator.clipboard.writeText(noteUrl);
+        void navigator.clipboard
+            .writeText(noteUrl)
+            .then(() => {
+                toast.success('Note link copied to clipboard');
+            })
+            .catch(() => {
+                toast.error('Failed to copy note link');
+            });
     };
 
     const cardStyles = widgetColors
