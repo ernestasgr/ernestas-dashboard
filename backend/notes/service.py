@@ -247,6 +247,13 @@ class NoteService:
         saved_notes: List[Note] = []
         for note in obsidian_notes:
             try:
+                existing_note = await self.repository.get_note_by_id(note.id)
+                if existing_note:
+                    note.x = existing_note.x
+                    note.y = existing_note.y
+                    note.width = existing_note.width
+                    note.height = existing_note.height
+
                 saved_note = await self.repository.save_note(note)
                 saved_notes.append(saved_note)
             except Exception as e:

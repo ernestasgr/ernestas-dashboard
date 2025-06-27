@@ -1,5 +1,5 @@
 import { Note } from '@/hooks/useNotes';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import GridLayout from 'react-grid-layout';
 
 interface UseNoteLayoutProps {
@@ -16,7 +16,6 @@ export const useNoteLayout = ({
     gridColumns,
     onUpdateNoteLayout,
 }: UseNoteLayoutProps) => {
-    const [containerWidth, setContainerWidth] = useState(400);
     const layoutUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedLayoutRef = useRef<GridLayout.Layout[]>([]);
 
@@ -100,18 +99,12 @@ export const useNoteLayout = ({
         [onUpdateNoteLayout],
     );
 
-    const updateContainerWidth = useCallback((width: number) => {
-        setContainerWidth(width);
-    }, []);
-
     const getCurrentLayout = useCallback(() => {
         return generateLayout(notes);
     }, [notes, generateLayout]);
 
     return {
-        containerWidth,
         handleLayoutChange,
-        updateContainerWidth,
         getCurrentLayout,
     };
 };
