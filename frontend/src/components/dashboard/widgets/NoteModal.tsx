@@ -14,7 +14,10 @@ interface NoteModalProps {
     maxLength?: number;
     isOpen: boolean;
     onClose: () => void;
-    onSave: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    onSave: (
+        noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
+        existingNote?: Note | null,
+    ) => void;
 }
 
 export const NoteModal = ({
@@ -25,19 +28,34 @@ export const NoteModal = ({
     onClose,
     onSave,
 }: NoteModalProps) => {
-    const [title, setTitle] = useState(note?.title ?? '');
-    const [content, setContent] = useState(note?.content ?? '');
-    const [labels, setLabels] = useState<string[]>(note?.labels ?? []);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [labels, setLabels] = useState<string[]>([]);
     const [newLabel, setNewLabel] = useState('');
     const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const [hasInitialized, setHasInitialized] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [originalNote, setOriginalNote] = useState<Note | null>(null);
 
     useEffect(() => {
-        setTitle(note?.title ?? '');
-        setContent(note?.content ?? '');
-        setLabels(note?.labels ?? []);
-        setNewLabel('');
-        setIsPreviewMode(false);
-    }, [note]);
+        if (isOpen && !hasInitialized) {
+            const isEdit = Boolean(note);
+            setIsEditMode(isEdit);
+            setOriginalNote(note ?? null);
+            setTitle(note?.title ?? '');
+            setContent(note?.content ?? '');
+            setLabels(note?.labels ?? []);
+            setNewLabel('');
+            setIsPreviewMode(false);
+            setHasInitialized(true);
+        }
+
+        if (!isOpen) {
+            setHasInitialized(false);
+            setIsEditMode(false);
+            setOriginalNote(null);
+        }
+    }, [isOpen, note, hasInitialized]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -60,12 +78,15 @@ export const NoteModal = ({
     if (!isOpen) return null;
 
     const handleSave = () => {
-        onSave({
-            widgetId,
-            title: title.trim() || 'Untitled Note',
-            content,
-            labels,
-        });
+        onSave(
+            {
+                widgetId,
+                title: title.trim() || 'Untitled Note',
+                content,
+                labels,
+            },
+            originalNote,
+        );
         onClose();
     };
 
@@ -98,7 +119,7 @@ export const NoteModal = ({
             >
                 <div className='flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4 sm:p-6 dark:border-gray-700'>
                     <h2 className='text-lg font-semibold sm:text-xl'>
-                        {note ? 'Edit Note' : 'Create Note'}
+                        {isEditMode ? 'Edit Note' : 'Create Note'}
                     </h2>
                     <Button
                         variant='ghost'
@@ -241,7 +262,7 @@ export const NoteModal = ({
                         Cancel
                     </Button>
                     <Button onClick={handleSave} className='w-full sm:w-auto'>
-                        {note ? 'Update' : 'Create'} Note
+                        {isEditMode ? 'Update' : 'Create'} Note
                     </Button>
                 </div>
             </div>

@@ -202,9 +202,8 @@ export const NotesWidget = ({
 
     const handleUpdateNote = (
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
+        noteId: string,
     ) => {
-        if (!selectedNote) return;
-
         const obsidianConfig =
             config?.enableObsidianSync &&
             config.obsidianApiUrl &&
@@ -215,7 +214,7 @@ export const NotesWidget = ({
                   }
                 : undefined;
 
-        void updateNote(selectedNote.id, noteData, obsidianConfig)
+        void updateNote(noteId, noteData, obsidianConfig)
             .then(() => {
                 toast.success('Note updated successfully');
             })
@@ -244,6 +243,17 @@ export const NotesWidget = ({
                 console.error('Failed to delete note:', error);
                 toast.error('Failed to delete note');
             });
+    };
+
+    const handleNoteModalSave = (
+        noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
+        existingNote?: Note | null,
+    ) => {
+        if (existingNote) {
+            handleUpdateNote(noteData, existingNote.id);
+        } else {
+            handleCreateNote(noteData);
+        }
     };
 
     const handleEditNote = (note: Note) => {
@@ -510,7 +520,7 @@ export const NotesWidget = ({
                     setModalOpen(false);
                     setSelectedNote(null);
                 }}
-                onSave={selectedNote ? handleUpdateNote : handleCreateNote}
+                onSave={handleNoteModalSave}
             />
             {viewNoteModal && selectedNote && (
                 <div
