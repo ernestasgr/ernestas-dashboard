@@ -77,6 +77,37 @@ class NoteRepository:
             return result.rowcount > 0
 
     @staticmethod
+    async def get_note_by_title_and_widget(
+        title: str, widget_id: str
+    ) -> Optional[Note]:
+        """Get a note by title and widget ID."""
+        async with AsyncSessionLocal() as session:
+            query = select(NoteModel).where(
+                NoteModel.title == title,
+                NoteModel.widget_id == widget_id,
+            )
+            result = await session.execute(query)
+            note_model = result.scalar_one_or_none()
+
+            if not note_model:
+                return None
+
+            return NoteRepository._model_to_note(note_model)
+
+    @staticmethod
+    async def get_note_by_obsidian_path(obsidian_path: str) -> Optional[Note]:
+        """Get a note by its Obsidian path."""
+        async with AsyncSessionLocal() as session:
+            query = select(NoteModel).where(NoteModel.obsidian_path == obsidian_path)
+            result = await session.execute(query)
+            note_model = result.scalar_one_or_none()
+
+            if not note_model:
+                return None
+
+            return NoteRepository._model_to_note(note_model)
+
+    @staticmethod
     def _model_to_note(note_model: NoteModel) -> Note:
         """Convert SQLAlchemy model to Pydantic model."""
         return Note(

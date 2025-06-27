@@ -28,6 +28,16 @@ class NoteService:
         """Get a specific note by ID."""
         return await self.repository.get_note_by_id(note_id)
 
+    async def get_note_by_title_and_widget(
+        self, title: str, widget_id: str
+    ) -> Optional[Note]:
+        """Get a note by title and widget ID."""
+        return await self.repository.get_note_by_title_and_widget(title, widget_id)
+
+    async def get_note_by_obsidian_path(self, obsidian_path: str) -> Optional[Note]:
+        """Get a note by its Obsidian path."""
+        return await self.repository.get_note_by_obsidian_path(obsidian_path)
+
     async def create_note(
         self,
         widget_id: str,
@@ -90,17 +100,24 @@ class NoteService:
                 )
 
                 if success:
-                    note.obsidian_path = file_path
+                    obsidian_id = str(
+                        uuid.uuid5(uuid.NAMESPACE_DNS, f"obsidian:{file_path}")
+                    )
+
+                    await self.repository.delete_note(note.id)
+
+                    note.id = obsidian_id
                     note.source = "obsidian"
+                    note.obsidian_path = file_path
                     note = await self.repository.save_note(note)
                     logger.info(
-                        f"Successfully created note {note.id} in Obsidian at {file_path}"
+                        f"Successfully created and synced note {note.id} to Obsidian at {file_path}"
                     )
                 else:
-                    logger.warning(f"Failed to create note {note.id} in Obsidian")
+                    logger.warning(f"Failed to sync note {note.id} to Obsidian")
 
             except Exception as e:
-                logger.error(f"Error creating note {note.id} in Obsidian: {str(e)}")
+                logger.error(f"Error syncing note {note.id} to Obsidian: {str(e)}")
 
         return note
 
@@ -164,9 +181,16 @@ class NoteService:
                     file_path = note.obsidian_path
                 else:
                     file_path = obsidian_service.create_safe_filename(note.title)
+
+                    obsidian_id = str(
+                        uuid.uuid5(uuid.NAMESPACE_DNS, f"obsidian:{file_path}")
+                    )
+
+                    await self.repository.delete_note(note.id)
+
+                    note.id = obsidian_id
                     note.obsidian_path = file_path
                     note.source = "obsidian"
-                    note = await self.repository.save_note(note)
 
                 frontmatter = obsidian_service.create_frontmatter(note.labels)
                 content_with_frontmatter = frontmatter + note.content
@@ -176,6 +200,7 @@ class NoteService:
                 )
 
                 if success:
+                    note = await self.repository.save_note(note)
                     logger.info(
                         f"Successfully synced note {note.id} to Obsidian at {file_path}"
                     )
@@ -248,14 +273,30 @@ class NoteService:
         for note in obsidian_notes:
             try:
                 existing_note = await self.repository.get_note_by_id(note.id)
+
+                if not existing_note and note.obsidian_path:
+                    existing_note = await self.repository.get_note_by_obsidian_path(
+                        note.obsidian_path
+                    )
+
+                if not existing_note:
+                    existing_note = await self.repository.get_note_by_title_and_widget(
+                        note.title, widget_id
+                    )
+
                 if existing_note:
                     note.x = existing_note.x
                     note.y = existing_note.y
                     note.width = existing_note.width
                     note.height = existing_note.height
+                    note.created_at = existing_note.created_at
+
+                    if existing_note.id != note.id:
+                        await self.repository.delete_note(existing_note.id)
 
                 saved_note = await self.repository.save_note(note)
                 saved_notes.append(saved_note)
+                logger.info(f"Synced note {saved_note.id} from Obsidian")
             except Exception as e:
                 logger.error(f"Failed to save Obsidian note {note.id}: {str(e)}")
                 continue
