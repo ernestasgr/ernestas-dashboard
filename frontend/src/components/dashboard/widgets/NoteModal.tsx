@@ -69,12 +69,10 @@ export const NoteModal = ({
 
         if (isOpen) {
             document.addEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = 'hidden';
         }
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = 'unset';
         };
     }, [isOpen, onClose]);
 
@@ -125,13 +123,13 @@ export const NoteModal = ({
                     e.stopPropagation();
                 }}
             >
-                <div 
+                <div
                     className='flex flex-shrink-0 items-center justify-between border-b p-4 sm:p-6'
                     style={{
                         borderColor: widgetColors?.border ?? '#E5E7EB',
                     }}
                 >
-                    <h2 
+                    <h2
                         className='text-lg font-semibold sm:text-xl'
                         style={{
                             color: widgetColors?.primaryText ?? '#1F2937',
@@ -155,10 +153,11 @@ export const NoteModal = ({
                 <div className='flex-1 overflow-y-auto p-4 sm:p-6'>
                     <div className='space-y-4'>
                         <div>
-                            <Label 
+                            <Label
                                 htmlFor='note-title'
                                 style={{
-                                    color: widgetColors?.primaryText ?? '#1F2937',
+                                    color:
+                                        widgetColors?.primaryText ?? '#1F2937',
                                 }}
                             >
                                 Title
@@ -172,18 +171,22 @@ export const NoteModal = ({
                                 placeholder='Enter note title...'
                                 className='mt-1'
                                 style={{
-                                    borderColor: widgetColors?.border ?? '#E5E7EB',
-                                    color: widgetColors?.primaryText ?? '#1F2937',
+                                    borderColor:
+                                        widgetColors?.border ?? '#E5E7EB',
+                                    color:
+                                        widgetColors?.primaryText ?? '#1F2937',
                                 }}
                             />
                         </div>
 
                         <div>
                             <div className='mb-1 flex items-center justify-between'>
-                                <Label 
+                                <Label
                                     htmlFor='note-content'
                                     style={{
-                                        color: widgetColors?.primaryText ?? '#1F2937',
+                                        color:
+                                            widgetColors?.primaryText ??
+                                            '#1F2937',
                                     }}
                                 >
                                     Content
@@ -197,7 +200,8 @@ export const NoteModal = ({
                                     }}
                                     className='h-7 px-2 text-xs'
                                     style={{
-                                        color: widgetColors?.accent ?? '#3B82F6',
+                                        color:
+                                            widgetColors?.accent ?? '#3B82F6',
                                     }}
                                 >
                                     {isPreviewMode ? (
@@ -215,11 +219,14 @@ export const NoteModal = ({
                             </div>
 
                             {isPreviewMode ? (
-                                <div 
+                                <div
                                     className='max-h-64 min-h-[12rem] overflow-y-auto rounded-md border p-3'
                                     style={{
-                                        backgroundColor: widgetColors?.darkBackground ?? '#F9FAFB',
-                                        borderColor: widgetColors?.border ?? '#E5E7EB',
+                                        backgroundColor:
+                                            widgetColors?.darkBackground ??
+                                            '#F9FAFB',
+                                        borderColor:
+                                            widgetColors?.border ?? '#E5E7EB',
                                     }}
                                 >
                                     {content.trim() ? (
@@ -230,10 +237,12 @@ export const NoteModal = ({
                                             className='prose prose-sm max-w-none'
                                         />
                                     ) : (
-                                        <p 
+                                        <p
                                             className='italic'
                                             style={{
-                                                color: widgetColors?.secondaryText ?? '#6B7280',
+                                                color:
+                                                    widgetColors?.secondaryText ??
+                                                    '#6B7280',
                                             }}
                                         >
                                             Nothing to preview...
@@ -255,17 +264,22 @@ export const NoteModal = ({
                                     rows={6}
                                     className='mt-1 max-h-64 min-h-[8rem] resize-y'
                                     style={{
-                                        borderColor: widgetColors?.border ?? '#E5E7EB',
-                                        color: widgetColors?.primaryText ?? '#1F2937',
+                                        borderColor:
+                                            widgetColors?.border ?? '#E5E7EB',
+                                        color:
+                                            widgetColors?.primaryText ??
+                                            '#1F2937',
                                     }}
                                     maxLength={maxLength}
                                 />
                             )}
 
-                            <div 
+                            <div
                                 className='mt-1 text-sm'
                                 style={{
-                                    color: widgetColors?.secondaryText ?? '#6B7280',
+                                    color:
+                                        widgetColors?.secondaryText ??
+                                        '#6B7280',
                                 }}
                             >
                                 {content.length}/{maxLength} characters
@@ -275,7 +289,8 @@ export const NoteModal = ({
                         <div>
                             <Label
                                 style={{
-                                    color: widgetColors?.primaryText ?? '#1F2937',
+                                    color:
+                                        widgetColors?.primaryText ?? '#1F2937',
                                 }}
                             >
                                 Labels
@@ -287,9 +302,15 @@ export const NoteModal = ({
                                         variant='secondary'
                                         className='inline-flex items-center gap-1'
                                         style={{
-                                            backgroundColor: widgetColors?.accentLight ?? '#DBEAFE',
-                                            color: widgetColors?.accent ?? '#3B82F6',
-                                            borderColor: widgetColors?.accent ?? '#3B82F6',
+                                            backgroundColor:
+                                                widgetColors?.accentLight ??
+                                                '#DBEAFE',
+                                            color:
+                                                widgetColors?.accent ??
+                                                '#3B82F6',
+                                            borderColor:
+                                                widgetColors?.accent ??
+                                                '#3B82F6',
                                         }}
                                     >
                                         {label}
@@ -299,7 +320,9 @@ export const NoteModal = ({
                                             }}
                                             className='ml-1 rounded-full'
                                             style={{
-                                                color: widgetColors?.accent ?? '#3B82F6',
+                                                color:
+                                                    widgetColors?.accent ??
+                                                    '#3B82F6',
                                             }}
                                         >
                                             <X className='h-3 w-3' />
@@ -322,16 +345,21 @@ export const NoteModal = ({
                                     }}
                                     className='flex-1'
                                     style={{
-                                        borderColor: widgetColors?.border ?? '#E5E7EB',
-                                        color: widgetColors?.primaryText ?? '#1F2937',
+                                        borderColor:
+                                            widgetColors?.border ?? '#E5E7EB',
+                                        color:
+                                            widgetColors?.primaryText ??
+                                            '#1F2937',
                                     }}
                                 />
-                                <Button 
-                                    onClick={addLabel} 
+                                <Button
+                                    onClick={addLabel}
                                     variant='outline'
                                     style={{
-                                        borderColor: widgetColors?.accent ?? '#3B82F6',
-                                        color: widgetColors?.accent ?? '#3B82F6',
+                                        borderColor:
+                                            widgetColors?.accent ?? '#3B82F6',
+                                        color:
+                                            widgetColors?.accent ?? '#3B82F6',
                                     }}
                                 >
                                     Add
@@ -341,7 +369,7 @@ export const NoteModal = ({
                     </div>
                 </div>
 
-                <div 
+                <div
                     className='flex flex-shrink-0 flex-col gap-2 border-t p-4 sm:flex-row sm:justify-end sm:p-6'
                     style={{
                         borderColor: widgetColors?.border ?? '#E5E7EB',
@@ -358,8 +386,8 @@ export const NoteModal = ({
                     >
                         Cancel
                     </Button>
-                    <Button 
-                        onClick={handleSave} 
+                    <Button
+                        onClick={handleSave}
                         className='w-full sm:w-auto'
                         style={{
                             backgroundColor: widgetColors?.accent ?? '#3B82F6',

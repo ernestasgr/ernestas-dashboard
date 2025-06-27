@@ -168,12 +168,10 @@ export const NotesWidget = ({
 
         if (viewNoteModal) {
             document.addEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = 'hidden';
         }
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
-            document.body.style.overflow = 'unset';
         };
     }, [viewNoteModal]);
 
