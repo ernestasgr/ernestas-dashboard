@@ -514,6 +514,7 @@ export const NotesWidget = ({
             <NoteModal
                 note={selectedNote}
                 widgetId={widget.id}
+                widgetColors={widgetItemColors}
                 maxLength={config?.maxLength ?? 500}
                 isOpen={modalOpen}
                 onClose={() => {
