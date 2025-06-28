@@ -2,9 +2,10 @@
 
 from typing import List, Optional
 
-from database import AsyncSessionLocal
-from models import Note, NoteModel
 from sqlalchemy import delete, select
+
+from .database import AsyncSessionLocal
+from .models import Note, NoteModel
 
 
 class NoteRepository:

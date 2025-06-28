@@ -6,10 +6,10 @@ from logging.config import fileConfig
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from alembic import context
-from models import Base
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from src.models import Base
 
 config = context.config
 

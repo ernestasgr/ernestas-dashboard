@@ -5,9 +5,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from models import Note
-from obsidian_service import ObsidianService
-from repository import NoteRepository
+from .models import Note
+from .obsidian_service import ObsidianService
+from .repository import NoteRepository
 
 logger = logging.getLogger(__name__)
 

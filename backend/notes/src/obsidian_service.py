@@ -9,7 +9,8 @@ from typing import Any, Dict, List
 
 import httpx
 from fastapi import HTTPException
-from models import Note
+
+from .models import Note
 
 logger = logging.getLogger(__name__)
 

@@ -3,11 +3,12 @@
 import logging
 from contextlib import asynccontextmanager
 
-from database import create_tables
 from fastapi import FastAPI
-from resolvers import Mutation, Query
 from strawberry.fastapi import GraphQLRouter
 from strawberry.federation import Schema
+
+from .database import create_tables
+from .resolvers import Mutation, Query
 
 
 @asynccontextmanager

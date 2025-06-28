@@ -4,8 +4,9 @@ from typing import List, Optional
 
 import strawberry
 from fastapi import HTTPException
-from models import Note
-from schema import (
+
+from .models import Note
+from .schema import (
     CreateNoteInput,
     CreateNoteWithObsidianSyncInput,
     CreateOrUpdateObsidianFileInput,
@@ -18,7 +19,7 @@ from schema import (
     UpdateNoteLayoutInput,
     UpdateNoteWithObsidianSyncInput,
 )
-from service import NoteService
+from .service import NoteService
 
 
 def note_to_graphql_type(note: Note) -> NoteType:

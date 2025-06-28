@@ -192,6 +192,7 @@ services:
           path: ./backend/widget-registry/package.json
     volumes:
       - ./backend/widget-registry/prisma:/usr/src/app/prisma
+
   widget-registry-db:
     image: postgres:latest
     container_name: widget-registry-db
@@ -205,6 +206,7 @@ services:
       - "5433:5432"
     volumes:
       - widget_registry_db_data:/var/lib/postgresql/data
+
   notes:
     build:
       context: ./backend/notes
@@ -227,12 +229,12 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./backend/notes
-          target: /app
+          path: ./backend/notes/src
+          target: /app/src
           ignore:
             - __pycache__/
-        - action: rebuild
-          path: ./backend/notes/requirements.txt
+    volumes:
+      - ./backend/notes/alembic/versions:/app/alembic/versions
 
   notes-db:
     image: postgres:latest
