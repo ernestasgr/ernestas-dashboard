@@ -192,6 +192,7 @@ const startGateway = async () => {
 	try {
 		await waitForService(`${env.AUTH_URL}/health`);
 		await waitForService("http://widget-registry:3001/health");
+		await waitForService("http://notes:8000/health");
 
 		const gateway = new ApolloGateway({
 			supergraphSdl: new IntrospectAndCompose({
@@ -200,6 +201,10 @@ const startGateway = async () => {
 					{
 						name: "widget-registry",
 						url: "http://widget-registry:3001/graphql",
+					},
+					{
+						name: "notes",
+						url: "http://notes:8000/graphql",
 					},
 				],
 			}),
@@ -449,6 +454,11 @@ const startGateway = async () => {
 			);
 			requestLogger.debug("Health check requested");
 			res.status(200).send("OK");
+		});
+
+		app.get("/debug-sentry", (req, res) => {
+			Sentry.captureMessage("Debug Sentry endpoint hit");
+			res.status(200).send("Sentry debug hit");
 		});
 
 		Sentry.setupExpressErrorHandler(app);

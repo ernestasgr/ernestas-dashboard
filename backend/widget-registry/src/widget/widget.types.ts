@@ -67,11 +67,29 @@ export class WeatherConfig {
 
 @ObjectType()
 export class NotesConfig {
-    @Field()
-    content: string;
-
     @Field({ nullable: true })
     maxLength?: number;
+
+    @Field(() => [String], { nullable: true })
+    visibleLabels?: string[]; // If empty/null, show all notes
+
+    @Field({ defaultValue: true })
+    showGrid?: boolean; // Whether to show notes in grid layout or list
+
+    @Field({ defaultValue: 3 })
+    gridColumns?: number;
+
+    @Field({ nullable: true })
+    obsidianApiUrl?: string;
+
+    @Field({ nullable: true })
+    obsidianAuthKey?: string;
+
+    @Field({ nullable: true })
+    obsidianVaultName?: string;
+
+    @Field({ defaultValue: false })
+    enableObsidianSync?: boolean;
 }
 
 @ObjectType()
@@ -90,7 +108,17 @@ export const WidgetConfig = createUnionType({
     resolveType: (value) => {
         if ('timezone' in value) return ClockConfig;
         if ('location' in value) return WeatherConfig;
-        if ('content' in value) return NotesConfig;
+        if (
+            'maxLength' in value ||
+            'visibleLabels' in value ||
+            'showGrid' in value ||
+            'gridColumns' in value ||
+            'obsidianApiUrl' in value ||
+            'obsidianAuthKey' in value ||
+            'obsidianVaultName' in value ||
+            'enableObsidianSync' in value
+        )
+            return NotesConfig;
         if ('categories' in value) return TasksConfig;
         return null;
     },

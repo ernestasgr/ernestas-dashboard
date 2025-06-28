@@ -13,6 +13,7 @@ import { Widget, useDeleteWidgetMutation } from '@/generated/graphql';
 import { getWidgetIconStyles } from '@/lib/utils/widgetStyles';
 import { Edit2, Palette, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface WidgetActionsProps {
     widget: Widget;
@@ -41,9 +42,11 @@ export function WidgetActions({
             if (result.data?.deleteWidget) {
                 onDelete(widget.id);
                 setShowDeleteDialog(false);
+                toast.success('Widget deleted successfully');
             }
         } catch (error) {
             console.error('Error deleting widget:', error);
+            toast.error('Failed to delete widget');
         }
     };
 

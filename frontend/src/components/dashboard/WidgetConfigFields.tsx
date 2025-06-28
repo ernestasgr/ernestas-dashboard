@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { ErrorDisplay } from '@/components/ui/error-display';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +11,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { useTestObsidianConnectionMutation } from '@/generated/graphql';
 import {
     validateWidgetConfig,
     WidgetType,
 } from '@/lib/validation/widget-schemas';
+import { CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface WidgetConfigFieldsProps {
     type: string;
@@ -31,6 +34,9 @@ export function WidgetConfigFields({
     onValidationChange,
 }: WidgetConfigFieldsProps) {
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const [isTestingConnection, setIsTestingConnection] = useState(false);
+    const [testObsidianConnectionMutation] =
+        useTestObsidianConnectionMutation();
 
     useEffect(() => {
         const validation = validateWidgetConfig(type as WidgetType, config);
@@ -42,6 +48,42 @@ export function WidgetConfigFields({
             onValidationChange?.(true);
         }
     }, [config, type, onValidationChange]);
+
+    const testObsidianConnection = async (apiUrl: string, authKey: string) => {
+        if (!apiUrl || !authKey) {
+            toast.error('API URL and Auth Key are required');
+            return;
+        }
+
+        setIsTestingConnection(true);
+        try {
+            const input = {
+                apiUrl,
+                authKey,
+            };
+
+            const result = await testObsidianConnectionMutation({
+                variables: { input },
+            });
+
+            if (result.data?.testObsidianConnection) {
+                toast.success(
+                    'Connection successful! Obsidian API is working.',
+                );
+            } else {
+                toast.error(
+                    'Connection failed: Unable to connect to Obsidian API',
+                );
+            }
+        } catch (error) {
+            console.error('Connection test failed:', error);
+            toast.error(
+                `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        } finally {
+            setIsTestingConnection(false);
+        }
+    };
     const renderClockConfig = () => {
         const clockConfig = config as {
             timezone?: string;
@@ -138,29 +180,22 @@ export function WidgetConfigFields({
             </div>
         );
     };
-
     const renderNotesConfig = () => {
         const notesConfig = config as {
-            content?: string;
             maxLength?: number;
+            visibleLabels?: string[];
+            showGrid?: boolean;
+            gridColumns?: number;
+            obsidianApiUrl?: string;
+            obsidianAuthKey?: string;
+            obsidianVaultName?: string;
+            enableObsidianSync?: boolean;
         };
 
         return (
             <>
                 <div className='space-y-2'>
-                    <Label htmlFor='content'>Content</Label>
-                    <Textarea
-                        id='content'
-                        value={notesConfig.content ?? ''}
-                        onChange={(e) => {
-                            onConfigUpdate('content', e.target.value);
-                        }}
-                        placeholder='Enter your notes...'
-                        rows={4}
-                    />
-                </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='maxLength'>Max Length</Label>
+                    <Label htmlFor='maxLength'>Max Length per Note</Label>
                     <Input
                         id='maxLength'
                         type='number'
@@ -174,6 +209,192 @@ export function WidgetConfigFields({
                         min={1}
                         max={2000}
                     />
+                </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='visibleLabels'>
+                        Visible Labels (comma-separated, leave empty for all)
+                    </Label>
+                    <Input
+                        id='visibleLabels'
+                        value={notesConfig.visibleLabels?.join(', ') ?? ''}
+                        onChange={(e) => {
+                            const labels = e.target.value
+                                .split(',')
+                                .map((l) => l.trim())
+                                .filter((l) => l);
+                            onConfigUpdate(
+                                'visibleLabels',
+                                labels.length > 0 ? labels : undefined,
+                            );
+                        }}
+                        placeholder='work, personal, important'
+                    />
+                </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='showGrid'>Show as Grid</Label>
+                    <Select
+                        value={notesConfig.showGrid ? 'true' : 'false'}
+                        onValueChange={(value) => {
+                            onConfigUpdate('showGrid', value === 'true');
+                        }}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='true'>Grid Layout</SelectItem>
+                            <SelectItem value='false'>List Layout</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                {notesConfig.showGrid && (
+                    <div className='space-y-2'>
+                        <Label htmlFor='gridColumns'>Grid Columns</Label>
+                        <Input
+                            id='gridColumns'
+                            type='number'
+                            value={notesConfig.gridColumns ?? 3}
+                            onChange={(e) => {
+                                onConfigUpdate(
+                                    'gridColumns',
+                                    parseInt(e.target.value) || 3,
+                                );
+                            }}
+                            min={1}
+                        />
+                    </div>
+                )}
+
+                {/* Obsidian Integration Section */}
+                <div className='mt-4 border-t pt-4'>
+                    <h3 className='mb-3 text-sm font-medium'>
+                        Obsidian Integration
+                    </h3>
+                    <div className='space-y-2'>
+                        <Label htmlFor='enableObsidianSync'>
+                            Enable Obsidian Sync
+                        </Label>
+                        <Select
+                            value={
+                                notesConfig.enableObsidianSync
+                                    ? 'true'
+                                    : 'false'
+                            }
+                            onValueChange={(value) => {
+                                onConfigUpdate(
+                                    'enableObsidianSync',
+                                    value === 'true',
+                                );
+                            }}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='false'>Disabled</SelectItem>
+                                <SelectItem value='true'>Enabled</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {notesConfig.enableObsidianSync && (
+                        <>
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianApiUrl'>
+                                    Obsidian Local REST API URL
+                                </Label>
+                                <Input
+                                    id='obsidianApiUrl'
+                                    value={notesConfig.obsidianApiUrl ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianApiUrl',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='http://localhost:27123'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Make sure the Obsidian Local REST API plugin
+                                    is installed and running
+                                </p>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianAuthKey'>
+                                    Authorization Key
+                                </Label>
+                                <Input
+                                    id='obsidianAuthKey'
+                                    type='password'
+                                    value={notesConfig.obsidianAuthKey ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianAuthKey',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='Enter your API key'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Found in Obsidian → Settings → Local REST
+                                    API → API Key
+                                </p>
+                            </div>
+
+                            <div className='flex justify-end'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    size='sm'
+                                    onClick={() => {
+                                        void testObsidianConnection(
+                                            notesConfig.obsidianApiUrl ?? '',
+                                            notesConfig.obsidianAuthKey ?? '',
+                                        );
+                                    }}
+                                    disabled={
+                                        isTestingConnection ||
+                                        !notesConfig.obsidianApiUrl ||
+                                        !notesConfig.obsidianAuthKey
+                                    }
+                                    className='gap-2'
+                                >
+                                    {isTestingConnection ? (
+                                        <>
+                                            <Loader2 className='h-4 w-4 animate-spin' />
+                                            Testing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className='h-4 w-4' />
+                                            Test Connection
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='obsidianVaultName'>
+                                    Vault Name (Optional)
+                                </Label>
+                                <Input
+                                    id='obsidianVaultName'
+                                    value={notesConfig.obsidianVaultName ?? ''}
+                                    onChange={(e) => {
+                                        onConfigUpdate(
+                                            'obsidianVaultName',
+                                            e.target.value,
+                                        );
+                                    }}
+                                    placeholder='My Vault'
+                                />
+                                <p className='text-xs text-gray-500'>
+                                    Leave empty to use the default vault
+                                </p>
+                            </div>
+                        </>
+                    )}
                 </div>
             </>
         );

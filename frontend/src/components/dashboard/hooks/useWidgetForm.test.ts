@@ -304,8 +304,9 @@ describe('useWidgetForm', () => {
 
             expect(result.current.formData.type).toBe('notes');
             expect(result.current.formData.config).toEqual({
-                content: '',
                 maxLength: 500,
+                showGrid: true,
+                gridColumns: 3,
             });
         });
 

@@ -53,7 +53,7 @@ services:
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI}
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE}
       JAVA_OPTS: ${JAVA_OPTS}
-      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_DSN: ${SENTRY_DSN_AUTH}
       SENTRY_SEND_DEFAULT_PII: ${SENTRY_SEND_DEFAULT_PII}
     depends_on:
       auth-db:
@@ -152,12 +152,13 @@ services:
       - GATEWAY_SECRET=${GATEWAY_SECRET}
       - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
       - JWT_SECRET=${JWT_SECRET}
-      - NODE_ENV=${NODE_ENV}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - ENABLE_LOGSTASH=${ENABLE_LOGSTASH:-false}      - LOGSTASH_HOST=${LOGSTASH_HOST:-logstash}
-      - LOGSTASH_PORT=${LOGSTASH_PORT:-5044}
+      - NODE_ENV=${NODE_ENV}      
     depends_on:
       auth:
+        condition: service_started
+      widget-registry:
+        condition: service_started
+      notes:
         condition: service_started
   widget-registry:
     build:
@@ -203,6 +204,51 @@ services:
     volumes:
       - widget_registry_db_data:/var/lib/postgresql/data
 
+  notes:
+    build:
+      context: ./backend/notes
+      dockerfile: Dockerfile
+    container_name: notes
+    ports:
+      - "8000:8000"
+    networks:
+      - elk
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=8000
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@notes-db:5432/${POSTGRES_DB_NOTES}
+      - SENTRY_DSN_NOTES=${SENTRY_DSN_NOTES}
+      - SENTRY_SEND_DEFAULT_PII=${SENTRY_SEND_DEFAULT_PII}
+    restart: always
+    depends_on:
+      notes-db:
+        condition: service_started
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/notes/src
+          target: /app/src
+          ignore:
+            - __pycache__/
+    volumes:
+      - ./backend/notes/alembic/versions:/app/alembic/versions
+
+  notes-db:
+    image: postgres:latest
+    container_name: notes-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NOTES}
+    networks:
+      - elk
+    ports:
+      - "5434:5432"
+    volumes:
+      - notes_db_data:/var/lib/postgresql/data
+
 networks:
   elk:
     driver: bridge
@@ -211,6 +257,8 @@ volumes:
   auth_db_data:
     driver: local
   widget_registry_db_data:
+    driver: local
+  notes_db_data:
     driver: local
   esdata:
     driver: local

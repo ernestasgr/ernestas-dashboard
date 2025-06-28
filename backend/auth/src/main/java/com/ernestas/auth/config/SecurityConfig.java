@@ -154,7 +154,8 @@ public class SecurityConfig {
                     @NonNull FilterChain filterChain)
                     throws ServletException, IOException {
                 String secret = request.getHeader("x-gateway-secret");
-                if (!"/health".equals(request.getRequestURI()) && !gatewaySecret.equals(secret)) {
+                if (!"/health".equals(request.getRequestURI()) && !"/debug-sentry".equals(request.getRequestURI())
+                        && !gatewaySecret.equals(secret)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     return;
                 }

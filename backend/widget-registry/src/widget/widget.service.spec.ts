@@ -248,14 +248,26 @@ describe('WidgetService', () => {
             expect(result.title).toBe(updateInput.title);
         });
 
-        it('should use default colors when colors are not provided', async () => {
+        it('should use default colors when colors are not provided and db widget has no colors', async () => {
             const inputWithoutColors: UpdateWidgetInput = {
                 id: mockWidgetId,
                 title: 'Updated Title',
             };
 
-            prismaService.userWidget.findUnique.mockResolvedValue(mockDbWidget);
-            const updatedWidget = { ...mockDbWidget, ...inputWithoutColors };
+            const dbWidgetNoColors = {
+                ...mockDbWidget,
+                textColor: null,
+                iconColor: null,
+            };
+            prismaService.userWidget.findUnique.mockResolvedValue(
+                dbWidgetNoColors,
+            );
+            const updatedWidget = {
+                ...dbWidgetNoColors,
+                ...inputWithoutColors,
+                textColor: 'oklch(80.9% 0.105 251.813)',
+                iconColor: 'oklch(42.4% 0.199 265.638 / 0.5)',
+            };
             prismaService.userWidget.update.mockResolvedValue(updatedWidget);
 
             await service.updateWidget(inputWithoutColors);

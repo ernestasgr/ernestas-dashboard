@@ -98,7 +98,7 @@ const MyGrid = () => {
     }));
 
     return (
-        <div className='w-full p-4'>
+        <div className='mb-16 w-full p-4'>
             <DashboardHeader
                 showCoordinates={showCoordinates}
                 onToggleCoordinates={handleToggleCoordinates}

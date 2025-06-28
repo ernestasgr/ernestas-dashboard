@@ -326,6 +326,7 @@ describe('useWidgetValidation', () => {
                 type: 'clock',
                 title: 'Invalid Widget',
                 x: -1,
+                y: 0,
                 width: 0,
                 height: 4,
                 config: {

@@ -44,8 +44,12 @@ describe('Class Utils', () => {
             it('should return base classes when backgroundColor and backgroundImage are undefined', () => {
                 const widget = createMockWidget();
 
+                // Destructure to remove backgroundColor and backgroundImage from widget
+
                 const {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     backgroundColor,
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     backgroundImage,
                     ...widgetWithoutBackground
                 } = widget;

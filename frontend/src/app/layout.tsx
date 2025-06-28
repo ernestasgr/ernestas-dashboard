@@ -2,6 +2,7 @@ import { ApolloWrapper } from '@/lib/graphql/apollo-wrapper';
 import { AuthRedirectListener } from '@/lib/listeners/AuthRedirectListener';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({
                 <ApolloWrapper>
                     <AuthRedirectListener />
                     <main>{children}</main>
+                    <Toaster />
                 </ApolloWrapper>
             </body>
         </html>

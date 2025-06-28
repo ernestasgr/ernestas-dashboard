@@ -21,8 +21,14 @@ query GetWidgets($userId: ID!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -55,8 +61,14 @@ query GetWidget($id: ID!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -89,8 +101,14 @@ query GetWidgetsByType($type: String!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -127,8 +145,14 @@ mutation CreateWidget($userId: ID!, $input: CreateWidgetInput!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -161,8 +185,14 @@ mutation UpdateWidget($input: UpdateWidgetInput!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories
@@ -195,8 +225,14 @@ mutation UpdateWidgetLayout($input: UpdateWidgetLayoutInput!) {
                 units
             }
             ... on NotesConfig {
-                content
                 maxLength
+                visibleLabels
+                showGrid
+                gridColumns
+                enableObsidianSync
+                obsidianApiUrl
+                obsidianAuthKey
+                obsidianVaultName
             }
             ... on TasksConfig {
                 categories

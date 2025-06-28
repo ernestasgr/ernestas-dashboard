@@ -1,0 +1,159 @@
+query GetNotes($filter: NotesFilterInput!) {
+    notes(filter: $filter) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+query GetNote($id: ID!) {
+    note(id: $id) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation CreateNote($input: CreateNoteInput!) {
+    createNote(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation CreateNoteWithObsidianSync($input: CreateNoteWithObsidianSyncInput!) {
+    createNoteWithObsidianSync(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation UpdateNote($input: UpdateNoteInput!) {
+    updateNote(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation UpdateNoteLayout($input: UpdateNoteLayoutInput!) {
+    updateNoteLayout(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation DeleteNote($id: ID!) {
+    deleteNote(id: $id)
+}
+
+mutation DeleteNoteWithObsidianSync($input: DeleteNoteWithObsidianSyncInput!) {
+    deleteNoteWithObsidianSync(input: $input)
+}
+
+mutation SyncObsidianVault($input: ObsidianSyncInput!) {
+    syncObsidianVault(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}
+
+mutation TestObsidianConnection($input: ObsidianTestConnectionInput!) {
+    testObsidianConnection(input: $input)
+}
+
+mutation CreateOrUpdateObsidianFile($input: CreateOrUpdateObsidianFileInput!) {
+    createOrUpdateObsidianFile(input: $input)
+}
+
+mutation UpdateNoteWithObsidianSync($input: UpdateNoteWithObsidianSyncInput!) {
+    updateNoteWithObsidianSync(input: $input) {
+        id
+        title
+        content
+        labels
+        widgetId
+        createdAt
+        updatedAt
+        x
+        y
+        width
+        height
+        source
+        obsidianPath
+    }
+}

@@ -21,6 +21,7 @@ import {
 } from '@/lib/utils/widget-styling';
 import { Image, Palette, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface WidgetStyleConfigProps {
     widget: Widget;
@@ -53,9 +54,11 @@ export const WidgetStyleConfig = ({
                     },
                 },
             });
+            toast.success('Widget style updated successfully!');
             onClose();
         } catch (error) {
             console.error('Failed to update widget style:', error);
+            toast.error('Failed to update widget style');
         }
     };
     const handleReset = async () => {
@@ -75,9 +78,11 @@ export const WidgetStyleConfig = ({
             setTextColor('');
             setIconColor('');
             setBackgroundImage('');
+            toast.success('Widget style reset to defaults!');
             onClose();
         } catch (error) {
             console.error('Failed to reset widget style:', error);
+            toast.error('Failed to reset widget style');
         }
     };
 

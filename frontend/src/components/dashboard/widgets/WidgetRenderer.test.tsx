@@ -220,7 +220,7 @@ const createMockWidget = (type: string, id = 'test-widget'): Widget => ({
     textColor: null,
     iconColor: null,
     backgroundImage: null,
-    config: {},
+    config: undefined,
 });
 
 const mockProps = {

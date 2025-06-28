@@ -140,14 +140,14 @@ export class WidgetService {
         if (input.backgroundColor !== undefined)
             updateData.backgroundColor = input.backgroundColor;
         if (input.textColor) updateData.textColor = input.textColor;
-        else
+        else if (!existingWidget.textColor)
             updateData.textColor = getDefaultTextColorForType(
                 existingWidget.type,
             );
         if (input.backgroundImage !== undefined)
             updateData.backgroundImage = input.backgroundImage;
         if (input.iconColor) updateData.iconColor = input.iconColor;
-        else
+        else if (!existingWidget.iconColor)
             updateData.iconColor = getDefaultIconColorForType(
                 existingWidget.type,
             );
@@ -255,8 +255,14 @@ export class WidgetService {
                 type: 'notes',
                 title: 'Quick Notes',
                 config: {
-                    content: 'Remember to check the dashboard layout',
                     maxLength: 500,
+                    visibleLabels: null, // Show all notes
+                    showGrid: true,
+                    gridColumns: 2,
+                    enableObsidianSync: false,
+                    obsidianApiUrl: undefined,
+                    obsidianAuthKey: undefined,
+                    obsidianVaultName: undefined,
                 } as any,
                 x: 6,
                 y: 0,

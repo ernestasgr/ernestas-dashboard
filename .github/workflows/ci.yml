@@ -57,6 +57,24 @@ jobs:
             - name: Run gateway unit tests
               run: pnpm test
 
+    notes-unit-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend/notes
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+            - name: Run notes unit tests
+              run: python -m pytest tests/ -v
+
     widget-registry-unit-tests:
         runs-on: ubuntu-latest
         defaults:
@@ -114,7 +132,7 @@ jobs:
                   SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET }}
                   SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI }}
                   SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE=${{ secrets.SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE }}
-                  SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+                  SENTRY_DSN_AUTH=${{ secrets.SENTRY_DSN_AUTH }}
                   SENTRY_SEND_DEFAULT_PII=${{ secrets.SENTRY_SEND_DEFAULT_PII }}
                   EOF
             - name: Start Docker services

@@ -34,7 +34,8 @@ vi.mock('react-grid-layout', () => ({
 
 const useWidgetLayoutMock = vi.fn();
 vi.mock('./hooks/useWidgetLayout', () => ({
-    useWidgetLayout: () => useWidgetLayoutMock(),
+    useWidgetLayout: (): ReturnType<typeof useWidgetLayoutMock> =>
+        useWidgetLayoutMock(),
 }));
 
 vi.mock('./CoordinateGrid', () => ({

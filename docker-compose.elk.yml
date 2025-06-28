@@ -30,3 +30,13 @@ services:
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5044
       LOG_LEVEL: info
+
+  notes:
+    depends_on:
+      logstash:
+        condition: service_healthy
+    environment:
+      ENABLE_LOGSTASH: "true"
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5044
+      LOG_LEVEL: info
