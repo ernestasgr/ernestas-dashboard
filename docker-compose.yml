@@ -152,10 +152,7 @@ services:
       - GATEWAY_SECRET=${GATEWAY_SECRET}
       - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
       - JWT_SECRET=${JWT_SECRET}
-      - NODE_ENV=${NODE_ENV}      - LOG_LEVEL=${LOG_LEVEL:-info}
-      - ENABLE_LOGSTASH=${ENABLE_LOGSTASH:-false}
-      - LOGSTASH_HOST=${LOGSTASH_HOST:-logstash}
-      - LOGSTASH_PORT=${LOGSTASH_PORT:-5044}
+      - NODE_ENV=${NODE_ENV}      
     depends_on:
       auth:
         condition: service_started
