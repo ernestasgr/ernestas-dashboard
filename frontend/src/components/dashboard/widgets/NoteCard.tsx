@@ -191,7 +191,10 @@ export const NoteCard = ({
                     color: secondaryTextColor,
                 }}
             >
-                {note.updatedAt.toLocaleDateString()}
+                {note.updatedAt
+                    .toISOString()
+                    .substring(0, 16)
+                    .replace('T', ' ')}
             </div>
         </div>
     );

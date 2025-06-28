@@ -640,12 +640,18 @@ export const NotesWidget = ({
                                     }}
                                 >
                                     Created:{' '}
-                                    {selectedNote.createdAt.toLocaleDateString()}
+                                    {new Date(selectedNote.createdAt)
+                                        .toISOString()
+                                        .slice(0, 16)
+                                        .replace('T', ' ')}{' '}
                                     {selectedNote.updatedAt >
                                         selectedNote.createdAt && (
                                         <>
                                             • Updated:{' '}
-                                            {selectedNote.updatedAt.toLocaleDateString()}
+                                            {new Date(selectedNote.updatedAt)
+                                                .toISOString()
+                                                .slice(0, 16)
+                                                .replace('T', ' ')}
                                         </>
                                     )}
                                 </div>
