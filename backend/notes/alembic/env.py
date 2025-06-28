@@ -23,10 +23,12 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    return os.getenv(
+    url = os.getenv(
         "DATABASE_URL",
         "postgresql+asyncpg://postgres:password@localhost:5432/personal_dashboard_notes",
     )
+    config.set_main_option("sqlalchemy.url", url)
+    return url
 
 
 def process_revision_directives(
