@@ -17,21 +17,12 @@ class NoteRepository:
     ) -> List[Note]:
         """Get notes from database for a specific widget."""
         async with AsyncSessionLocal() as session:
+            query = select(NoteModel).where(NoteModel.widget_id == widget_id)
+
             if label_filter:
-                query = (
-                    select(NoteModel)
-                    .where(
-                        NoteModel.widget_id == widget_id,
-                        NoteModel.labels.overlap(label_filter),
-                    )
-                    .order_by(NoteModel.updated_at.desc())
-                )
-            else:
-                query = (
-                    select(NoteModel)
-                    .where(NoteModel.widget_id == widget_id)
-                    .order_by(NoteModel.updated_at.desc())
-                )
+                query = query.where(NoteModel.labels.overlap(label_filter))
+
+            query = query.order_by(NoteModel.updated_at.desc())
 
             result = await session.execute(query)
             note_models = result.scalars().all()
@@ -39,7 +30,6 @@ class NoteRepository:
             return [
                 NoteRepository._model_to_note(note_model) for note_model in note_models
             ]
-
     @staticmethod
     async def get_note_by_id(note_id: str) -> Optional[Note]:
         """Get a single note from database."""

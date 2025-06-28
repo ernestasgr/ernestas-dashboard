@@ -458,6 +458,7 @@ const startGateway = async () => {
 
 		app.get("/debug-sentry", (req, res) => {
 			Sentry.captureMessage("Debug Sentry endpoint hit");
+			res.status(200).send("Sentry debug hit");
 		});
 
 		Sentry.setupExpressErrorHandler(app);
