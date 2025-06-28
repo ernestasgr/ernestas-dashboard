@@ -19,4 +19,15 @@ public class HealthController {
     public String health() {
         return "OK";
     }
+
+    /**
+     * Handles HTTP GET requests to the /debug-sentry endpoint and returns a debug
+     * message.
+     *
+     * @return the string "Debug Sentry endpoint hit" for debugging purposes
+     */
+    @GetMapping("/debug-sentry")
+    public String debugSentry() {
+        throw new RuntimeException("Debug Sentry endpoint hit");
+    }
 }

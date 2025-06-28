@@ -5,6 +5,7 @@ from typing import List, Optional
 import strawberry
 from fastapi import HTTPException
 
+from .logger import create_context_logger, logger
 from .models import Note
 from .schema import (
     CreateNoteInput,
@@ -71,6 +72,11 @@ class Mutation:
     @strawberry.field
     async def create_note(self, input: CreateNoteInput) -> NoteType:
         """Create a new note."""
+        context_logger = create_context_logger(
+            logger, operation="create_note", widget_id=str(input.widget_id)
+        )
+        context_logger.info("Creating new note", title=input.title)
+
         service = NoteService()
         note = await service.create_note(
             widget_id=input.widget_id,
@@ -82,6 +88,8 @@ class Mutation:
             width=input.width,
             height=input.height,
         )
+
+        context_logger.info("Note created successfully", note_id=note.id)
         return note_to_graphql_type(note)
 
     @strawberry.field
@@ -148,6 +156,13 @@ class Mutation:
         self, input: UpdateNoteWithObsidianSyncInput
     ) -> NoteType:
         """Update a note and optionally sync it to Obsidian."""
+        context_logger = create_context_logger(
+            logger, operation="update_note_with_obsidian_sync", note_id=str(input.id)
+        )
+        context_logger.info(
+            "Updating note with Obsidian sync", sync_enabled=input.sync_to_obsidian
+        )
+
         service = NoteService()
 
         obsidian_api_url = input.obsidian_api_url if input.sync_to_obsidian else None
@@ -168,13 +183,28 @@ class Mutation:
             )
             return note_to_graphql_type(note)
         except ValueError as e:
+            context_logger.error(
+                "Failed to update note with Obsidian sync", error=str(e)
+            )
             raise HTTPException(status_code=404, detail=str(e))
 
     @strawberry.field
     async def delete_note(self, id: strawberry.ID) -> bool:
         """Delete a note."""
+        context_logger = create_context_logger(
+            logger, operation="delete_note", note_id=str(id)
+        )
+        context_logger.info("Deleting note")
+
         service = NoteService()
-        return await service.delete_note(id)
+        result = await service.delete_note(id)
+
+        if result:
+            context_logger.info("Note deleted successfully")
+        else:
+            context_logger.warn("Note not found or could not be deleted")
+
+        return result
 
     @strawberry.field
     async def delete_note_with_obsidian_sync(
