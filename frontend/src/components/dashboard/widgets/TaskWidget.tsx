@@ -1,6 +1,7 @@
 'use client';
 
 import { TasksConfig, Widget } from '@/generated/graphql';
+import { useTasks } from '@/hooks/useTasks';
 import {
     getWidgetClasses,
     getWidgetIconStyles,
@@ -9,7 +10,11 @@ import {
 } from '@/lib/utils/widgetStyles';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
+import { Layout } from 'react-grid-layout';
 import { WidgetActions } from '../WidgetActions';
+import { TaskForm } from './TaskForm';
+import { TaskList } from './TaskList';
+import { ItemColors } from './types';
 
 interface TaskWidgetProps {
     widget: Widget;
@@ -25,38 +30,119 @@ export const TaskWidget = ({
     onStyleEdit,
 }: TaskWidgetProps) => {
     const config = widget.config as TasksConfig | null;
-    const [tasks, setTasks] = useState([
-        {
-            id: 1,
-            text: 'Review dashboard design',
-            completed: false,
-            category: config?.defaultCategory ?? 'personal',
-        },
-        {
-            id: 2,
-            text: 'Update documentation',
-            completed: true,
-            category: 'work',
-        },
-        {
-            id: 3,
-            text: 'Test new features',
-            completed: false,
-            category: 'urgent',
-        },
-    ]);
-    const toggleTask = (id: number) => {
-        setTasks(
-            tasks.map((task) =>
-                task.id === id ? { ...task, completed: !task.completed } : task,
-            ),
-        );
+    const [expandedStates, setExpandedStates] = useState<
+        Record<string, boolean>
+    >({});
+    const [layoutKey] = useState(0); 
+
+    const {
+        loading,
+        createTask,
+        toggleTaskCompletion,
+        deleteTask,
+        reorderTask,
+        getTaskHierarchy,
+    } = useTasks({
+        widgetId: widget.id,
+    });
+
+    const widgetTasks = getTaskHierarchy(widget.id);
+
+    const handleToggleExpanded = (taskId: string) => {
+        setExpandedStates((prev) => ({
+            ...prev,
+            [taskId]: !(prev[taskId] ?? true),
+        }));
     };
+
+    const handleLayoutChange = (layout: Layout[]) => {
+        const hasPositionChanges = layout.some((item) => {
+            const task = widgetTasks.find((t) => t.id === item.i);
+            return task && task.displayOrder !== item.y;
+        });
+
+        if (!hasPositionChanges) {
+            return;
+        }
+
+        const sortedLayout = [...layout].sort((a, b) => a.y - b.y);
+
+        console.log(
+            'Layout changed (meaningful):',
+            sortedLayout.map((item) => ({ id: item.i, y: item.y })),
+        );
+
+        const reorderPromises: Promise<void>[] = [];
+
+        sortedLayout.forEach((item, index) => {
+            const task = widgetTasks.find((t) => t.id === item.i);
+            if (task && task.displayOrder !== index) {
+                console.log(
+                    `Reordering task ${task.id} (${task.text}) from ${String(task.displayOrder)} to ${String(index)}`,
+                );
+                reorderPromises.push(reorderTask(task.id, index));
+            }
+        });
+
+        if (reorderPromises.length > 0) {
+            Promise.all(reorderPromises).catch((error: unknown) => {
+                console.error('Failed to reorder tasks:', error);
+            });
+        }
+    };
+
+    const handleToggleTask = async (taskId: string) => {
+        try {
+            await toggleTaskCompletion(taskId);
+        } catch (error) {
+            console.error('Failed to toggle task:', error);
+        }
+    };
+
+    const handleCreateTask = async (text: string) => {
+        try {
+            await createTask({
+                text: text,
+                category: config?.defaultCategory ?? 'personal',
+                widgetId: widget.id,
+                priority: 0,
+                completed: false,
+                displayOrder: widgetTasks.length, // Put at the end
+            });
+        } catch (error) {
+            console.error('Failed to create task:', error);
+        }
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        try {
+            await deleteTask(taskId);
+        } catch (error) {
+            console.error('Failed to delete task:', error);
+        }
+    };
+
+    const handleCreateSubtask = async (parentId: string, text: string) => {
+        try {
+            await createTask({
+                text: text,
+                category: config?.defaultCategory ?? 'personal',
+                widgetId: widget.id,
+                priority: 0,
+                completed: false,
+                displayOrder: 0,
+                parentTaskId: parseInt(parentId),
+            });
+        } catch (error) {
+            console.error('Failed to create subtask:', error);
+        }
+    };
+
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40';
     const dynamicStyles = getWidgetStyles(widget);
     const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
-    const itemColors = getWidgetItemColors(widget);
+    const itemColors: ItemColors = getWidgetItemColors(widget);
     const finalClasses = getWidgetClasses(widget, baseClasses);
 
     return (
@@ -96,61 +182,24 @@ export const TaskWidget = ({
                     </h3>
                 </div>
                 <div className='flex-1 space-y-3 overflow-y-auto'>
-                    {tasks.map((task) => (
-                        <div
-                            key={task.id}
-                            className='flex items-center space-x-3 rounded-lg p-3 transition-all'
-                            style={{
-                                backgroundColor: itemColors.lightBackground,
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    itemColors.darkBackground;
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    itemColors.lightBackground;
-                            }}
-                        >
-                            <input
-                                type='checkbox'
-                                checked={task.completed}
-                                onChange={() => {
-                                    toggleTask(task.id);
-                                }}
-                                className='h-4 w-4 rounded border transition-all'
-                                style={{
-                                    borderColor: itemColors.border,
-                                    accentColor: itemColors.accent,
-                                }}
-                            />
-                            <div className='flex-1'>
-                                <span
-                                    className={`text-sm transition-all ${task.completed ? 'line-through' : ''}`}
-                                    style={{
-                                        color: task.completed
-                                            ? itemColors.secondaryText
-                                            : itemColors.primaryText,
-                                    }}
-                                >
-                                    {task.text}
-                                </span>
-                                {config?.categories &&
-                                    config.categories.includes(
-                                        task.category,
-                                    ) && (
-                                        <div
-                                            className='mt-1 text-xs'
-                                            style={{
-                                                color: itemColors.secondaryText,
-                                            }}
-                                        >
-                                            {task.category}
-                                        </div>
-                                    )}
-                            </div>
-                        </div>
-                    ))}
+                    <TaskList
+                        tasks={widgetTasks}
+                        itemColors={itemColors}
+                        loading={loading}
+                        layoutKey={layoutKey}
+                        expandedStates={expandedStates}
+                        onToggleTask={handleToggleTask}
+                        onDeleteTask={handleDeleteTask}
+                        onCreateSubtask={handleCreateSubtask}
+                        onToggleExpanded={handleToggleExpanded}
+                        onReorderTask={reorderTask}
+                        onLayoutChange={handleLayoutChange}
+                    />
+
+                    <TaskForm
+                        itemColors={itemColors}
+                        onCreateTask={handleCreateTask}
+                    />
                 </div>
             </div>
         </div>

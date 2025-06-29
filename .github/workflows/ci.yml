@@ -42,6 +42,25 @@ jobs:
             - name: Run auth unit tests
               run: ./mvnw test
 
+    tasks-unit-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend/tasks
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+                  dotnet-quality: "preview"
+            - name: Restore dependencies
+              run: dotnet restore tasks.csproj
+            - name: Build
+              run: dotnet build tasks.csproj --no-restore
+            - name: Run tasks unit tests
+              run: dotnet test tasks.csproj --no-build --verbosity normal
+
     gateway-unit-tests:
         runs-on: ubuntu-latest
         defaults:
@@ -116,6 +135,8 @@ jobs:
                   POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
                   POSTGRES_DB_AUTH=${{ secrets.POSTGRES_DB_AUTH }}
                   POSTGRES_DB_WIDGET_REGISTRY=${{ secrets.POSTGRES_DB_WIDGET_REGISTRY }}
+                  POSTGRES_DB_NOTES=${{ secrets.POSTGRES_DB_NOTES }}
+                  POSTGRES_DB_TASKS=${{ secrets.POSTGRES_DB_TASKS }}
                   AUTH_URL=${{ secrets.AUTH_URL }}
                   AUTH_REDIRECT_URL=${{ secrets.AUTH_REDIRECT_URL }}
                   GATEWAY_SECRET=${{ secrets.GATEWAY_SECRET }}

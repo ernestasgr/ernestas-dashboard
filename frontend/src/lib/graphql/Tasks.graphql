@@ -1,0 +1,175 @@
+query GetTaskHierarchy($filter: TasksFilterInput) {
+    taskHierarchy(filter: $filter) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+        subTasks {
+            id
+            text
+            completed
+            category
+            userId
+            widgetId
+            createdAt
+            updatedAt
+            priority
+            dueDate
+            description
+            parentTaskId
+            displayOrder
+            subTasks {
+                id
+                text
+                completed
+                category
+                userId
+                widgetId
+                createdAt
+                updatedAt
+                priority
+                dueDate
+                description
+                parentTaskId
+                displayOrder
+                subTasks {
+                    id
+                    text
+                    completed
+                    category
+                    userId
+                    widgetId
+                    createdAt
+                    updatedAt
+                    priority
+                    dueDate
+                    description
+                    parentTaskId
+                    displayOrder
+                }
+            }
+        }
+    }
+}
+
+query GetTask($id: Int!) {
+    task(id: $id) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+        subTasks {
+            id
+            text
+            completed
+            category
+            userId
+            widgetId
+            createdAt
+            updatedAt
+            priority
+            dueDate
+            description
+            parentTaskId
+            displayOrder
+        }
+    }
+}
+
+query GetTaskCategories {
+    taskCategories
+}
+
+mutation CreateTask($input: CreateTaskInput!) {
+    createTask(input: $input) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+    }
+}
+
+mutation UpdateTask($input: UpdateTaskInput!) {
+    updateTask(input: $input) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+    }
+}
+
+mutation ToggleTaskCompletion($id: Int!) {
+    toggleTaskCompletion(id: $id) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+    }
+}
+
+mutation DeleteTask($id: Int!) {
+    deleteTask(id: $id)
+}
+
+mutation ReorderTask($input: ReorderTaskInput!) {
+    reorderTask(input: $input) {
+        id
+        text
+        completed
+        category
+        userId
+        widgetId
+        createdAt
+        updatedAt
+        priority
+        dueDate
+        description
+        parentTaskId
+        displayOrder
+    }
+}
