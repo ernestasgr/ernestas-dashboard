@@ -2,6 +2,8 @@
 
 Ernestas Dashboard is a modular, full-stack platform for building customizable, secure, and extensible personal dashboards. It integrates multiple microservices for authentication, widgets, notes, and tasks, all orchestrated through a federated GraphQL gateway and a modern Next.js frontend.
 
+![Dashboard Screenshot](./docs/images/widgets.png)
+
 ## Purpose
 
 The project aims to provide a robust, extensible dashboard for personal productivity, supporting:
@@ -23,6 +25,17 @@ The project aims to provide a robust, extensible dashboard for personal producti
 -   **backend/tasks/**: ASP.NET Core/HotChocolate service for advanced task management, hierarchy, and filtering.
 -   **ELK stack**: (Optional) Elasticsearch, Logstash, Kibana for centralized logging and monitoring.
 
+## Service TODO Lists
+
+Each service maintains its own TODO list for tracking improvements and future features:
+
+-   **[Frontend TODO](./frontend/TODO.md)**
+-   **[Gateway TODO](./gateway/TODO.md)**
+-   **[Auth TODO](./backend/auth/TODO.md)**
+-   **[Widget Registry TODO](./backend/widget-registry/TODO.md)**
+-   **[Notes TODO](./backend/notes/TODO.md)**
+-   **[Tasks TODO](./backend/tasks/TODO.md)**
+
 ## Technologies Used
 
 -   **Frontend**: Next.js, React, TypeScript, Tailwind CSS, Apollo Client, Vitest, Testing Library
@@ -37,14 +50,19 @@ The project aims to provide a robust, extensible dashboard for personal producti
 
 -   Modular, microservice-based architecture
 -   Federated GraphQL API for all data
--   Secure authentication and session management
+-   Secure authentication and session management using OAuth
 -   Customizable, user-specific widgets
 -   Notes with Obsidian vault sync
 -   Hierarchical, filterable tasks
--   Centralized logging and error monitoring
+-   Centralized logging and error monitoring using ELK stack and Sentry
 -   Health and debug endpoints for all services
+-   CI/CD pipeline using GitHub Actions
+-   Easy running using Docker
+-   Comprehensive unit, integration and e2e testing suites
 
 ## Environment Variables
+
+TODO: as of right now `application.yml` also needs to be created manually in `backend/auth`. Example in `application.example.yml`. Will be fixed in the near future.
 
 This project uses environment variables for configuration. Copy `.env.example` to `.env` and fill in the required values:
 
