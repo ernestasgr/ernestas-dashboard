@@ -42,6 +42,25 @@ jobs:
             - name: Run auth unit tests
               run: ./mvnw test
 
+    tasks-unit-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend/tasks
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+                  dotnet-quality: "preview"
+            - name: Restore dependencies
+              run: dotnet restore
+            - name: Build
+              run: dotnet build --no-restore
+            - name: Run tasks unit tests
+              run: dotnet test --no-build --verbosity normal
+
     gateway-unit-tests:
         runs-on: ubuntu-latest
         defaults:
