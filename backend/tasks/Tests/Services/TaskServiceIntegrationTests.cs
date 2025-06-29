@@ -66,7 +66,7 @@ public class TaskServiceIntegrationTests : IDisposable
         // Assert
         var rootTasks = hierarchy.Where(t => t.ParentTaskId == null).ToList();
         rootTasks.Should().HaveCount(1);
-        
+
         var root = rootTasks.First();
         root.Text.Should().Be("Root Task");
         root.SubTasks.Should().HaveCount(2);
@@ -122,7 +122,7 @@ public class TaskServiceIntegrationTests : IDisposable
             text: "Parent 1", userId: "user1"));
         var parent2 = await _taskService.CreateTaskAsync(DatabaseTestHelper.CreateSampleTask(
             text: "Parent 2", userId: "user1"));
-        
+
         var child1 = await _taskService.CreateTaskAsync(DatabaseTestHelper.CreateSampleTask(
             text: "Child 1", userId: "user1", parentTaskId: parent1.Id, displayOrder: 1));
         var child2 = await _taskService.CreateTaskAsync(DatabaseTestHelper.CreateSampleTask(
@@ -162,17 +162,17 @@ public class TaskServiceIntegrationTests : IDisposable
 
         // Act
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         foreach (var task in tasks)
         {
             await _taskService.CreateTaskAsync(task);
         }
-        
+
         stopwatch.Stop();
 
         // Assert
         stopwatch.ElapsedMilliseconds.Should().BeLessThan(5000); // Should complete within 5 seconds
-        
+
         var retrievedTasks = await _taskService.GetTasksAsync("performance_user");
         retrievedTasks.Should().HaveCount(taskCount);
     }
@@ -196,7 +196,7 @@ public class TaskServiceIntegrationTests : IDisposable
         }
 
         // Act & Assert - Test various filter combinations
-        
+
         // High priority incomplete work tasks
         var highPriorityWork = await _taskService.GetTasksAsync("user1", "widget1", "Work", false);
         var filteredHighPriority = highPriorityWork.Where(t => t.Priority >= 5);
@@ -234,7 +234,7 @@ public class TaskServiceIntegrationTests : IDisposable
         // Assert
         results.Should().HaveCount(concurrentTasks);
         results.All(r => r.Id > 0).Should().BeTrue();
-        
+
         var allTasks = await _taskService.GetTasksAsync("concurrent_user");
         allTasks.Should().HaveCount(concurrentTasks);
     }
@@ -249,12 +249,12 @@ public class TaskServiceIntegrationTests : IDisposable
         // Act - Simulate concurrent updates
         var update1 = _taskService.UpdateTaskAsync(task.Id, "user1", t => t.Text = "Update 1");
         var update2 = _taskService.UpdateTaskAsync(task.Id, "user1", t => t.Text = "Update 2");
-        
+
         var results = await Task.WhenAll(update1, update2);
 
         // Assert
         results.Should().AllSatisfy(r => r.Should().NotBeNull());
-        
+
         var finalTask = await _taskService.GetTaskByIdAsync(task.Id, "user1");
         finalTask!.Text.Should().BeOneOf("Update 1", "Update 2");
     }
@@ -269,7 +269,7 @@ public class TaskServiceIntegrationTests : IDisposable
         // Arrange
         var parent = await _taskService.CreateTaskAsync(DatabaseTestHelper.CreateSampleTask(
             text: "Parent Task", userId: "user1"));
-        
+
         var children = new List<TaskEntity>();
         for (int i = 1; i <= 3; i++)
         {
@@ -291,18 +291,18 @@ public class TaskServiceIntegrationTests : IDisposable
 
         // Assert
         result.Should().BeTrue();
-        
+
         // Verify all related tasks are deleted (EF Core cascade delete should handle this)
         var remainingTasks = await _taskService.GetTasksAsync("user1");
         remainingTasks.Should().BeEmpty();
-        
+
         // Double-check by trying to retrieve specific tasks
         var deletedParent = await _taskService.GetTaskByIdAsync(parent.Id, "user1");
         deletedParent.Should().BeNull();
-        
+
         var deletedChild = await _taskService.GetTaskByIdAsync(children[0].Id, "user1");
         deletedChild.Should().BeNull();
-        
+
         var deletedGrandchild = await _taskService.GetTaskByIdAsync(grandchild.Id, "user1");
         deletedGrandchild.Should().BeNull();
     }
@@ -313,10 +313,10 @@ public class TaskServiceIntegrationTests : IDisposable
         // Arrange
         var task = await _taskService.CreateTaskAsync(DatabaseTestHelper.CreateSampleTask(
             text: "Time Test Task", userId: "user1"));
-        
+
         var originalCreatedAt = task.CreatedAt;
         var originalUpdatedAt = task.UpdatedAt;
-        
+
         // Wait a moment to ensure timestamp difference
         await Task.Delay(100);
 
@@ -384,7 +384,7 @@ public class TaskServiceIntegrationTests : IDisposable
 
         // Assert
         result.Should().BeTrue();
-        
+
         var reorderedTasks = await _taskService.GetTasksAsync(complexUser);
         var orderedTasks = reorderedTasks.OrderBy(t => t.DisplayOrder).ToList();
 
@@ -393,7 +393,7 @@ public class TaskServiceIntegrationTests : IDisposable
         orderedTasks.Should().HaveCount(4);
         var taskD = orderedTasks.First(t => t.Text == "Task D");
         taskD.DisplayOrder.Should().Be(3);
-        
+
         // Ensure all tasks have valid display orders and are properly ordered
         for (int i = 0; i < orderedTasks.Count - 1; i++)
         {

@@ -343,7 +343,7 @@ public class TaskValidatorsTests
         var input = new ReorderTaskInput(
             TaskId: 1,
             NewDisplayOrder: 5
-            // No NewParentTaskId - should be valid
+        // No NewParentTaskId - should be valid
         );
 
         // Act

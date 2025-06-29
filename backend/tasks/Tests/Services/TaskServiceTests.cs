@@ -516,7 +516,7 @@ public class TaskServiceTests : IDisposable
         await DatabaseTestHelper.SeedTestDataAsync(_context);
 
         // Act & Assert - Try to make parent task a child of its own child
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _taskService.ReorderTaskAsync(1, 1, 3, "user1"));
     }
 

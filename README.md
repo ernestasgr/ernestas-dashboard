@@ -44,6 +44,46 @@ The project aims to provide a robust, extensible dashboard for personal producti
 -   Centralized logging and error monitoring
 -   Health and debug endpoints for all services
 
+## Environment Variables
+
+This project uses environment variables for configuration. Copy `.env.example` to `.env` and fill in the required values:
+
+```sh
+cp .env.example .env
+# Then edit .env and set secrets and credentials as needed
+```
+
+Key variables include:
+
+-   `NODE_ENV` – Node.js environment (e.g., `development`, `production`).
+-   `FRONTEND_DOMAIN` – Public URL where the frontend is served.
+-   `SENTRY_AUTH_TOKEN`, `SENTRY_DSN_*`, `SENTRY_SEND_DEFAULT_PII` – Sentry error monitoring configuration for each service.
+-   `WATCHPACK_POLLING` – Enables polling for file changes in development (useful in Docker).
+
+-   `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` – Database connection for the Auth service.
+-   `JWT_SECRET`, `JWT_ACCESS_EXPIRATION`, `JWT_REFRESH_EXPIRATION` – JWT signing key and token lifetimes for Auth.
+-   `JAVA_OPTS` – JVM options for debugging Auth service.
+
+-   `POSTGRES_USER`, `POSTGRES_PASSWORD` – Default database user and password for all Postgres containers.
+-   `POSTGRES_DB_AUTH`, `POSTGRES_DB_WIDGET_REGISTRY`, `POSTGRES_DB_NOTES`, `POSTGRES_DB_TASKS` – Database names for each service.
+
+-   `ELASTIC_PASSWORD` – Password for Elasticsearch (if enabled).
+-   `LOGSTASH_HTTP_HOST`, `LOGGING_LOGSTASH_SERVER` – Logstash configuration for centralized logging.
+-   `ELASTICSEARCH_HOSTS` – Elasticsearch endpoint for Kibana and other services.
+
+-   `AUTH_URL`, `AUTH_REDIRECT_URL` – Internal and public URLs for the Auth service.
+-   `SPRING_PROFILES_ACTIVE`, `PROFILE` – Spring and general environment profiles.
+-   `GATEWAY_SECRET` – Shared secret for secure communication between gateway and backend services.
+-   `GATEWAY_DOMAIN` – Public URL for the GraphQL gateway.
+-   `LOG_LEVEL`, `ENABLE_LOGSTASH`, `LOGSTASH_HOST`, `LOGSTASH_PORT` – Logging configuration for gateway and backend services.
+
+-   `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE` – Google OAuth2 client configuration for Auth.
+-   `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_ID`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_CLIENT_SECRET`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_REDIRECT_URI`, `SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GITHUB_SCOPE` – GitHub OAuth2 client configuration for Auth.
+
+-   `OBSIDIAN_API_KEY` – API key for integrating with Obsidian (notes service).
+
+---
+
 ## How to Run
 
 ### Prerequisites
