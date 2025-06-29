@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { WidgetItemColors } from '@/lib/utils/widget-styling/types';
 import { Edit, ExternalLink, GripVertical, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
 import { toast } from 'sonner';
 
 interface NoteCardProps {
@@ -12,7 +11,6 @@ interface NoteCardProps {
     onEdit: (note: Note) => void;
     onDelete: (noteId: string) => void;
     onOpen: (note: Note) => void;
-    maxContentLength?: number;
     isDraggable?: boolean;
     className?: string;
     widgetColors?: WidgetItemColors;
@@ -23,18 +21,10 @@ export const NoteCard = ({
     onEdit,
     onDelete,
     onOpen,
-    maxContentLength = 150,
     isDraggable = false,
     className = '',
     widgetColors,
 }: NoteCardProps) => {
-    const truncatedContent = useMemo(() => {
-        if (note.content.length <= maxContentLength) {
-            return note.content;
-        }
-        return note.content.substring(0, maxContentLength) + '...';
-    }, [note.content, maxContentLength]);
-
     const handleShare = () => {
         const noteUrl = `${window.location.origin}${window.location.pathname}?noteId=${note.id}`;
         void navigator.clipboard
@@ -141,24 +131,24 @@ export const NoteCard = ({
                 </div>
             </div>
             {note.content && (
-                <div className='min-h-0 flex-1'>
+                <div className='min-h-0 flex-1 flex flex-col'>
                     <div
-                        className='mb-3 cursor-pointer overflow-hidden text-sm'
+                        className='cursor-pointer overflow-y-auto text-sm flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400'
                         onClick={() => {
                             onOpen(note);
                         }}
                     >
                         <MarkdownRenderer
-                            content={truncatedContent}
+                            content={note.content}
                             widgetColors={widgetColors}
                             variant='card'
-                            className='prose prose-sm line-clamp-3 max-w-none'
+                            className='prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0'
                         />
                     </div>
                 </div>
             )}
             {note.labels.length > 0 && (
-                <div className='mt-auto mb-2 flex flex-wrap gap-1'>
+                <div className='mt-3 flex flex-wrap gap-1'>
                     {note.labels.map((label) => (
                         <Badge
                             key={label}
@@ -170,23 +160,24 @@ export const NoteCard = ({
                         >
                             {label}
                         </Badge>
-                    ))}
+                    ))}{' '}
+                    {note.source === 'obsidian' && (
+                        <Badge
+                            variant='outline'
+                            style={{
+                                color: primaryTextColor,
+                                borderColor: accentColor,
+                            }}
+                            title={`From Obsidian: ${note.obsidianPath ?? 'Unknown path'}`}
+                        >
+                            Obsidian
+                        </Badge>
+                    )}
                 </div>
             )}
-            {note.source === 'obsidian' && (
-                <Badge
-                    variant='outline'
-                    style={{
-                        color: primaryTextColor,
-                        borderColor: accentColor,
-                    }}
-                    title={`From Obsidian: ${note.obsidianPath ?? 'Unknown path'}`}
-                >
-                    Obsidian
-                </Badge>
-            )}
+
             <div
-                className='mt-auto text-xs'
+                className='mt-3 text-xs'
                 style={{
                     color: secondaryTextColor,
                 }}
