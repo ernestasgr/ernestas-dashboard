@@ -1,6 +1,6 @@
 'use client';
 
-import { RefreshDocument } from '@/generated/graphql';
+import { RefreshDocument } from '@/generated/Auth.generated';
 import { ApolloLink, HttpLink, Observable, from } from '@apollo/client';
 import {
     ApolloClient,

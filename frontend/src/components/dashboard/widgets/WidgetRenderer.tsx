@@ -1,4 +1,4 @@
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ClockWidget } from './ClockWidget';

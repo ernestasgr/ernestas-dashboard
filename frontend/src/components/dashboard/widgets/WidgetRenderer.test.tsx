@@ -1,4 +1,4 @@
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WidgetRenderer } from './WidgetRenderer';

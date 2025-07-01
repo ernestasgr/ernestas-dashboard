@@ -1,6 +1,6 @@
 'use client';
 
-import { Task } from '@/hooks/useTasks';
+import { Task } from '@/components/dashboard/hooks/useTasks';
 import { useCallback, useMemo, useState } from 'react';
 import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';

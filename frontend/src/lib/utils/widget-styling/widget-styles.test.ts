@@ -1,4 +1,4 @@
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 import { describe, expect, it } from 'vitest';
 import { getWidgetStyles } from './widget-styles';
 

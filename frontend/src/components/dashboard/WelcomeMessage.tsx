@@ -1,6 +1,6 @@
 'use client';
 
-import { useMeQuery } from '@/generated/graphql';
+import { useMeQuery } from '@/generated/Auth.generated';
 import { useEventStore } from '@/lib/stores/use-event-store';
 import { useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';

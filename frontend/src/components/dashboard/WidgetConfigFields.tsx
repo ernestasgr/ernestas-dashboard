@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useTestObsidianConnectionMutation } from '@/generated/graphql';
+import { useTestObsidianConnectionMutation } from '@/generated/Notes.generated';
 import {
     validateWidgetConfig,
     WidgetType,

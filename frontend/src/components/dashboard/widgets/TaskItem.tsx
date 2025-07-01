@@ -1,6 +1,6 @@
 'use client';
 
-import { Task } from '@/hooks/useTasks';
+import { Task } from '@/components/dashboard/hooks/useTasks';
 import {
     Check,
     ChevronDown,

@@ -1,9 +1,9 @@
+import { MeDocument } from '@/generated/Auth.generated';
+import { Widget } from '@/generated/types';
 import {
     GetWidgetsDocument,
-    MeDocument,
     UpdateWidgetLayoutDocument,
-    Widget,
-} from '@/generated/graphql';
+} from '@/generated/Widgets.generated';
 import { MockedProvider } from '@apollo/client/testing';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';

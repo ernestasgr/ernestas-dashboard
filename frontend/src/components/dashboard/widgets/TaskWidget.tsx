@@ -1,7 +1,7 @@
 'use client';
 
-import { TasksConfig, Widget } from '@/generated/graphql';
-import { useTasks } from '@/hooks/useTasks';
+import { useTasks } from '@/components/dashboard/hooks/useTasks';
+import { TasksConfig, Widget } from '@/generated/types';
 import {
     getWidgetClasses,
     getWidgetIconStyles,
@@ -33,7 +33,7 @@ export const TaskWidget = ({
     const [expandedStates, setExpandedStates] = useState<
         Record<string, boolean>
     >({});
-    const [layoutKey] = useState(0); 
+    const [layoutKey] = useState(0);
 
     const {
         loading,
