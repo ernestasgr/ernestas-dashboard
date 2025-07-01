@@ -1,9 +1,4 @@
 import {
-    CreateTaskInput,
-    ReorderTaskInput,
-    TasksFilterInput,
-    TaskType,
-    UpdateTaskInput,
     useCreateTaskMutation,
     useDeleteTaskMutation,
     useGetTaskCategoriesQuery,
@@ -11,7 +6,14 @@ import {
     useReorderTaskMutation,
     useToggleTaskCompletionMutation,
     useUpdateTaskMutation,
-} from '@/generated/graphql';
+} from '@/generated/Tasks.generated';
+import {
+    CreateTaskInput,
+    ReorderTaskInput,
+    TaskType,
+    TasksFilterInput,
+    UpdateTaskInput,
+} from '@/generated/types';
 import { ApolloError } from '@apollo/client';
 import { useCallback, useMemo } from 'react';
 

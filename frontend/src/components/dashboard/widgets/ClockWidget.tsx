@@ -1,6 +1,6 @@
 'use client';
 
-import { ClockConfig, Widget } from '@/generated/graphql';
+import { ClockConfig, Widget } from '@/generated/types';
 import {
     getWidgetClasses,
     getWidgetIconStyles,

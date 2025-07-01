@@ -1,12 +1,4 @@
 import {
-    CreateNoteInput,
-    CreateNoteWithObsidianSyncInput,
-    DeleteNoteWithObsidianSyncInput,
-    NoteType,
-    ObsidianSyncInput,
-    ObsidianTestConnectionInput,
-    UpdateNoteInput,
-    UpdateNoteLayoutInput,
     useCreateNoteMutation,
     useCreateNoteWithObsidianSyncMutation,
     useDeleteNoteMutation,
@@ -17,7 +9,17 @@ import {
     useUpdateNoteLayoutMutation,
     useUpdateNoteMutation,
     useUpdateNoteWithObsidianSyncMutation,
-} from '@/generated/graphql';
+} from '@/generated/Notes.generated';
+import {
+    CreateNoteInput,
+    CreateNoteWithObsidianSyncInput,
+    DeleteNoteWithObsidianSyncInput,
+    NoteType,
+    ObsidianSyncInput,
+    ObsidianTestConnectionInput,
+    UpdateNoteInput,
+    UpdateNoteLayoutInput,
+} from '@/generated/types';
 import { ApolloError } from '@apollo/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 

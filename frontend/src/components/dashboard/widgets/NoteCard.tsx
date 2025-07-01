@@ -131,9 +131,9 @@ export const NoteCard = ({
                 </div>
             </div>
             {note.content && (
-                <div className='min-h-0 flex-1 flex flex-col'>
+                <div className='flex min-h-0 flex-1 flex-col'>
                     <div
-                        className='cursor-pointer overflow-y-auto text-sm flex-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400'
+                        className='scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400 flex-1 cursor-pointer overflow-y-auto text-sm'
                         onClick={() => {
                             onOpen(note);
                         }}
@@ -142,7 +142,7 @@ export const NoteCard = ({
                             content={note.content}
                             widgetColors={widgetColors}
                             variant='card'
-                            className='prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0'
+                            className='prose prose-sm max-w-none [&_p]:mb-2 [&_p:last-child]:mb-0 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0'
                         />
                     </div>
                 </div>

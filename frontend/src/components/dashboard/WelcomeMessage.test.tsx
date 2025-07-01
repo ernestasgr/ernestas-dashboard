@@ -1,8 +1,9 @@
+import { useMeQuery } from '@/generated/Auth.generated';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, Mock, vi } from 'vitest';
 import WelcomeMessage from './WelcomeMessage';
 
-vi.mock('@/generated/graphql', () => ({
+vi.mock('@/generated/Auth.generated', () => ({
     useMeQuery: vi.fn(),
 }));
 
@@ -11,8 +12,6 @@ vi.mock('@/lib/stores/use-refetch-store', () => ({
         return;
     }),
 }));
-
-import { useMeQuery } from '@/generated/graphql';
 
 describe('WelcomeMessage', () => {
     it('renders loading skeletons when loading', () => {

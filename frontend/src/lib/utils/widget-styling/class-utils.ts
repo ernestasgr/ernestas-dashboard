@@ -1,4 +1,4 @@
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 
 /**
  * Gets CSS classes for a widget, considering custom styling

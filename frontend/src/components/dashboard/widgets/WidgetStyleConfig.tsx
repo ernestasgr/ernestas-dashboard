@@ -11,7 +11,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Widget, useUpdateWidgetMutation } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
+import { useUpdateWidgetMutation } from '@/generated/Widgets.generated';
 import {
     WIDGET_BACKGROUND_PRESETS,
     WIDGET_COLOR_PRESETS,

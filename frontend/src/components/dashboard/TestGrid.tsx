@@ -1,6 +1,6 @@
 'use client';
 
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 import { useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import { CoordinateGrid } from './CoordinateGrid';

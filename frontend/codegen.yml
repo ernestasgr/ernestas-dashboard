@@ -1,12 +1,18 @@
-﻿schema:
-    - http://localhost:4000/graphql
+﻿schema: 'http://localhost:4000/graphql'
 documents: 'src/lib/graphql/**/*.graphql'
 generates:
-    src/generated/graphql.tsx:
+    src/generated/types.ts:
         plugins:
-            - 'typescript'
-            - 'typescript-operations'
-            - 'typescript-react-apollo'
+            - typescript
+    src/generated/:
+        preset: near-operation-file
+        presetConfig:
+            extension: .generated.tsx
+            baseTypesPath: types.ts
+            folder: ../../generated
+        plugins:
+            - typescript-operations
+            - typescript-react-apollo
         config:
             withHooks: true
             withHOC: false

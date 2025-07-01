@@ -10,14 +10,16 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ErrorDisplay } from '@/components/ui/error-display';
+import { useMeQuery } from '@/generated/Auth.generated';
 import {
     CreateWidgetInput,
     UpdateWidgetInput,
     Widget,
+} from '@/generated/types';
+import {
     useCreateWidgetMutation,
-    useMeQuery,
     useUpdateWidgetMutation,
-} from '@/generated/graphql';
+} from '@/generated/Widgets.generated';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useWidgetForm } from './hooks/useWidgetForm';

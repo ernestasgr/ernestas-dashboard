@@ -1,4 +1,4 @@
-import { RefreshDocument } from '@/generated/graphql';
+import { RefreshDocument } from '@/generated/Auth.generated';
 import { MockedProvider } from '@apollo/client/testing';
 import { render, screen } from '@testing-library/react';
 import { GraphQLError } from 'graphql';

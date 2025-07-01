@@ -1,4 +1,4 @@
-import { Widget } from '@/generated/graphql';
+import { Widget } from '@/generated/types';
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useWidgetForm } from './useWidgetForm';

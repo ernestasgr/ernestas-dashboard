@@ -1,6 +1,6 @@
 'use client';
 
-import { WeatherConfig, Widget } from '@/generated/graphql';
+import { WeatherConfig, Widget } from '@/generated/types';
 import {
     getWidgetClasses,
     getWidgetIconStyles,

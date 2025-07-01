@@ -9,8 +9,12 @@ const mockUseUpdateWidgetLayoutMutation = vi.fn();
 const mockUpdateWidgetLayout = vi.fn();
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-vi.mock('@/generated/graphql', () => ({
+vi.mock('@/generated/Auth.generated', () => ({
     useMeQuery: () => mockUseMeQuery(),
+    useGetWidgetsQuery: (options: unknown) => mockUseGetWidgetsQuery(options),
+    useUpdateWidgetLayoutMutation: () => mockUseUpdateWidgetLayoutMutation(),
+}));
+vi.mock('@/generated/Widgets.generated', () => ({
     useGetWidgetsQuery: (options: unknown) => mockUseGetWidgetsQuery(options),
     useUpdateWidgetLayoutMutation: () => mockUseUpdateWidgetLayoutMutation(),
 }));

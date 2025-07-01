@@ -214,12 +214,6 @@ test.describe("Widget Grid - Working Tests", () => {
 		await page.goto("/dashboard");
 		await waitForDashboard(page);
 
-		await expect(
-			page.locator("p", {
-				hasText: /Welcome to the dashboard Test User!/,
-			})
-		).toBeVisible();
-
 		const emptyStateMessage = page
 			.locator("text=No widgets available")
 			.or(

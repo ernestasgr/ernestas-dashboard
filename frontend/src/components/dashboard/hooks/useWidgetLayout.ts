@@ -1,8 +1,8 @@
+import { useMeQuery } from '@/generated/Auth.generated';
 import {
     useGetWidgetsQuery,
-    useMeQuery,
     useUpdateWidgetLayoutMutation,
-} from '@/generated/graphql';
+} from '@/generated/Widgets.generated';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 
