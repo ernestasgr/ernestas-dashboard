@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, Mock, vi } from 'vitest';
 import WelcomeMessage from './WelcomeMessage';
 
-vi.mock('@/generated/auth.generated', () => ({
+vi.mock('@/generated/Auth.generated', () => ({
     useMeQuery: vi.fn(),
 }));
 

@@ -49,7 +49,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div>
+        <div data-testid='dashboard-heading'>
             <MyGrid />
         </div>
     );
