@@ -207,20 +207,13 @@ export const TaskList = ({
     const layouts = useMemo(() => {
         return {
             lg: flatTasks.map((task, index) => {
-                const height = isAddingSubtaskStates[task.id] ? 3 : 1;
-
-                // Calculate width and x position based on level
-                // Each level reduces the available width by 1 grid unit (out of 12)
-                // This creates the visual effect of subtasks being narrower than their parents
-                const levelOffset = Math.min(task.level, 6);
-                const width = 12 - levelOffset;
-                const xPosition = levelOffset;
+                const height = isAddingSubtaskStates[task.id] ? 2 : 1;
 
                 return {
                     i: task.id,
-                    x: xPosition,
+                    x: 0,
                     y: index,
-                    w: width,
+                    w: 12,
                     h: height,
                     minH: 1,
                     minW: 3,

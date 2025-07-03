@@ -216,7 +216,11 @@ export function WidgetConfigFields({
                     </Label>
                     <Input
                         id='visibleLabels'
-                        value={notesConfig.visibleLabels?.join(', ') ?? ''}
+                        value={
+                            Array.isArray(notesConfig.visibleLabels)
+                                ? notesConfig.visibleLabels.join(', ')
+                                : ''
+                        }
                         onChange={(e) => {
                             const labels = e.target.value
                                 .split(',')
@@ -309,7 +313,7 @@ export function WidgetConfigFields({
                                     onChange={(e) => {
                                         onConfigUpdate(
                                             'obsidianApiUrl',
-                                            e.target.value,
+                                            e.target.value || undefined,
                                         );
                                     }}
                                     placeholder='http://localhost:27123'
@@ -331,7 +335,7 @@ export function WidgetConfigFields({
                                     onChange={(e) => {
                                         onConfigUpdate(
                                             'obsidianAuthKey',
-                                            e.target.value,
+                                            e.target.value || undefined,
                                         );
                                     }}
                                     placeholder='Enter your API key'
@@ -384,7 +388,7 @@ export function WidgetConfigFields({
                                     onChange={(e) => {
                                         onConfigUpdate(
                                             'obsidianVaultName',
-                                            e.target.value,
+                                            e.target.value || undefined,
                                         );
                                     }}
                                     placeholder='My Vault'

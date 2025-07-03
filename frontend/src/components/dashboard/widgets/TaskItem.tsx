@@ -93,9 +93,9 @@ export const TaskItem = ({
     };
 
     return (
-        <div className='task-item h-full'>
+        <div className='task-item flex h-full flex-col'>
             <div
-                className={`group/task flex h-full w-full items-center rounded-md transition-all hover:shadow-sm ${
+                className={`group/task flex w-full items-center rounded-md transition-all hover:shadow-sm ${
                     task.completed ? 'opacity-70' : ''
                 }`}
                 style={{
@@ -105,6 +105,7 @@ export const TaskItem = ({
                             : 'transparent',
                     paddingLeft: `${String(8 + level * 12)}px`,
                     borderLeft: 'none',
+                    height: '36px',
                 }}
             >
                 {level > 0 && (
