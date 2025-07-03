@@ -19,18 +19,34 @@ export const weatherConfigSchema = z.object({
 
 export const notesConfigSchema = z.object({
     maxLength: z.number().min(1).max(2000).default(500),
-    visibleLabels: z.array(z.string()).optional(),
+    visibleLabels: z
+        .array(z.string())
+        .optional()
+        .nullable()
+        .transform((val) => val ?? undefined),
     showGrid: z.boolean().default(true),
     gridColumns: z.number().min(1).default(3),
     enableObsidianSync: z.boolean().default(false),
-    obsidianApiUrl: z.string().optional(),
-    obsidianAuthKey: z.string().optional(),
-    obsidianVaultName: z.string().optional(),
+    obsidianApiUrl: z
+        .string()
+        .optional()
+        .nullable()
+        .transform((val) => val ?? undefined),
+    obsidianAuthKey: z
+        .string()
+        .optional()
+        .nullable()
+        .transform((val) => val ?? undefined),
+    obsidianVaultName: z
+        .string()
+        .optional()
+        .nullable()
+        .transform((val) => val ?? undefined),
 });
 
 export const tasksConfigSchema = z.object({
     categories: z
-        .array(z.string().min(1))
+        .array(z.string().optional())
         .min(1, 'At least one category is required'),
     defaultCategory: z.string().optional(),
 });
