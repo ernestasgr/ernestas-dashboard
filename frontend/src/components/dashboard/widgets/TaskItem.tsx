@@ -1,6 +1,8 @@
 'use client';
 
 import { Task } from '@/components/dashboard/hooks/useTasks';
+import { DraggableAttributes } from '@dnd-kit/core';
+import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import {
     Check,
     ChevronDown,
@@ -27,6 +29,8 @@ interface TaskItemProps {
     isAddingSubtaskStates?: Record<string, boolean>;
     onSetAddingSubtask?: (taskId: string, isAdding: boolean) => void;
     maxLevel?: number;
+    dragAttributes?: DraggableAttributes;
+    dragListeners?: SyntheticListenerMap;
 }
 
 export const TaskItem = ({
@@ -42,6 +46,8 @@ export const TaskItem = ({
     isAddingSubtaskStates,
     onSetAddingSubtask,
     maxLevel = 5,
+    dragAttributes,
+    dragListeners,
 }: TaskItemProps) => {
     const [isAddingSubtask, setIsAddingSubtask] = useState(false);
     const [newSubtaskText, setNewSubtaskText] = useState('');
@@ -240,7 +246,11 @@ export const TaskItem = ({
                         </span>
                     )}
 
-                    <div className='drag-handle-task cursor-move rounded opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                    <div
+                        className='drag-handle-task cursor-move rounded opacity-0 transition-opacity duration-200 group-hover:opacity-100'
+                        {...dragAttributes}
+                        {...dragListeners}
+                    >
                         <GripVertical
                             className='h-3 w-3'
                             style={{

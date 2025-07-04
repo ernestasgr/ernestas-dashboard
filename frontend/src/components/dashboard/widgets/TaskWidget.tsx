@@ -10,7 +10,6 @@ import {
 } from '@/lib/utils/widgetStyles';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
-import { Layout } from 'react-grid-layout';
 import { WidgetActions } from '../WidgetActions';
 import { TaskForm } from './TaskForm';
 import { TaskList } from './TaskList';
@@ -33,7 +32,6 @@ export const TaskWidget = ({
     const [expandedStates, setExpandedStates] = useState<
         Record<string, boolean>
     >({});
-    const [layoutKey] = useState(0);
 
     const {
         loading,
@@ -53,42 +51,6 @@ export const TaskWidget = ({
             ...prev,
             [taskId]: !(prev[taskId] ?? true),
         }));
-    };
-
-    const handleLayoutChange = (layout: Layout[]) => {
-        const hasPositionChanges = layout.some((item) => {
-            const task = widgetTasks.find((t) => t.id === item.i);
-            return task && task.displayOrder !== item.y;
-        });
-
-        if (!hasPositionChanges) {
-            return;
-        }
-
-        const sortedLayout = [...layout].sort((a, b) => a.y - b.y);
-
-        console.log(
-            'Layout changed (meaningful):',
-            sortedLayout.map((item) => ({ id: item.i, y: item.y })),
-        );
-
-        const reorderPromises: Promise<void>[] = [];
-
-        sortedLayout.forEach((item, index) => {
-            const task = widgetTasks.find((t) => t.id === item.i);
-            if (task && task.displayOrder !== index) {
-                console.log(
-                    `Reordering task ${task.id} (${task.text}) from ${String(task.displayOrder)} to ${String(index)}`,
-                );
-                reorderPromises.push(reorderTask(task.id, index));
-            }
-        });
-
-        if (reorderPromises.length > 0) {
-            Promise.all(reorderPromises).catch((error: unknown) => {
-                console.error('Failed to reorder tasks:', error);
-            });
-        }
     };
 
     const handleToggleTask = async (taskId: string) => {
@@ -186,14 +148,12 @@ export const TaskWidget = ({
                         tasks={widgetTasks}
                         itemColors={itemColors}
                         loading={loading}
-                        layoutKey={layoutKey}
                         expandedStates={expandedStates}
                         onToggleTask={handleToggleTask}
                         onDeleteTask={handleDeleteTask}
                         onCreateSubtask={handleCreateSubtask}
                         onToggleExpanded={handleToggleExpanded}
                         onReorderTask={reorderTask}
-                        onLayoutChange={handleLayoutChange}
                     />
 
                     <TaskForm
