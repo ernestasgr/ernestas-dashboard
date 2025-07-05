@@ -4,19 +4,14 @@ import { Task } from '@/components/dashboard/hooks/useTasks';
 import {
     DndContext,
     DragEndEvent,
-    DragOverlay,
+    DragOverEvent,
     DragStartEvent,
     PointerSensor,
     closestCenter,
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
-import {
-    SortableContext,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { useCallback, useMemo, useState } from 'react';
-import { SortableTaskItem } from './SortableTaskItem';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TaskItem } from './TaskItem';
 import { ItemColors } from './types';
 
@@ -40,6 +35,7 @@ interface TaskListProps {
         newDisplayOrder: number,
         newParentTaskId?: number,
     ) => Promise<void>;
+    onChangeLevel?: (taskId: string, newLevel: number) => Promise<void>;
 }
 
 export const TaskList = ({
@@ -57,6 +53,17 @@ export const TaskList = ({
         Record<string, boolean>
     >({});
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const [activeOverId, setActiveOverId] = useState<string | null>(null);
+    const [isReordering, setIsReordering] = useState(false);
+    const reorderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (reorderTimeoutRef.current) {
+                clearTimeout(reorderTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -132,30 +139,17 @@ export const TaskList = ({
         return flattenTasks(tasks).filter((task) => task.isVisible);
     }, [tasks, flattenTasks]);
 
-    // Find all descendant task IDs for a given task
-    const findDescendantIds = useCallback(
-        (taskId: string, allFlatTasks: FlatTask[]): string[] => {
-            const descendants: string[] = [];
-            const task = allFlatTasks.find((t) => t.id === taskId);
-            if (!task) return descendants;
-
-            const level = task.level;
-            const taskIndex = allFlatTasks.findIndex((t) => t.id === taskId);
-
-            // Find all tasks that come after this task and have a higher level (are descendants)
-            for (let i = taskIndex + 1; i < allFlatTasks.length; i++) {
-                const nextTask = allFlatTasks[i];
-                if (nextTask.level <= level) {
-                    // We've reached a task at the same or higher level, stop looking
-                    break;
-                }
-                descendants.push(nextTask.id);
-            }
-
-            return descendants;
-        },
-        [],
-    );
+    // Parse drop zone ID to get task ID and zone type
+    const parseDropId = (dropId: string) => {
+        const parts = dropId.split('-');
+        if (parts.length >= 3 && parts[0] === 'task') {
+            return {
+                taskId: parts[1],
+                zone: parts.slice(2).join('-') as 'above' | 'child' | 'below',
+            };
+        }
+        return { taskId: dropId, zone: 'below' as const };
+    };
 
     const handleChangeLevel = useCallback(
         async (taskId: string, newLevel: number) => {
@@ -203,201 +197,179 @@ export const TaskList = ({
         [flatTasks, onReorderTask],
     );
 
-    // Determine the new parent and level for a task based on its new position
-    const calculateNewParentAndLevel = useCallback(
-        (
-            taskId: string,
-            newPosition: number,
-            allVisibleTasks: FlatTask[],
-        ): { newParentId?: number; newLevel: number } => {
-            // If moved to position 0, it becomes a root task
-            if (newPosition === 0) {
-                return { newParentId: undefined, newLevel: 0 };
-            }
+    // Calculate new parent and position based on drop zone
+    const calculateNewParentAndPosition = (
+        activeTaskId: string,
+        dropId: string,
+    ): { newParentId?: number; newDisplayOrder: number } => {
+        const { taskId: targetTaskId, zone } = parseDropId(dropId);
 
-            const currentTask = allVisibleTasks.find((t) => t.id === taskId);
-            if (!currentTask) {
-                return { newParentId: undefined, newLevel: 0 };
-            }
+        const targetTask = flatTasks.find((t) => t.id === targetTaskId);
 
-            // Look at the task immediately above the new position
-            const taskAbove = allVisibleTasks[newPosition - 1];
+        if (!targetTask) {
+            return { newParentId: undefined, newDisplayOrder: 0 };
+        }
 
-            // Don't allow a task to become a child of its own descendant
-            const isDescendantOfCurrent = (
-                potentialAncestorId: string,
-            ): boolean => {
-                const allFlatTasks = flattenTasks(tasks);
-                const descendants = findDescendantIds(taskId, allFlatTasks);
-                return descendants.includes(potentialAncestorId);
-            };
-
-            if (isDescendantOfCurrent(taskAbove.id)) {
-                // If trying to move above a descendant, become a sibling at the same level
-                const parentId = taskAbove.parentId
-                    ? parseInt(taskAbove.parentId)
-                    : undefined;
+        switch (zone) {
+            case 'above':
+                // Insert above target task, same parent as target
+                // Use target's display order
                 return {
-                    newParentId: parentId,
-                    newLevel: taskAbove.level,
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder,
                 };
-            }
-
-            // Look at the task immediately below (if it exists) to understand context
-            const taskBelow =
-                newPosition < allVisibleTasks.length
-                    ? allVisibleTasks[newPosition]
-                    : null;
-
-            // If the task above has no children yet, and we're inserting right after it,
-            // make this task a child (unless it would create too deep nesting)
-            if (!taskAbove.subTasks || taskAbove.subTasks.length === 0) {
-                if (taskAbove.level < 4) {
-                    // Max depth check
-                    // Check if the task below is at the same level as taskAbove (indicating we're at the end of a group)
-                    if (!taskBelow || taskBelow.level <= taskAbove.level) {
-                        return {
-                            newParentId: parseInt(taskAbove.id),
-                            newLevel: taskAbove.level + 1,
-                        };
-                    }
-                }
-            }
-
-            // Check if the task below is a child of the task above
-            const taskBelowIsChildOfAbove =
-                taskBelow && taskBelow.parentId === taskAbove.id;
-
-            // If we're dropping between a parent and its first child, become a child too
-            if (
-                taskBelowIsChildOfAbove &&
-                taskBelow.level === taskAbove.level + 1
-            ) {
+            case 'child':
+                // Become child of target task
+                // Find the highest display order among target's children and add 1
+                const targetChildren = flatTasks.filter(
+                    (t) => t.parentId === targetTask.id,
+                );
+                const maxChildOrder =
+                    targetChildren.length > 0
+                        ? Math.max(...targetChildren.map((t) => t.displayOrder))
+                        : -1;
                 return {
-                    newParentId: parseInt(taskAbove.id),
-                    newLevel: taskAbove.level + 1,
+                    newParentId: parseInt(targetTask.id),
+                    newDisplayOrder: maxChildOrder + 1,
                 };
-            }
-
-            // Otherwise, become a sibling of the task above
-            const parentId = taskAbove.parentId
-                ? parseInt(taskAbove.parentId)
-                : undefined;
-            return {
-                newParentId: parentId,
-                newLevel: taskAbove.level,
-            };
-        },
-        [findDescendantIds, flattenTasks, tasks],
-    );
+            case 'below':
+                // Insert below target task, same parent as target
+                // Use target's display order + 1
+                return {
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder + 1,
+                };
+            default:
+                return {
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder + 1,
+                };
+        }
+    };
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveTaskId(event.active.id as string);
     };
 
+    const handleDragOver = (event: DragOverEvent) => {
+        const { over } = event;
+        setActiveOverId(over?.id ? String(over.id) : null);
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-        setActiveTaskId(null);
 
-        if (!over || active.id === over.id) {
+        setActiveTaskId(null);
+        setActiveOverId(null);
+
+        if (!over) {
+            console.log('No drop target');
             return;
         }
 
         const activeTaskId = active.id as string;
-        const overTaskId = over.id as string;
+        const overDropId = over.id as string;
 
-        const activeIndex = flatTasks.findIndex(
-            (task) => task.id === activeTaskId,
-        );
-        const overIndex = flatTasks.findIndex((task) => task.id === overTaskId);
+        console.log('Drag end:', { activeTaskId, overDropId });
 
-        if (activeIndex === -1 || overIndex === -1) {
+        // Don't do anything if dropping on itself or its descendants
+        if (overDropId.includes(activeTaskId)) {
+            console.log('Dropping on itself, ignoring');
             return;
         }
 
-        const activeTask = flatTasks[activeIndex];
-        const allFlatTasks = flattenTasks(tasks);
-
-        console.log(
-            `Task ${activeTaskId} (${activeTask.text}) moved from ${String(activeIndex)} to ${String(overIndex)}`,
-        );
-
-        // Check if we're trying to drop a task onto its own descendant
-        const descendants = findDescendantIds(activeTaskId, allFlatTasks);
-        if (descendants.includes(overTaskId)) {
-            console.log('Cannot drop task onto its own descendant');
-            return;
-        }
-
-        let newParentId: number | undefined;
-        let newLevel: number;
-        let finalPosition = overIndex;
-
-        // If dragging to a different position, calculate new parent and level
-        if (activeIndex !== overIndex) {
-            // Special case: if dropping onto a task at the end of its children,
-            // make it a child of that task
-            const overTask = flatTasks[overIndex];
-
-            // Check if we should make this task a child of the task we're dropping on
-            const shouldBecomeChild = () => {
-                // If the over task has no children and we're dropping below it, make it a child
-                const overTaskHasChildren =
-                    overTask.subTasks && overTask.subTasks.length > 0;
-                const nextTask =
-                    overIndex + 1 < flatTasks.length
-                        ? flatTasks[overIndex + 1]
-                        : null;
-
-                // If there's no next task or the next task is not a child of the over task,
-                // we can make the dropped task a child
-                if (
-                    !overTaskHasChildren ||
-                    (nextTask && nextTask.parentId !== overTask.id)
-                ) {
-                    return overTask.level < 4; // Max depth limit
+        // Check if we're trying to make a task a child of its own descendant
+        const { taskId: targetTaskId, zone } = parseDropId(overDropId);
+        if (zone === 'child') {
+            // Find all descendants of the active task
+            const findDescendants = (taskId: string): string[] => {
+                const descendants: string[] = [];
+                const children = flatTasks.filter((t) => t.parentId === taskId);
+                for (const child of children) {
+                    descendants.push(child.id);
+                    descendants.push(...findDescendants(child.id));
                 }
-                return false;
+                return descendants;
             };
 
-            if (activeIndex < overIndex && shouldBecomeChild()) {
-                // Moving down and should become a child
-                newParentId = parseInt(overTask.id);
-                newLevel = overTask.level + 1;
-                finalPosition = overIndex + 1; // Insert after the parent
-            } else {
-                // Use the existing logic for other cases
-                const targetPosition = overIndex;
-                ({ newParentId, newLevel } = calculateNewParentAndLevel(
-                    activeTaskId,
-                    targetPosition,
-                    flatTasks,
-                ));
-                finalPosition = targetPosition;
+            const descendants = findDescendants(activeTaskId);
+            if (descendants.includes(targetTaskId)) {
+                console.log(
+                    'Cannot make task a child of its own descendant, ignoring',
+                );
+                return;
             }
-        } else {
-            // No position change, just return
+        }
+
+        const { newParentId, newDisplayOrder } = calculateNewParentAndPosition(
+            activeTaskId,
+            overDropId,
+        );
+
+        console.log('Calculated new position:', {
+            activeTaskId,
+            newParentId,
+            newDisplayOrder,
+            overDropId,
+        });
+
+        // Get current task data for comparison
+        const currentTask = flatTasks.find((t) => t.id === activeTaskId);
+        const currentParentId = currentTask?.parentTaskId;
+
+        // Normalize parent IDs for comparison (both could be undefined, string, or number)
+        const normalizedCurrentParent = currentParentId
+            ? parseInt(String(currentParentId))
+            : undefined;
+        const normalizedNewParent = newParentId;
+
+        console.log('Current task state:', {
+            currentParentId: normalizedCurrentParent,
+            currentDisplayOrder: currentTask?.displayOrder,
+            newParentId: normalizedNewParent,
+            newDisplayOrder,
+        });
+
+        // Only proceed if something actually changed and we're not already reordering
+        const parentChanged = normalizedCurrentParent !== normalizedNewParent;
+        const orderChanged = newDisplayOrder !== currentTask?.displayOrder;
+
+        if (isReordering || (!parentChanged && !orderChanged)) {
+            console.log(
+                'No actual change detected or already reordering, skipping reorder',
+                {
+                    isReordering,
+                    parentChanged,
+                    orderChanged,
+                },
+            );
             return;
         }
 
-        const currentParentId = activeTask.parentTaskId;
-        const parentChanged = newParentId !== currentParentId;
-        const levelChanged = newLevel !== activeTask.level;
-        const positionChanged = activeIndex !== finalPosition;
-
-        if (parentChanged || levelChanged || positionChanged) {
-            console.log(
-                `Task ${activeTaskId} changes: parent ${String(currentParentId)} -> ${String(newParentId)}, level ${String(activeTask.level)} -> ${String(newLevel)}, position ${String(activeIndex)} -> ${String(finalPosition)}`,
-            );
-
-            console.log(`Moving descendants: ${descendants.join(', ')}`);
-
-            onReorderTask(activeTaskId, finalPosition, newParentId).catch(
-                (error: unknown) => {
-                    console.error('Failed to reorder task:', error);
-                },
-            );
+        if (reorderTimeoutRef.current) {
+            clearTimeout(reorderTimeoutRef.current);
         }
+
+        // Set reordering state and perform the reorder with a small delay
+        setIsReordering(true);
+        reorderTimeoutRef.current = setTimeout(() => {
+            onReorderTask(activeTaskId, newDisplayOrder, newParentId)
+                .then(() => {
+                    console.log('Reorder completed successfully');
+                })
+                .catch((error: unknown) => {
+                    console.error('Failed to reorder task:', error);
+                })
+                .finally(() => {
+                    setIsReordering(false);
+                });
+        }, 100); // Small delay to prevent rapid successive calls
     };
 
     if (loading) {
@@ -416,71 +388,51 @@ export const TaskList = ({
         );
     }
 
+    // Get potential parent ID for visual feedback
+    const getPotentialParentId = () => {
+        if (!activeOverId || !activeTaskId) return null;
+
+        const { taskId, zone } = parseDropId(activeOverId);
+
+        if (zone === 'child') {
+            return taskId;
+        }
+
+        const targetTask = flatTasks.find((t) => t.id === taskId);
+        return targetTask?.parentId ?? null;
+    };
+
+    const potentialParentId = getPotentialParentId();
+
     return (
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <SortableContext
-                items={flatTasks.map((task) => task.id)}
-                strategy={verticalListSortingStrategy}
-            >
-                <div className='space-y-1'>
-                    {flatTasks.map((task) => (
-                        <SortableTaskItem
-                            key={task.id}
-                            task={task}
-                            itemColors={itemColors}
-                            expandedStates={expandedStates}
-                            isAddingSubtaskStates={isAddingSubtaskStates}
-                            onToggle={onToggleTask}
-                            onDelete={onDeleteTask}
-                            onCreateSubtask={onCreateSubtask}
-                            onToggleExpanded={onToggleExpanded}
-                            onChangeLevel={handleChangeLevel}
-                            onSetAddingSubtask={handleSetAddingSubtask}
-                            maxLevel={5}
-                        />
-                    ))}
-                </div>
-            </SortableContext>
-            <DragOverlay>
-                {activeTaskId ? (
-                    <div className='task-item-wrapper group relative rounded-md border bg-transparent opacity-80 transition-all duration-200 ease-out hover:shadow-md'>
-                        <div className='h-full w-full'>
-                            {(() => {
-                                const activeTask = flatTasks.find(
-                                    (t) => t.id === activeTaskId,
-                                );
-                                if (!activeTask) return null;
-
-                                return (
-                                    <TaskItem
-                                        task={activeTask}
-                                        level={activeTask.level}
-                                        itemColors={itemColors}
-                                        onToggle={onToggleTask}
-                                        onDelete={onDeleteTask}
-                                        onCreateSubtask={onCreateSubtask}
-                                        onToggleExpanded={onToggleExpanded}
-                                        onChangeLevel={handleChangeLevel}
-                                        expandedStates={expandedStates}
-                                        isAddingSubtaskStates={
-                                            isAddingSubtaskStates
-                                        }
-                                        onSetAddingSubtask={
-                                            handleSetAddingSubtask
-                                        }
-                                        maxLevel={5}
-                                    />
-                                );
-                            })()}
-                        </div>
-                    </div>
-                ) : null}
-            </DragOverlay>
+            <div className='space-y-1'>
+                {flatTasks.map((task) => (
+                    <TaskItem
+                        key={task.id}
+                        task={task}
+                        itemColors={itemColors}
+                        expandedStates={expandedStates}
+                        isAddingSubtaskStates={isAddingSubtaskStates}
+                        onToggle={onToggleTask}
+                        onDelete={onDeleteTask}
+                        onCreateSubtask={onCreateSubtask}
+                        onToggleExpanded={onToggleExpanded}
+                        onChangeLevel={handleChangeLevel}
+                        onSetAddingSubtask={handleSetAddingSubtask}
+                        maxLevel={5}
+                        isPotentialParent={potentialParentId === task.id}
+                        isDragActive={activeTaskId !== null}
+                        activeOverId={activeOverId}
+                    />
+                ))}
+            </div>
         </DndContext>
     );
 };
