@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { NotesConfig, Widget } from '@/generated/types';
 import {
     getWidgetClasses,
     getWidgetIconStyles,
@@ -27,7 +28,6 @@ import { WidgetActions } from '../WidgetActions';
 import { useNoteLayout } from '../hooks/useNoteLayout';
 import { NoteCard } from './NoteCard';
 import { NoteModal } from './NoteModal';
-import { Widget, NotesConfig } from '@/generated/types';
 
 interface NotesWidgetProps {
     widget: Widget;
@@ -87,26 +87,11 @@ export const NotesWidget = ({
         },
     });
 
-    useEffect(() => {
-        const updateWidth = () => {
-            if (containerRef.current) {
-                const width = containerRef.current.offsetWidth - 16;
-                setContainerWidth(Math.max(width, 300));
-            }
-        };
-
-        updateWidth();
-        window.addEventListener('resize', updateWidth);
-        return () => {
-            window.removeEventListener('resize', updateWidth);
-        };
-    }, []);
-
     // Recalculate width when notes change to ensure proper grid sizing
     useEffect(() => {
         if (containerRef.current) {
             const width = containerRef.current.offsetWidth - 16;
-            setContainerWidth(Math.max(width, 300));
+            setContainerWidth(width);
         }
     }, [filteredNotes.length, showGrid]);
 
@@ -467,7 +452,6 @@ export const NotesWidget = ({
                                 onLayoutChange={handleLayoutChange}
                                 draggableHandle='.note-drag-handle'
                                 resizeHandles={['se']}
-                                autoSize={true}
                             >
                                 {layout.map((layoutItem) => {
                                     const note = filteredNotes.find(

@@ -1,14 +1,22 @@
 'use client';
 
 import { Task } from '@/components/dashboard/hooks/useTasks';
-import { useCallback, useMemo, useState } from 'react';
-import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
+import {
+    DndContext,
+    DragEndEvent,
+    DragOverEvent,
+    DragOverlay,
+    DragStartEvent,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { TaskContent } from './TaskContent';
 import { TaskItem } from './TaskItem';
 import { ItemColors } from './types';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface FlatTask extends Task {
     level: number;
@@ -20,7 +28,6 @@ interface TaskListProps {
     tasks: Task[];
     itemColors: ItemColors;
     loading: boolean;
-    layoutKey: number;
     expandedStates: Record<string, boolean>;
     onToggleTask: (taskId: string) => Promise<void>;
     onDeleteTask: (taskId: string) => Promise<void>;
@@ -31,14 +38,13 @@ interface TaskListProps {
         newDisplayOrder: number,
         newParentTaskId?: number,
     ) => Promise<void>;
-    onLayoutChange: (layout: Layout[]) => void;
+    onChangeLevel?: (taskId: string, newLevel: number) => Promise<void>;
 }
 
 export const TaskList = ({
     tasks,
     itemColors,
     loading,
-    layoutKey,
     expandedStates,
     onToggleTask,
     onDeleteTask,
@@ -49,29 +55,36 @@ export const TaskList = ({
     const [isAddingSubtaskStates, setIsAddingSubtaskStates] = useState<
         Record<string, boolean>
     >({});
-    const [suppressLayoutEvents, setSuppressLayoutEvents] = useState(false);
+    const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const [activeOverId, setActiveOverId] = useState<string | null>(null);
+    const [isReordering, setIsReordering] = useState(false);
+    const reorderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleSetAddingSubtask = (taskId: string, isAdding: boolean) => {
-        // Suppress layout events during subtask form operations
-        if (isAdding) {
-            setSuppressLayoutEvents(true);
-        }
+    useEffect(() => {
+        return () => {
+            if (reorderTimeoutRef.current) {
+                clearTimeout(reorderTimeoutRef.current);
+            }
+        };
+    }, []);
 
-        setIsAddingSubtaskStates((prev) => ({
-            ...prev,
-            [taskId]: isAdding,
-        }));
-
-        // Re-enable layout events after the layout has stabilized
-        setTimeout(
-            () => {
-                setSuppressLayoutEvents(false);
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 3,
             },
-            isAdding ? 400 : 100,
-        );
-    };
+        }),
+    );
 
-    const ROW_HEIGHT = 36;
+    const handleSetAddingSubtask = useCallback(
+        (taskId: string, isAdding: boolean) => {
+            setIsAddingSubtaskStates((prev) => ({
+                ...prev,
+                [taskId]: isAdding,
+            }));
+        },
+        [],
+    );
 
     // Check if all ancestors in the path are expanded
     const isTaskVisible = useCallback(
@@ -132,30 +145,43 @@ export const TaskList = ({
         return flattenTasks(tasks).filter((task) => task.isVisible);
     }, [tasks, flattenTasks]);
 
-    // Find all descendant task IDs for a given task
-    const findDescendantIds = useCallback(
-        (taskId: string, allFlatTasks: FlatTask[]): string[] => {
-            const descendants: string[] = [];
-            const task = allFlatTasks.find((t) => t.id === taskId);
-            if (!task) return descendants;
+    // Get all subtasks recursively for a given task
+    const getTaskWithSubtasks = useCallback(
+        (taskId: string): FlatTask[] => {
+            const result: FlatTask[] = [];
 
-            const level = task.level;
-            const taskIndex = allFlatTasks.findIndex((t) => t.id === taskId);
+            const addTaskAndChildren = (currentTaskId: string) => {
+                const task = flatTasks.find((t) => t.id === currentTaskId);
+                if (!task) return;
 
-            // Find all tasks that come after this task and have a higher level (are descendants)
-            for (let i = taskIndex + 1; i < allFlatTasks.length; i++) {
-                const nextTask = allFlatTasks[i];
-                if (nextTask.level <= level) {
-                    // We've reached a task at the same or higher level, stop looking
-                    break;
+                result.push(task);
+
+                // Find all direct children
+                const children = flatTasks.filter(
+                    (t) => t.parentId === currentTaskId,
+                );
+                for (const child of children) {
+                    addTaskAndChildren(child.id);
                 }
-                descendants.push(nextTask.id);
-            }
+            };
 
-            return descendants;
+            addTaskAndChildren(taskId);
+            return result;
         },
-        [],
+        [flatTasks],
     );
+
+    // Parse drop zone ID to get task ID and zone type
+    const parseDropId = (dropId: string) => {
+        const parts = dropId.split('-');
+        if (parts.length >= 3 && parts[0] === 'task') {
+            return {
+                taskId: parts[1],
+                zone: parts.slice(2).join('-') as 'above' | 'child' | 'below',
+            };
+        }
+        return { taskId: dropId, zone: 'below' as const };
+    };
 
     const handleChangeLevel = useCallback(
         async (taskId: string, newLevel: number) => {
@@ -203,161 +229,232 @@ export const TaskList = ({
         [flatTasks, onReorderTask],
     );
 
-    // Create layout for react-grid-layout
-    const layouts = useMemo(() => {
-        return {
-            lg: flatTasks.map((task, index) => {
-                const height = isAddingSubtaskStates[task.id] ? 2 : 1;
+    // Render a task group (main task + all its subtasks) for the overlay
+    const renderTaskGroup = useCallback(
+        (tasks: FlatTask[]) => {
+            if (tasks.length === 0) return null;
 
-                return {
-                    i: task.id,
-                    x: 0,
-                    y: index,
-                    w: 12,
-                    h: height,
-                    minH: 1,
-                    minW: 3,
-                };
-            }),
-        };
-    }, [flatTasks, isAddingSubtaskStates]);
-
-    // Determine the new parent and level for a task based on its new position
-    const calculateNewParentAndLevel = useCallback(
-        (
-            taskId: string,
-            newYPosition: number,
-            allVisibleTasks: FlatTask[],
-        ): { newParentId?: number; newLevel: number } => {
-            // If moved to position 0, it becomes a root task
-            if (newYPosition === 0) {
-                return { newParentId: undefined, newLevel: 0 };
-            }
-
-            const currentTask = allVisibleTasks.find((t) => t.id === taskId);
-            if (!currentTask) {
-                return { newParentId: undefined, newLevel: 0 };
-            }
-
-            // Look at the task immediately above the new position
-            const taskAbove = allVisibleTasks[newYPosition - 1];
-
-            // Look at the task immediately below (if it exists) to understand context
-            const taskBelow =
-                newYPosition < allVisibleTasks.length
-                    ? allVisibleTasks[newYPosition]
-                    : null;
-
-            // Strategy 1: If the task above is at level 0, we can either:
-            // - Become a root task (level 0) as a sibling
-            // - Become a subtask (level 1) as a child
-            if (taskAbove.level === 0) {
-                // If there's a task below and it's a subtask of the task above, we also become a subtask
-                if (taskBelow && taskBelow.parentId === taskAbove.id) {
-                    return {
-                        newParentId: parseInt(taskAbove.id),
-                        newLevel: 1,
-                    };
-                }
-                // Default: become a sibling (root level)
-                return { newParentId: undefined, newLevel: 0 };
-            }
-
-            // Strategy 2: For higher level tasks, maintain the same level as the task above
-            // or become its child if it makes sense
-            if (taskBelow && taskBelow.level > taskAbove.level) {
-                // There are subtasks below, so we become a subtask of the task above
-                return {
-                    newParentId: parseInt(taskAbove.id),
-                    newLevel: taskAbove.level + 1,
-                };
-            }
-
-            // Default: become a sibling of the task above
-            const parentId = taskAbove.parentId
-                ? parseInt(taskAbove.parentId)
-                : undefined;
-            return {
-                newParentId: parentId,
-                newLevel: taskAbove.level,
-            };
+            return (
+                <div className='space-y-1'>
+                    {tasks.map((task, index) => (
+                        <div
+                            key={task.id}
+                            className='task-overlay-item'
+                            style={{
+                                opacity: index === 0 ? 1 : 0.85, // First task (main dragged task) fully opaque, subtasks slightly transparent
+                                transform:
+                                    index > 0
+                                        ? `translateX(${String(task.level * 2)}px)`
+                                        : 'none',
+                            }}
+                        >
+                            <TaskContent
+                                task={task}
+                                itemColors={itemColors}
+                                expandedStates={expandedStates}
+                                isAddingSubtaskStates={isAddingSubtaskStates}
+                                onToggle={onToggleTask}
+                                onDelete={onDeleteTask}
+                                onCreateSubtask={onCreateSubtask}
+                                onToggleExpanded={onToggleExpanded}
+                                onChangeLevel={handleChangeLevel}
+                                onSetAddingSubtask={handleSetAddingSubtask}
+                                maxLevel={5}
+                                isPotentialParent={false}
+                                isDragActive={false}
+                                isOverlay={true}
+                            />
+                        </div>
+                    ))}
+                </div>
+            );
         },
-        [],
+        [
+            itemColors,
+            expandedStates,
+            isAddingSubtaskStates,
+            onToggleTask,
+            onDeleteTask,
+            onCreateSubtask,
+            onToggleExpanded,
+            handleChangeLevel,
+            handleSetAddingSubtask,
+        ],
     );
 
-    // Handle layout changes with support for parent/level changes
-    const handleLayoutChange = (layout: Layout[]) => {
-        if (suppressLayoutEvents) {
-            console.log('Layout change suppressed during form operation');
+    // Calculate new parent and position based on drop zone
+    const calculateNewParentAndPosition = (
+        activeTaskId: string,
+        dropId: string,
+    ): { newParentId?: number; newDisplayOrder: number } => {
+        const { taskId: targetTaskId, zone } = parseDropId(dropId);
+
+        const targetTask = flatTasks.find((t) => t.id === targetTaskId);
+
+        if (!targetTask) {
+            return { newParentId: undefined, newDisplayOrder: 0 };
+        }
+
+        switch (zone) {
+            case 'above':
+                // Insert above target task, same parent as target
+                // Use target's display order
+                return {
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder,
+                };
+            case 'child':
+                // Become child of target task
+                // Find the highest display order among target's children and add 1
+                const targetChildren = flatTasks.filter(
+                    (t) => t.parentId === targetTask.id,
+                );
+                const maxChildOrder =
+                    targetChildren.length > 0
+                        ? Math.max(...targetChildren.map((t) => t.displayOrder))
+                        : -1;
+                return {
+                    newParentId: parseInt(targetTask.id),
+                    newDisplayOrder: maxChildOrder + 1,
+                };
+            case 'below':
+                // Insert below target task, same parent as target
+                // Use target's display order + 1
+                return {
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder + 1,
+                };
+            default:
+                return {
+                    newParentId: targetTask.parentId
+                        ? parseInt(targetTask.parentId)
+                        : undefined,
+                    newDisplayOrder: targetTask.displayOrder + 1,
+                };
+        }
+    };
+
+    const handleDragStart = (event: DragStartEvent) => {
+        setActiveTaskId(event.active.id as string);
+    };
+
+    const handleDragOver = (event: DragOverEvent) => {
+        const { over } = event;
+        setActiveOverId(over?.id ? String(over.id) : null);
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        setActiveTaskId(null);
+        setActiveOverId(null);
+
+        if (!over) {
+            console.log('No drop target');
             return;
         }
 
-        // Check if there are meaningful position changes
-        const hasPositionChanges = layout.some((item) => {
-            const taskIndex = flatTasks.findIndex((t) => t.id === item.i);
-            return taskIndex !== -1 && taskIndex !== item.y;
-        });
+        const activeTaskId = active.id as string;
+        const overDropId = over.id as string;
 
-        if (!hasPositionChanges) {
+        console.log('Drag end:', { activeTaskId, overDropId });
+
+        // Don't do anything if dropping on itself or its descendants
+        if (overDropId.includes(activeTaskId)) {
+            console.log('Dropping on itself, ignoring');
             return;
         }
 
-        const sortedLayout = [...layout].sort((a, b) => a.y - b.y);
-        const allFlatTasks = flattenTasks(tasks);
+        // Check if we're trying to make a task a child of its own descendant
+        const { taskId: targetTaskId, zone } = parseDropId(overDropId);
+        if (zone === 'child') {
+            // Find all descendants of the active task
+            const findDescendants = (taskId: string): string[] => {
+                const descendants: string[] = [];
+                const children = flatTasks.filter((t) => t.parentId === taskId);
+                for (const child of children) {
+                    descendants.push(child.id);
+                    descendants.push(...findDescendants(child.id));
+                }
+                return descendants;
+            };
 
-        console.log(
-            'Layout changed (meaningful):',
-            sortedLayout.map((item) => ({ id: item.i, y: item.y })),
+            const descendants = findDescendants(activeTaskId);
+            if (descendants.includes(targetTaskId)) {
+                console.log(
+                    'Cannot make task a child of its own descendant, ignoring',
+                );
+                return;
+            }
+        }
+
+        const { newParentId, newDisplayOrder } = calculateNewParentAndPosition(
+            activeTaskId,
+            overDropId,
         );
 
-        const reorderPromises: Promise<void>[] = [];
-        const processedTasks = new Set<string>();
-
-        sortedLayout.forEach((item, newIndex) => {
-            const taskId = item.i;
-            if (processedTasks.has(taskId)) return;
-
-            const task = flatTasks.find((t) => t.id === taskId);
-            const originalIndex = flatTasks.findIndex((t) => t.id === taskId);
-
-            if (!task || originalIndex === newIndex) return;
-
-            console.log(
-                `Processing task ${taskId} (${task.text}) moved from ${String(originalIndex)} to ${String(newIndex)}`,
-            );
-
-            const { newParentId, newLevel } = calculateNewParentAndLevel(
-                taskId,
-                newIndex,
-                flatTasks,
-            );
-
-            const currentParentId = task.parentTaskId;
-            const parentChanged = newParentId !== currentParentId;
-            const levelChanged = newLevel !== task.level;
-
-            if (parentChanged || levelChanged || originalIndex !== newIndex) {
-                console.log(
-                    `Task ${taskId} changes: parent ${String(currentParentId)} -> ${String(newParentId)}, level ${String(task.level)} -> ${String(newLevel)}, position ${String(originalIndex)} -> ${String(newIndex)}`,
-                );
-
-                // Find all descendants of this task to move them together
-                const descendants = findDescendantIds(taskId, allFlatTasks);
-
-                processedTasks.add(taskId);
-                descendants.forEach((id) => processedTasks.add(id));
-
-                reorderPromises.push(
-                    onReorderTask(taskId, newIndex, newParentId),
-                );
-            }
+        console.log('Calculated new position:', {
+            activeTaskId,
+            newParentId,
+            newDisplayOrder,
+            overDropId,
         });
 
-        if (reorderPromises.length > 0) {
-            Promise.all(reorderPromises).catch((error: unknown) => {
-                console.error('Failed to reorder tasks:', error);
-            });
+        // Get current task data for comparison
+        const currentTask = flatTasks.find((t) => t.id === activeTaskId);
+        const currentParentId = currentTask?.parentTaskId;
+
+        // Normalize parent IDs for comparison (both could be undefined, string, or number)
+        const normalizedCurrentParent = currentParentId
+            ? parseInt(String(currentParentId))
+            : undefined;
+        const normalizedNewParent = newParentId;
+
+        console.log('Current task state:', {
+            currentParentId: normalizedCurrentParent,
+            currentDisplayOrder: currentTask?.displayOrder,
+            newParentId: normalizedNewParent,
+            newDisplayOrder,
+        });
+
+        // Only proceed if something actually changed and we're not already reordering
+        const parentChanged = normalizedCurrentParent !== normalizedNewParent;
+        const orderChanged = newDisplayOrder !== currentTask?.displayOrder;
+
+        if (isReordering || (!parentChanged && !orderChanged)) {
+            console.log(
+                'No actual change detected or already reordering, skipping reorder',
+                {
+                    isReordering,
+                    parentChanged,
+                    orderChanged,
+                },
+            );
+            return;
         }
+
+        if (reorderTimeoutRef.current) {
+            clearTimeout(reorderTimeoutRef.current);
+        }
+
+        // Set reordering state and perform the reorder with a small delay
+        setIsReordering(true);
+        reorderTimeoutRef.current = setTimeout(() => {
+            onReorderTask(activeTaskId, newDisplayOrder, newParentId)
+                .then(() => {
+                    console.log('Reorder completed successfully');
+                })
+                .catch((error: unknown) => {
+                    console.error('Failed to reorder task:', error);
+                })
+                .finally(() => {
+                    setIsReordering(false);
+                });
+        }, 100); // Small delay to prevent rapid successive calls
     };
 
     if (loading) {
@@ -376,49 +473,95 @@ export const TaskList = ({
         );
     }
 
+    // Get potential parent ID for visual feedback
+    const getPotentialParentId = () => {
+        if (!activeOverId || !activeTaskId) return null;
+
+        const { taskId, zone } = parseDropId(activeOverId);
+
+        if (zone === 'child') {
+            return taskId;
+        }
+
+        const targetTask = flatTasks.find((t) => t.id === taskId);
+        return targetTask?.parentId ?? null;
+    };
+
+    const potentialParentId = getPotentialParentId();
+
     return (
-        <ResponsiveGridLayout
-            key={layoutKey}
-            className='layout'
-            layouts={layouts}
-            onLayoutChange={handleLayoutChange}
-            rowHeight={ROW_HEIGHT}
-            margin={[0, 4]}
-            isDraggable={!suppressLayoutEvents}
-            isResizable={false}
-            draggableHandle='.drag-handle-task'
-            style={{
-                position: 'relative',
-                transition: 'height 0.2s ease-out',
-            }}
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
         >
-            {flatTasks.map((task) => (
-                <div
-                    key={task.id}
-                    className='task-grid-item group relative rounded-md border bg-transparent transition-all duration-200 ease-out hover:shadow-md'
-                    style={{
-                        border: `1px solid ${itemColors.border}`,
-                        backgroundColor: 'transparent',
-                    }}
-                >
-                    <div className='h-full w-full'>
+            <div className='space-y-1'>
+                {flatTasks.map((task) => {
+                    const draggedTasksIds = activeTaskId
+                        ? getTaskWithSubtasks(activeTaskId).map((t) => t.id)
+                        : [];
+                    const isPartOfDraggedGroup = draggedTasksIds.includes(
+                        task.id,
+                    );
+
+                    return (
                         <TaskItem
+                            key={task.id}
                             task={task}
-                            level={task.level}
                             itemColors={itemColors}
+                            expandedStates={expandedStates}
+                            isAddingSubtaskStates={isAddingSubtaskStates}
                             onToggle={onToggleTask}
                             onDelete={onDeleteTask}
                             onCreateSubtask={onCreateSubtask}
                             onToggleExpanded={onToggleExpanded}
                             onChangeLevel={handleChangeLevel}
-                            expandedStates={expandedStates}
-                            isAddingSubtaskStates={isAddingSubtaskStates}
                             onSetAddingSubtask={handleSetAddingSubtask}
                             maxLevel={5}
+                            isPotentialParent={potentialParentId === task.id}
+                            isDragActive={activeTaskId !== null}
+                            activeOverId={activeOverId}
+                            isBeingDragged={isPartOfDraggedGroup}
                         />
-                    </div>
-                </div>
-            ))}
-        </ResponsiveGridLayout>
+                    );
+                })}
+            </div>
+
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <DragOverlay
+                        dropAnimation={{
+                            duration: 250,
+                            easing: 'ease',
+                        }}
+                    >
+                        {activeTaskId
+                            ? (() => {
+                                  const tasksToRender =
+                                      getTaskWithSubtasks(activeTaskId);
+                                  if (tasksToRender.length === 0) return null;
+
+                                  return (
+                                      <div
+                                          className='task-overlay-wrapper rounded-md border shadow-xl'
+                                          style={{
+                                              backgroundColor:
+                                                  itemColors.lightBackground,
+                                              borderColor: itemColors.border,
+                                              opacity: 0.95,
+                                              cursor: 'grabbing',
+                                          }}
+                                      >
+                                          {renderTaskGroup(tasksToRender)}
+                                      </div>
+                                  );
+                              })()
+                            : null}
+                    </DragOverlay>,
+                    document.body,
+                )}
+        </DndContext>
     );
 };
