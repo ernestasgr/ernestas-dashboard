@@ -1,5 +1,7 @@
 # Ernestas Dashboard
 
+Work in Progress
+
 Ernestas Dashboard is a modular, full-stack platform for building customizable, secure, and extensible personal dashboards. It integrates multiple microservices for authentication, widgets, notes, and tasks, all orchestrated through a federated GraphQL gateway and a modern Next.js frontend.
 
 ![Dashboard Screenshot](./docs/images/widgets.png)

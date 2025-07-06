@@ -5,6 +5,7 @@ import {
     DndContext,
     DragEndEvent,
     DragOverEvent,
+    DragOverlay,
     DragStartEvent,
     PointerSensor,
     closestCenter,
@@ -12,6 +13,8 @@ import {
     useSensors,
 } from '@dnd-kit/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { TaskContent } from './TaskContent';
 import { TaskItem } from './TaskItem';
 import { ItemColors } from './types';
 
@@ -73,12 +76,15 @@ export const TaskList = ({
         }),
     );
 
-    const handleSetAddingSubtask = (taskId: string, isAdding: boolean) => {
-        setIsAddingSubtaskStates((prev) => ({
-            ...prev,
-            [taskId]: isAdding,
-        }));
-    };
+    const handleSetAddingSubtask = useCallback(
+        (taskId: string, isAdding: boolean) => {
+            setIsAddingSubtaskStates((prev) => ({
+                ...prev,
+                [taskId]: isAdding,
+            }));
+        },
+        [],
+    );
 
     // Check if all ancestors in the path are expanded
     const isTaskVisible = useCallback(
@@ -139,6 +145,32 @@ export const TaskList = ({
         return flattenTasks(tasks).filter((task) => task.isVisible);
     }, [tasks, flattenTasks]);
 
+    // Get all subtasks recursively for a given task
+    const getTaskWithSubtasks = useCallback(
+        (taskId: string): FlatTask[] => {
+            const result: FlatTask[] = [];
+
+            const addTaskAndChildren = (currentTaskId: string) => {
+                const task = flatTasks.find((t) => t.id === currentTaskId);
+                if (!task) return;
+
+                result.push(task);
+
+                // Find all direct children
+                const children = flatTasks.filter(
+                    (t) => t.parentId === currentTaskId,
+                );
+                for (const child of children) {
+                    addTaskAndChildren(child.id);
+                }
+            };
+
+            addTaskAndChildren(taskId);
+            return result;
+        },
+        [flatTasks],
+    );
+
     // Parse drop zone ID to get task ID and zone type
     const parseDropId = (dropId: string) => {
         const parts = dropId.split('-');
@@ -195,6 +227,59 @@ export const TaskList = ({
             }
         },
         [flatTasks, onReorderTask],
+    );
+
+    // Render a task group (main task + all its subtasks) for the overlay
+    const renderTaskGroup = useCallback(
+        (tasks: FlatTask[]) => {
+            if (tasks.length === 0) return null;
+
+            return (
+                <div className='space-y-1'>
+                    {tasks.map((task, index) => (
+                        <div
+                            key={task.id}
+                            className='task-overlay-item'
+                            style={{
+                                opacity: index === 0 ? 1 : 0.85, // First task (main dragged task) fully opaque, subtasks slightly transparent
+                                transform:
+                                    index > 0
+                                        ? `translateX(${String(task.level * 2)}px)`
+                                        : 'none',
+                            }}
+                        >
+                            <TaskContent
+                                task={task}
+                                itemColors={itemColors}
+                                expandedStates={expandedStates}
+                                isAddingSubtaskStates={isAddingSubtaskStates}
+                                onToggle={onToggleTask}
+                                onDelete={onDeleteTask}
+                                onCreateSubtask={onCreateSubtask}
+                                onToggleExpanded={onToggleExpanded}
+                                onChangeLevel={handleChangeLevel}
+                                onSetAddingSubtask={handleSetAddingSubtask}
+                                maxLevel={5}
+                                isPotentialParent={false}
+                                isDragActive={false}
+                                isOverlay={true}
+                            />
+                        </div>
+                    ))}
+                </div>
+            );
+        },
+        [
+            itemColors,
+            expandedStates,
+            isAddingSubtaskStates,
+            onToggleTask,
+            onDeleteTask,
+            onCreateSubtask,
+            onToggleExpanded,
+            handleChangeLevel,
+            handleSetAddingSubtask,
+        ],
     );
 
     // Calculate new parent and position based on drop zone
@@ -413,26 +498,70 @@ export const TaskList = ({
             onDragEnd={handleDragEnd}
         >
             <div className='space-y-1'>
-                {flatTasks.map((task) => (
-                    <TaskItem
-                        key={task.id}
-                        task={task}
-                        itemColors={itemColors}
-                        expandedStates={expandedStates}
-                        isAddingSubtaskStates={isAddingSubtaskStates}
-                        onToggle={onToggleTask}
-                        onDelete={onDeleteTask}
-                        onCreateSubtask={onCreateSubtask}
-                        onToggleExpanded={onToggleExpanded}
-                        onChangeLevel={handleChangeLevel}
-                        onSetAddingSubtask={handleSetAddingSubtask}
-                        maxLevel={5}
-                        isPotentialParent={potentialParentId === task.id}
-                        isDragActive={activeTaskId !== null}
-                        activeOverId={activeOverId}
-                    />
-                ))}
+                {flatTasks.map((task) => {
+                    const draggedTasksIds = activeTaskId
+                        ? getTaskWithSubtasks(activeTaskId).map((t) => t.id)
+                        : [];
+                    const isPartOfDraggedGroup = draggedTasksIds.includes(
+                        task.id,
+                    );
+
+                    return (
+                        <TaskItem
+                            key={task.id}
+                            task={task}
+                            itemColors={itemColors}
+                            expandedStates={expandedStates}
+                            isAddingSubtaskStates={isAddingSubtaskStates}
+                            onToggle={onToggleTask}
+                            onDelete={onDeleteTask}
+                            onCreateSubtask={onCreateSubtask}
+                            onToggleExpanded={onToggleExpanded}
+                            onChangeLevel={handleChangeLevel}
+                            onSetAddingSubtask={handleSetAddingSubtask}
+                            maxLevel={5}
+                            isPotentialParent={potentialParentId === task.id}
+                            isDragActive={activeTaskId !== null}
+                            activeOverId={activeOverId}
+                            isBeingDragged={isPartOfDraggedGroup}
+                        />
+                    );
+                })}
             </div>
+
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <DragOverlay
+                        dropAnimation={{
+                            duration: 250,
+                            easing: 'ease',
+                        }}
+                    >
+                        {activeTaskId
+                            ? (() => {
+                                  const tasksToRender =
+                                      getTaskWithSubtasks(activeTaskId);
+                                  if (tasksToRender.length === 0) return null;
+
+                                  return (
+                                      <div
+                                          className='task-overlay-wrapper rounded-md border shadow-xl'
+                                          style={{
+                                              backgroundColor:
+                                                  itemColors.lightBackground,
+                                              borderColor: itemColors.border,
+                                              opacity: 0.95,
+                                              cursor: 'grabbing',
+                                          }}
+                                      >
+                                          {renderTaskGroup(tasksToRender)}
+                                      </div>
+                                  );
+                              })()
+                            : null}
+                    </DragOverlay>,
+                    document.body,
+                )}
         </DndContext>
     );
 };

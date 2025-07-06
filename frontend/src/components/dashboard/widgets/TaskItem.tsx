@@ -28,6 +28,7 @@ interface TaskItemProps {
     isPotentialParent?: boolean;
     isDragActive?: boolean;
     activeOverId?: string | null;
+    isBeingDragged?: boolean;
 }
 
 export const TaskItem = ({
@@ -45,14 +46,15 @@ export const TaskItem = ({
     isPotentialParent = false,
     isDragActive = false,
     activeOverId = null,
+    isBeingDragged = false,
 }: TaskItemProps) => {
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: task.id,
     });
 
     const style = {
-        transform: CSS.Transform.toString(transform),
-        opacity: 1,
+        transform: isBeingDragged ? 'none' : CSS.Transform.toString(transform),
+        opacity: isBeingDragged ? 0 : 1,
     };
 
     // Generate potential parent visual feedback styles
