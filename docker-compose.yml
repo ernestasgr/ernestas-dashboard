@@ -176,10 +176,15 @@ services:
       - PORT=3001
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@widget-registry-db:5432/${POSTGRES_DB_WIDGET_REGISTRY}?schema=public
       - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - KAFKA_BROKERS=event-bus:9092
     restart: always
     depends_on:
       widget-registry-db:
         condition: service_started
+      event-bus:
+        condition: service_healthy
+      kafka-topic-setup:
+        condition: service_completed_successfully
     develop:
       watch:
         - action: sync
@@ -223,10 +228,15 @@ services:
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@notes-db:5432/${POSTGRES_DB_NOTES}
       - SENTRY_DSN_NOTES=${SENTRY_DSN_NOTES}
       - SENTRY_SEND_DEFAULT_PII=${SENTRY_SEND_DEFAULT_PII}
+      - KAFKA_BROKERS=event-bus:9092
     restart: always
     depends_on:
       notes-db:
         condition: service_started
+      event-bus:
+        condition: service_healthy
+      kafka-topic-setup:
+        condition: service_completed_successfully
     develop:
       watch:
         - action: sync
@@ -285,10 +295,15 @@ services:
       - ConnectionStrings__DefaultConnection=Host=tasks-db;Database=${POSTGRES_DB_TASKS};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - ASPNETCORE_ENVIRONMENT=${NODE_ENV}
       - GATEWAY_SECRET=${GATEWAY_SECRET}
+      - KAFKA_BROKERS=event-bus:9092
     restart: always
     depends_on:
       tasks-db:
         condition: service_healthy
+      event-bus:
+        condition: service_healthy
+      kafka-topic-setup:
+        condition: service_completed_successfully
     volumes:
       - ./backend/tasks/Migrations:/app/Migrations
 
@@ -305,6 +320,7 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@event-bus:9093
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://event-bus:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     healthcheck:
       test: ["CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list"]
       interval: 10s
@@ -312,6 +328,21 @@ services:
       retries: 5
     networks:
       - elk
+
+  kafka-topic-setup:
+    image: bitnami/kafka:latest
+    container_name: kafka-topic-setup
+    depends_on:
+      event-bus:
+        condition: service_healthy
+    command: >
+      bash -c "
+        kafka-topics.sh --bootstrap-server event-bus:9092 --create --if-not-exists --topic widget-deleted --partitions 1 --replication-factor 1
+        echo 'Topics created successfully'
+      "
+    networks:
+      - elk
+    restart: "no"
 
   event-bus-ui:
     image: docker.redpanda.com/redpandadata/console:latest

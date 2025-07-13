@@ -10,6 +10,7 @@ using Tasks.GraphQL.Queries;
 using Tasks.GraphQL.Types;
 using Tasks.Services;
 using Tasks.Validators;
+using Tasks.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddHostedService<EventConsumerService>();
 
 builder.Services.AddScoped<IValidator<CreateTaskInput>, CreateTaskInputValidator>();
 builder.Services.AddScoped<IValidator<UpdateTaskInput>, UpdateTaskInputValidator>();

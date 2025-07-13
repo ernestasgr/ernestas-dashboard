@@ -26,6 +26,7 @@ The project aims to provide a robust, extensible dashboard for personal producti
 -   **backend/notes/**: FastAPI/Strawberry service for note CRUD, with optional Obsidian vault sync.
 -   **backend/tasks/**: ASP.NET Core/HotChocolate service for advanced task management, hierarchy, and filtering.
 -   **ELK stack**: (Optional) Elasticsearch, Logstash, Kibana for centralized logging and monitoring.
+-   **Apache Kafka**: Interservice communication.
 
 ## Service TODO Lists
 
@@ -47,6 +48,8 @@ Each service maintains its own TODO list for tracking improvements and future fe
 -   **Notes**: FastAPI, Python, Strawberry GraphQL, SQLAlchemy (async), PostgreSQL
 -   **Tasks**: ASP.NET Core, C#, HotChocolate GraphQL, EF Core, PostgreSQL
 -   **Observability**: Sentry, ELK (Elasticsearch, Logstash, Kibana)
+-   **Deployability**: Docker, GitHub Actions
+-   **Communication**: Apache Kafka, Apollo Federation
 
 ## Features
 
@@ -118,7 +121,7 @@ Key variables include:
 docker compose up --build --watch
 ```
 
-**With ELK stack logging:**
+**With ELK stack logging (uses up A LOT more RAM):**
 
 ```sh
 docker compose --profile elk -f docker-compose.yml -f docker-compose.elk.yml up --build --watch

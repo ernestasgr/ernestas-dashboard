@@ -1,5 +1,6 @@
 """Main FastAPI application for the notes service."""
 
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -10,6 +11,7 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.federation import Schema
 
 from .database import create_tables
+from .event_consumer import EventConsumer
 from .logger import logger
 from .resolvers import Mutation, Query
 
@@ -20,7 +22,15 @@ async def lifespan(app: FastAPI):
     logger.info("Starting notes service")
     await create_tables()
     logger.info("Database tables created/verified")
+
+    current_loop = asyncio.get_running_loop()
+    event_consumer = EventConsumer(current_loop)
+    event_consumer.start_consumer()
+    logger.info("Kafka event consumer started")
+
     yield
+
+    event_consumer.stop_consumer()
     logger.info("Shutting down notes service")
 
 

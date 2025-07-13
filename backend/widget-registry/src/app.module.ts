@@ -10,6 +10,7 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { EventsModule } from './events/events.module';
 import { GatewayAuthGuard } from './guards/gateway-auth.guard';
 import { LoggerModule } from './logger/logger.module';
 import { WidgetModule } from './widget/widget.module';
@@ -32,6 +33,7 @@ import { WidgetModule } from './widget/widget.module';
         }),
         WidgetModule,
         LoggerModule,
+        EventsModule,
     ],
     controllers: [AppController],
     providers: [
