@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EventPublisherService } from '../events/event-publisher.service';
 import { LoggerService } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WidgetService } from './widget.service';
@@ -68,6 +69,10 @@ describe('WidgetService', () => {
         verbose: jest.fn(),
     };
 
+    const mockEventService = {
+        publishWidgetDeleted: jest.fn(),
+    };
+
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -79,6 +84,10 @@ describe('WidgetService', () => {
                 {
                     provide: LoggerService,
                     useValue: mockLoggerService,
+                },
+                {
+                    provide: EventPublisherService,
+                    useValue: mockEventService,
                 },
             ],
         }).compile();
@@ -338,22 +347,48 @@ describe('WidgetService', () => {
 
     describe('deleteWidget', () => {
         it('should delete widget and return true on success', async () => {
+            prismaService.userWidget.findUnique.mockResolvedValue(mockDbWidget);
             prismaService.userWidget.delete.mockResolvedValue(mockDbWidget);
 
             const result = await service.deleteWidget(mockWidgetId);
 
+            expect(prismaService.userWidget.findUnique).toHaveBeenCalledWith({
+                where: { id: mockWidgetId },
+            });
             expect(prismaService.userWidget.delete).toHaveBeenCalledWith({
                 where: { id: mockWidgetId },
+            });
+            expect(mockEventService.publishWidgetDeleted).toHaveBeenCalledWith({
+                widgetId: mockWidgetId,
+                widgetType: mockDbWidget.type,
+                userId: mockDbWidget.userId,
+                timestamp: expect.any(String),
             });
             expect(result).toBe(true);
         });
 
-        it('should return false when delete fails', async () => {
-            prismaService.userWidget.delete.mockRejectedValue(
-                new Error('Not found'),
-            );
+        it('should return false when widget not found', async () => {
+            prismaService.userWidget.findUnique.mockResolvedValue(null);
 
             const result = await service.deleteWidget('non-existent');
+
+            expect(prismaService.userWidget.findUnique).toHaveBeenCalledWith({
+                where: { id: 'non-existent' },
+            });
+            expect(prismaService.userWidget.delete).not.toHaveBeenCalled();
+            expect(
+                mockEventService.publishWidgetDeleted,
+            ).not.toHaveBeenCalled();
+            expect(result).toBe(false);
+        });
+
+        it('should return false when delete fails', async () => {
+            prismaService.userWidget.findUnique.mockResolvedValue(mockDbWidget);
+            prismaService.userWidget.delete.mockRejectedValue(
+                new Error('Database error'),
+            );
+
+            const result = await service.deleteWidget(mockWidgetId);
 
             expect(result).toBe(false);
         });
