@@ -222,6 +222,13 @@ class NoteService:
         """Delete a note."""
         return await self.repository.delete_note(note_id)
 
+    async def delete_notes_by_widget(self, widget_id: str) -> int:
+        """Delete all notes for a specific widget."""
+        logger.info(f"Deleting all notes for widget {widget_id}")
+        deleted_count = await self.repository.delete_notes_by_widget(widget_id)
+        logger.info(f"Deleted {deleted_count} notes for widget {widget_id}")
+        return deleted_count
+
     async def delete_note_with_obsidian_sync(
         self,
         note_id: str,

@@ -15,6 +15,7 @@ public interface ITaskService
     Task<TaskEntity> CreateTaskAsync(TaskEntity task);
     Task<TaskEntity?> UpdateTaskAsync(int id, string? userId, Action<TaskEntity> updateAction);
     Task<bool> DeleteTaskAsync(int id, string? userId);
+    Task<int> DeleteTasksByWidgetAsync(string widgetId);
     Task<IEnumerable<string>> GetCategoriesAsync(string? userId = null);
     Task<bool> ReorderTaskAsync(int taskId, int newDisplayOrder, int? newParentTaskId, string? userId);
     Task<IEnumerable<TaskEntity>> GetTaskHierarchyAsync(string? userId = null, string? widgetId = null);
@@ -199,6 +200,36 @@ public class TaskService : ITaskService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting task {TaskId} for user {UserId}", id, userId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Deletes all tasks for a specific widget.
+    /// </summary>
+    public async Task<int> DeleteTasksByWidgetAsync(string widgetId)
+    {
+        try
+        {
+            var tasks = await _context.Tasks
+                .Where(t => t.WidgetId == widgetId)
+                .ToListAsync();
+
+            if (!tasks.Any())
+            {
+                _logger.LogInformation("No tasks found for widget {WidgetId}", widgetId);
+                return 0;
+            }
+
+            _context.Tasks.RemoveRange(tasks);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Deleted {TaskCount} tasks for widget {WidgetId}", tasks.Count, widgetId);
+            return tasks.Count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting tasks for widget {WidgetId}", widgetId);
             throw;
         }
     }

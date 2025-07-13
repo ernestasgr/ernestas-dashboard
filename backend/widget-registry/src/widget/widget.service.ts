@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventPublisherService } from '../events/event-publisher.service';
 import { LoggerService } from '../logger/logger.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -17,6 +18,7 @@ export class WidgetService {
     constructor(
         private prisma: PrismaService,
         private readonly logger: LoggerService,
+        private readonly eventPublisher: EventPublisherService,
     ) {}
 
     /**
@@ -182,11 +184,35 @@ export class WidgetService {
      */
     async deleteWidget(id: string): Promise<boolean> {
         try {
+            const widget = await this.prisma.userWidget.findUnique({
+                where: { id },
+            });
+
+            if (!widget) {
+                this.logger.warn(
+                    `Attempted to delete non-existent widget with ID: ${id}`,
+                );
+                return false;
+            }
+
             await this.prisma.userWidget.delete({
                 where: { id },
             });
+
+            // Emit the widget deletion event for cleanup in other services
+            await this.eventPublisher.publishWidgetDeleted({
+                widgetId: id,
+                widgetType: widget.type,
+                userId: widget.userId,
+                timestamp: new Date().toISOString(),
+            });
+
+            this.logger.log(
+                `Successfully deleted widget ${id} of type ${widget.type} for user ${widget.userId}`,
+            );
             return true;
-        } catch {
+        } catch (error) {
+            this.logger.error(`Failed to delete widget ${id}`, error);
             return false;
         }
     }

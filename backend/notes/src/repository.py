@@ -30,6 +30,7 @@ class NoteRepository:
             return [
                 NoteRepository._model_to_note(note_model) for note_model in note_models
             ]
+
     @staticmethod
     async def get_note_by_id(note_id: str) -> Optional[Note]:
         """Get a single note from database."""
@@ -66,6 +67,15 @@ class NoteRepository:
             result = await session.execute(query)
             await session.commit()
             return result.rowcount > 0
+
+    @staticmethod
+    async def delete_notes_by_widget(widget_id: str) -> int:
+        """Delete all notes for a specific widget."""
+        async with AsyncSessionLocal() as session:
+            query = delete(NoteModel).where(NoteModel.widget_id == widget_id)
+            result = await session.execute(query)
+            await session.commit()
+            return result.rowcount
 
     @staticmethod
     async def get_note_by_title_and_widget(
