@@ -2,6 +2,9 @@
 .vscode
 */node_modules/
 .env
+.env.*
+!.env.prod.example
 .vite
 frontend/src/app/favicon.ico
 .github/copilot-instructions.md
+ssl/

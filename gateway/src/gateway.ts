@@ -124,11 +124,19 @@ function getEnv() {
 		FRONTEND_DOMAIN: z.string().url(),
 		JWT_SECRET: z.string().min(1, "JWT secret is required"),
 		NODE_ENV: z.string().default("development"),
+		DOMAIN: z.string().default("localhost"),
 	});
 
 	try {
+		contextLogger.info("Validating environment variables", process.env);
 		const env = envSchema.parse(process.env);
 		contextLogger.info("Environment variables validated successfully");
+		contextLogger.info("Environment variables", {
+			authUrl: env.AUTH_URL,
+			authRedirectUrl: env.AUTH_REDIRECT_URL,
+			frontendDomain: env.FRONTEND_DOMAIN,
+			nodeEnv: env.NODE_ENV,
+		});
 		return env;
 	} catch (error) {
 		contextLogger.error("Environment validation failed", {
@@ -190,7 +198,7 @@ const startGateway = async () => {
 		nodeEnv: process.env.NODE_ENV,
 	});
 	try {
-		await waitForService(`${env.AUTH_URL}/health`);
+		await waitForService(`http://auth:8080/health`);
 		await waitForService("http://widget-registry:3001/health");
 		await waitForService("http://notes:8000/health");
 		await waitForService("http://tasks:8001/health");
@@ -198,7 +206,10 @@ const startGateway = async () => {
 		const gateway = new ApolloGateway({
 			supergraphSdl: new IntrospectAndCompose({
 				subgraphs: [
-					{ name: "auth", url: `${env.AUTH_URL}/graphql` },
+					{
+						name: "auth",
+						url: `http://auth:8080/graphql`,
+					},
 					{
 						name: "widget-registry",
 						url: "http://widget-registry:3001/graphql",
@@ -266,7 +277,7 @@ const startGateway = async () => {
 								.forEach((cookie) => {
 									context.res.append(
 										"Set-Cookie",
-										`${cookie}; HttpOnly; SameSite=Lax`
+										`${cookie}; HttpOnly; SameSite=Lax; Domain=${env.DOMAIN}`
 									);
 								});
 							requestLogger.debug(

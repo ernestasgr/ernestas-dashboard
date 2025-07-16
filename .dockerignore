@@ -1,0 +1,128 @@
+# Docker ignore for production builds
+
+# Node.js and pnpm specific
+node_modules/
+.pnpm-store/
+**/.pnpm-store/
+**/node_modules/
+.npm
+.yarn-integrity
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+docker-compose.yml
+docker-compose.elk.yml
+Dockerfile
+*.dev.*
+
+# Documentation
+README.md
+TODO.md
+*.md
+docs/
+
+# Test files
+**/*test*
+**/*spec*
+**/test/**
+**/tests/**
+**/coverage/**
+e2e/
+playwright-report/
+test-results/
+
+# Development dependencies
+target/debug/
+bin/Debug/
+obj/Debug/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+.directory
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Logs
+**/*.log
+logs/
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build artifacts (except production builds)
+dist/
+build/
+out/
+.next/
+!.next/standalone/
+!.next/static/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Java
+*.class
+*.jar
+!target/*.jar
+*.war
+*.ear
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+!bin/Release/
+!obj/Release/
+
+# Prisma
+prisma/migrations/
+!prisma/schema.prisma
+
+# Alembic
+alembic/versions/
+!alembic.ini
+
+# Windows specific
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride

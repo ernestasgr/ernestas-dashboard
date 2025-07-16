@@ -1,0 +1,30 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.0-preview.5 AS base
+WORKDIR /app
+EXPOSE 8001
+
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0.100-preview.5 AS build
+ARG configuration=Release
+WORKDIR /src
+COPY ["tasks.csproj", "./"]
+RUN dotnet restore "tasks.csproj"
+COPY . .
+WORKDIR "/src/."
+RUN dotnet build "tasks.csproj" -c $configuration -o /app/build
+
+FROM build AS publish
+ARG configuration=Release
+RUN dotnet publish "tasks.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+
+COPY --from=publish --chown=appuser:appgroup /app/publish .
+
+USER appuser
+
+ENV ASPNETCORE_URLS=http://+:8001
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+ENTRYPOINT ["dotnet", "tasks.dll"]

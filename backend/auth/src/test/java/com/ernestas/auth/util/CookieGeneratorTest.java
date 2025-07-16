@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import jakarta.servlet.http.Cookie;
 
 class CookieGeneratorTest {
-    private CookieGenerator cookieGenerator = new CookieGenerator("test");
+    private CookieGenerator cookieGenerator = new CookieGenerator("test", "localhost");
 
     @Test
     void testCreateCookie_setsAllPropertiesCorrectly() {

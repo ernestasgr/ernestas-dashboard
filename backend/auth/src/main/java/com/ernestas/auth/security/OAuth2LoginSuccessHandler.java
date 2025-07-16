@@ -2,6 +2,8 @@ package com.ernestas.auth.security;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -31,6 +33,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Value("${frontend.domain}")
     private String frontendDomain;
+
+    private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class);
 
     /****
      * Creates an instance of OAuth2LoginSuccessHandler with required dependencies.
@@ -90,15 +94,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     (int) (jwtTokenUtil.getRefreshTokenExpiration() / 1000)));
 
             String redirectUri = (String) request.getSession().getAttribute("redirectUri");
-            frontendDomain = frontendDomain != null ? frontendDomain : "http://localhost:3000";
+            frontendDomain = frontendDomain != null ? frontendDomain : "";
+            logger.info("Frontend domain: {}", frontendDomain);
             if (redirectUri != null && frontendDomain != null && redirectUri.startsWith(frontendDomain)) {
+                logger.info("Redirecting to: {}", redirectUri);
                 response.sendRedirect(redirectUri);
             } else if (redirectUri == null) {
+                logger.error("Redirect URI is missing in session.");
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Redirect URI is missing.");
             } else {
+                logger.error("Invalid redirect URI: {}", redirectUri);
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid redirect URI.");
             }
         } else {
+            logger.error("Authentication failed.");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed.");
         }
     }
