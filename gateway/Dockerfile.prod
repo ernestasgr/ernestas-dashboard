@@ -1,0 +1,46 @@
+FROM node:24-alpine AS base
+
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+RUN npm install -g pnpm
+RUN pnpm config set store-dir .pnpm-store
+RUN pnpm config set node-linker hoisted
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --production
+
+FROM base AS builder
+WORKDIR /app
+
+RUN npm install -g pnpm tsx
+RUN pnpm config set store-dir .pnpm-store
+RUN pnpm config set node-linker hoisted
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml ./
+
+COPY src ./src
+COPY tsconfig.json ./
+
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 app
+
+RUN npm install -g tsx
+
+COPY --from=deps --chown=app:nodejs /app/node_modules ./node_modules
+COPY --chown=app:nodejs package.json ./
+COPY --chown=app:nodejs src ./src
+COPY --chown=app:nodejs tsconfig.json ./
+
+USER app
+
+EXPOSE 4000
+
+CMD ["tsx", "src/gateway.ts"]

@@ -12,14 +12,17 @@ import jakarta.servlet.http.Cookie;
 @Component
 public class CookieGenerator {
     private final String profile;
+    private final String domain;
 
     /**
      * Constructs a CookieGenerator with the specified active Spring profile.
      *
      * @param profile the active Spring profile, defaults to "dev" if not set
      */
-    public CookieGenerator(@Value("${spring.profiles.active:dev}") String profile) {
+    public CookieGenerator(@Value("${spring.profiles.active:dev}") String profile,
+            @Value("${domain:localhost}") String domain) {
         this.profile = profile;
+        this.domain = domain;
     }
 
     /**
@@ -42,6 +45,7 @@ public class CookieGenerator {
         cookie.setPath(path);
         cookie.setSecure(profile.equals("prod")); // Set secure flag only in production
         cookie.setHttpOnly(true);
+        cookie.setDomain(domain);
         return cookie;
     }
 }

@@ -1,6 +1,7 @@
 #!/bin/bash
+set -e
 
-echo "Starting Notes Service entrypoint..."
+echo "Starting Notes Service production entrypoint..."
 
 echo "Waiting for database connection..."
 python -c "
@@ -33,16 +34,10 @@ async def wait_for_db():
 asyncio.run(wait_for_db())
 "
 
-echo "Initializing Alembic..."
-alembic upgrade head || echo "No existing migrations to apply or already up to date"
-
-echo "Checking for schema changes..."
-alembic revision --autogenerate -m "Auto-generated migration $(date +%Y%m%d_%H%M%S)" || echo "No schema changes detected"
-
 echo "Applying database migrations..."
 alembic upgrade head
 
 echo "Database migrations completed successfully"
 
 echo "Starting FastAPI application..."
-exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --log-level critical
+exec uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4

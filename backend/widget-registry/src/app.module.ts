@@ -23,10 +23,16 @@ import { WidgetModule } from './widget/widget.module';
         SentryModule.forRoot(),
         GraphQLModule.forRoot<ApolloFederationDriverConfig>({
             driver: ApolloFederationDriver,
-            autoSchemaFile: {
-                path: join(process.cwd(), 'src/schema.gql'),
-                federation: 2,
-            },
+            autoSchemaFile:
+                process.env.NODE_ENV === 'production'
+                    ? {
+                          path: join(process.cwd(), 'dist/schema.gql'),
+                          federation: 2,
+                      }
+                    : {
+                          path: join(process.cwd(), 'src/schema.gql'),
+                          federation: 2,
+                      },
             introspection: process.env.NODE_ENV !== 'production',
             playground: process.env.NODE_ENV !== 'production',
             sortSchema: true,

@@ -48,7 +48,7 @@ Each service maintains its own TODO list for tracking improvements and future fe
 -   **Notes**: FastAPI, Python, Strawberry GraphQL, SQLAlchemy (async), PostgreSQL
 -   **Tasks**: ASP.NET Core, C#, HotChocolate GraphQL, EF Core, PostgreSQL
 -   **Observability**: Sentry, ELK (Elasticsearch, Logstash, Kibana)
--   **Deployability**: Docker, GitHub Actions
+-   **Deployability**: Docker, GitHub Actions, nginx
 -   **Communication**: Apache Kafka, Apollo Federation
 
 ## Features
@@ -118,13 +118,27 @@ Key variables include:
 **Without ELK stack logging:**
 
 ```sh
-docker compose up --build --watch
+docker compose --env-file .env.dev up --build --watch
 ```
 
 **With ELK stack logging (uses up A LOT more RAM):**
 
 ```sh
-docker compose --profile elk -f docker-compose.yml -f docker-compose.elk.yml up --build --watch
+docker compose --env-file .env.dev --profile elk -f docker-compose.yml -f docker-compose.elk.yml up --build --watch
+```
+
+**Production:**
+
+To generate a self-signed SSL key and certificate for local development, run the following command in your terminal:
+
+```sh
+openssl req -x509 -newkey rsa:2048 -keyout ssl/key.pem -out ssl/cert.pem -days 365 -nodes
+```
+
+By default, `nginx` is configured to use `ernestas.com` domain and `gateway.ernestas.com` and `auth.ernestas.com` subdomains. That can be changed in `nginx.conf` and `nginx.ssl.conf` files.
+
+```sh
+docker compose --env-file .env.prod -f docker-compose.prod.yml -f docker-compose.ssl.yml up --build
 ```
 
 ### Running Tests
@@ -135,7 +149,7 @@ docker compose --profile elk -f docker-compose.yml -f docker-compose.elk.yml up 
 -   Auth: `cd backend/auth && ./mvnw test`
 -   Notes: `cd backend/notes && python -m pytest tests/ -v`
 -   Widget Registry: `cd backend/widget-registry && pnpm test`
--   Tasks: `cd backend/tasks && dotnet test`
+-   Tasks: `cd backend/tasks && dotnet test tasks.csproj`
 
 ---
 

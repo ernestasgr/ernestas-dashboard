@@ -137,10 +137,7 @@ def setup_logging() -> structlog.BoundLogger:
         structlog.processors.UnicodeDecoder(),
     ]
 
-    if (
-        os.getenv("NODE_ENV") == "production"
-        or os.getenv("ENABLE_LOGSTASH", "false").lower() == "true"
-    ):
+    if os.getenv("ENABLE_LOGSTASH", "false").lower() == "true":
         logstash_host = os.getenv("LOGSTASH_HOST", "logstash")
         logstash_port = int(os.getenv("LOGSTASH_PORT", "5044"))
 
