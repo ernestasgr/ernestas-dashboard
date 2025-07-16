@@ -97,12 +97,16 @@ describe("gateway", () => {
 		);
 	});
 
-	it("should call waitForService with correct URL", async () => {
+	it("should call waitForService with correct URLs", async () => {
 		const fetchSpy = vi
 			.spyOn(global, "fetch")
 			.mockResolvedValue({ ok: true } as any);
 		await startGateway();
-		expect(fetchSpy).toHaveBeenCalledWith("http://localhost:5000/health");
+		expect(fetchSpy).toHaveBeenCalledWith("http://auth:8080/health");
+		expect(fetchSpy).toHaveBeenCalledWith("http://widget-registry:3001/health");
+		expect(fetchSpy).toHaveBeenCalledWith("http://notes:8000/health");
+		expect(fetchSpy).toHaveBeenCalledWith("http://tasks:8001/health");
+		expect(fetchSpy).toHaveBeenCalledTimes(4);
 	});
 
 	describe("validateAccessToken", () => {

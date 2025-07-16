@@ -149,7 +149,7 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml -f docker-compose
 -   Auth: `cd backend/auth && ./mvnw test`
 -   Notes: `cd backend/notes && python -m pytest tests/ -v`
 -   Widget Registry: `cd backend/widget-registry && pnpm test`
--   Tasks: `cd backend/tasks && dotnet test`
+-   Tasks: `cd backend/tasks && dotnet test tasks.csproj`
 
 ---
 
