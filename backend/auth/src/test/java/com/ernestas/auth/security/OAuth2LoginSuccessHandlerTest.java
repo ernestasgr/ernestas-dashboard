@@ -11,10 +11,12 @@ import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.ernestas.auth.model.User;
+import com.ernestas.auth.service.GitHubOAuth2UserService;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
@@ -29,6 +31,8 @@ class OAuth2LoginSuccessHandlerTest {
     private UserService userService;
     private JwtTokenUtil jwtTokenUtil;
     private CookieGenerator cookieGenerator;
+    private GitHubOAuth2UserService gitHubOAuth2UserService;
+    private OAuth2AuthorizedClientService authorizedClientService;
     private OAuth2LoginSuccessHandler handler;
 
     @BeforeEach
@@ -36,7 +40,10 @@ class OAuth2LoginSuccessHandlerTest {
         userService = mock(UserService.class);
         jwtTokenUtil = mock(JwtTokenUtil.class);
         cookieGenerator = mock(CookieGenerator.class);
-        handler = new OAuth2LoginSuccessHandler(userService, jwtTokenUtil, cookieGenerator);
+        gitHubOAuth2UserService = mock(GitHubOAuth2UserService.class);
+        authorizedClientService = mock(OAuth2AuthorizedClientService.class);
+        handler = new OAuth2LoginSuccessHandler(userService, jwtTokenUtil, cookieGenerator,
+                gitHubOAuth2UserService, authorizedClientService);
     }
 
     @Test
@@ -49,6 +56,8 @@ class OAuth2LoginSuccessHandlerTest {
         HttpSession session = mock(HttpSession.class);
 
         when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google"); // Use Google to avoid
+                                                                                       // GitHub-specific logic
         when(userService.registerOrUpdateUser(oauth2User)).thenReturn(user);
         when(jwtTokenUtil.generateAccessToken(user)).thenReturn("access-token");
         when(jwtTokenUtil.generateRefreshToken(user)).thenReturn("refresh-token");
@@ -82,6 +91,8 @@ class OAuth2LoginSuccessHandlerTest {
         HttpSession session = mock(HttpSession.class);
 
         when(authentication.getPrincipal()).thenReturn(oauth2User);
+        when(authentication.getAuthorizedClientRegistrationId()).thenReturn("google"); // Use Google to avoid
+                                                                                       // GitHub-specific logic
         when(userService.registerOrUpdateUser(oauth2User)).thenReturn(user);
         when(jwtTokenUtil.generateAccessToken(user)).thenReturn("access-token");
         when(jwtTokenUtil.generateRefreshToken(user)).thenReturn("refresh-token");
