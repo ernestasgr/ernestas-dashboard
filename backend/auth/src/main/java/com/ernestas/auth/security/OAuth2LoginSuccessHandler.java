@@ -6,12 +6,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import com.ernestas.auth.model.User;
+import com.ernestas.auth.service.GitHubOAuth2UserService;
 import com.ernestas.auth.service.UserService;
 import com.ernestas.auth.util.CookieGenerator;
 import com.ernestas.auth.util.JwtTokenUtil;
@@ -30,6 +34,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
     private final CookieGenerator cookieGenerator;
+    private final GitHubOAuth2UserService gitHubOAuth2UserService;
+    private final OAuth2AuthorizedClientService authorizedClientService;
 
     @Value("${frontend.domain}")
     private String frontendDomain;
@@ -39,18 +45,27 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     /****
      * Creates an instance of OAuth2LoginSuccessHandler with required dependencies.
      *
-     * @param userService     service for registering or updating users after OAuth2
-     *                        login
-     * @param jwtTokenUtil    utility for generating JWT access and refresh tokens
-     * @param cookieGenerator utility for creating HTTP cookies for tokens
+     * @param userService             service for registering or updating users
+     *                                after OAuth2
+     *                                login
+     * @param jwtTokenUtil            utility for generating JWT access and refresh
+     *                                tokens
+     * @param cookieGenerator         utility for creating HTTP cookies for tokens
+     * @param gitHubOAuth2UserService service for handling GitHub-specific OAuth2
+     *                                user data
+     * @param authorizedClientService service for managing OAuth2 authorized clients
      */
     public OAuth2LoginSuccessHandler(
             UserService userService,
             JwtTokenUtil jwtTokenUtil,
-            CookieGenerator cookieGenerator) {
+            CookieGenerator cookieGenerator,
+            GitHubOAuth2UserService gitHubOAuth2UserService,
+            OAuth2AuthorizedClientService authorizedClientService) {
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
         this.cookieGenerator = cookieGenerator;
+        this.gitHubOAuth2UserService = gitHubOAuth2UserService;
+        this.authorizedClientService = authorizedClientService;
     }
 
     /****
@@ -77,6 +92,41 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             throws IOException {
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oauth2User = oauthToken.getPrincipal();
+            String registrationId = oauthToken.getAuthorizedClientRegistrationId();
+
+            // Handle GitHub authentication specifically, because email is not included
+            // in the standard OAuth2 user attributes
+            if ("github".equals(registrationId)) {
+                try {
+                    OAuth2AuthorizedClient authorizedClient = authorizedClientService
+                            .loadAuthorizedClient(registrationId, oauthToken.getName());
+
+                    if (authorizedClient != null) {
+                        OAuth2AccessToken accessToken = authorizedClient.getAccessToken();
+                        if (accessToken != null) {
+                            // Enhance GitHub user with email information
+                            oauth2User = gitHubOAuth2UserService.enhanceGitHubUser(oauth2User,
+                                    accessToken.getTokenValue());
+                        } else {
+                            logger.error("No access token found for GitHub user");
+                            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                                    "Failed to retrieve GitHub access token");
+                            return;
+                        }
+                    } else {
+                        logger.error("No authorized client found for GitHub user");
+                        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                                "Failed to retrieve GitHub client information");
+                        return;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error enhancing GitHub user information", e);
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "Failed to retrieve GitHub user information");
+                    return;
+                }
+            }
+
             User user = userService.registerOrUpdateUser(oauth2User);
 
             String accessToken = jwtTokenUtil.generateAccessToken(user);
