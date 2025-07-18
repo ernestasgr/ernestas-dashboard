@@ -103,7 +103,9 @@ describe("gateway", () => {
 			.mockResolvedValue({ ok: true } as any);
 		await startGateway();
 		expect(fetchSpy).toHaveBeenCalledWith("http://auth:8080/health");
-		expect(fetchSpy).toHaveBeenCalledWith("http://widget-registry:3001/health");
+		expect(fetchSpy).toHaveBeenCalledWith(
+			"http://widget-registry:3001/health"
+		);
 		expect(fetchSpy).toHaveBeenCalledWith("http://notes:8000/health");
 		expect(fetchSpy).toHaveBeenCalledWith("http://tasks:8001/health");
 		expect(fetchSpy).toHaveBeenCalledTimes(4);

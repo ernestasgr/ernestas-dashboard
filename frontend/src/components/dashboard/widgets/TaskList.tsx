@@ -290,21 +290,53 @@ export const TaskList = ({
         const { taskId: targetTaskId, zone } = parseDropId(dropId);
 
         const targetTask = flatTasks.find((t) => t.id === targetTaskId);
+        const activeTask = flatTasks.find((t) => t.id === activeTaskId);
 
-        if (!targetTask) {
+        if (!targetTask || !activeTask) {
             return { newParentId: undefined, newDisplayOrder: 0 };
         }
 
         switch (zone) {
             case 'above':
                 // Insert above target task, same parent as target
-                // Use target's display order
-                return {
-                    newParentId: targetTask.parentId
-                        ? parseInt(targetTask.parentId)
-                        : undefined,
-                    newDisplayOrder: targetTask.displayOrder,
-                };
+                const newParentId = targetTask.parentId
+                    ? parseInt(targetTask.parentId)
+                    : undefined;
+
+                const siblings = flatTasks.filter((t) => {
+                    const taskParentId = t.parentId
+                        ? parseInt(t.parentId)
+                        : undefined;
+                    return (
+                        taskParentId === newParentId && t.id !== activeTaskId
+                    );
+                });
+
+                // Sort siblings by display order
+                siblings.sort((a, b) => a.displayOrder - b.displayOrder);
+
+                // Find the target's position in the sorted siblings
+                const targetIndex = siblings.findIndex(
+                    (t) => t.id === targetTaskId,
+                );
+
+                if (targetIndex <= 0) {
+                    // Target is first among siblings, place active task at the beginning
+                    return {
+                        newParentId,
+                        newDisplayOrder: Math.max(
+                            0,
+                            targetTask.displayOrder - 1,
+                        ),
+                    };
+                } else {
+                    // Place active task between previous sibling and target
+                    const prevSibling = siblings[targetIndex - 1];
+                    return {
+                        newParentId,
+                        newDisplayOrder: prevSibling.displayOrder + 1,
+                    };
+                }
             case 'child':
                 // Become child of target task
                 // Find the highest display order among target's children and add 1
@@ -404,7 +436,6 @@ export const TaskList = ({
             overDropId,
         });
 
-        // Get current task data for comparison
         const currentTask = flatTasks.find((t) => t.id === activeTaskId);
         const currentParentId = currentTask?.parentTaskId;
 
@@ -421,17 +452,33 @@ export const TaskList = ({
             newDisplayOrder,
         });
 
-        // Only proceed if something actually changed and we're not already reordering
         const parentChanged = normalizedCurrentParent !== normalizedNewParent;
         const orderChanged = newDisplayOrder !== currentTask?.displayOrder;
 
-        if (isReordering || (!parentChanged && !orderChanged)) {
+        const isMeaningfulChange =
+            parentChanged ||
+            orderChanged ||
+            (normalizedCurrentParent === normalizedNewParent &&
+                zone === 'above' &&
+                activeTaskId !== targetTaskId);
+
+        console.log('Change analysis:', {
+            parentChanged,
+            orderChanged,
+            isMeaningfulChange,
+            zone,
+            isReordering,
+        });
+
+        // Only proceed if something actually changed and we're not already reordering
+        if (isReordering || !isMeaningfulChange) {
             console.log(
-                'No actual change detected or already reordering, skipping reorder',
+                'No meaningful change detected or already reordering, skipping reorder',
                 {
                     isReordering,
                     parentChanged,
                     orderChanged,
+                    isMeaningfulChange,
                 },
             );
             return;
@@ -536,6 +583,28 @@ export const TaskList = ({
                             duration: 250,
                             easing: 'ease',
                         }}
+                        adjustScale={false}
+                        modifiers={[
+                            ({ transform }) => {
+                                if (!activeTaskId) return transform;
+
+                                const draggedTaskIndex = flatTasks.findIndex(
+                                    (task) => task.id === activeTaskId,
+                                );
+
+                                if (draggedTaskIndex === -1) return transform;
+
+                                // Calculate offset based on the number of tasks above the dragged task
+                                // Each task gets 2 drop zones (above/below) with 8px height each when dragging
+                                // Only tasks above the dragged task contribute to the offset
+                                const dropZoneOffset = draggedTaskIndex * 16;
+
+                                return {
+                                    ...transform,
+                                    y: transform.y - dropZoneOffset,
+                                };
+                            },
+                        ]}
                     >
                         {activeTaskId
                             ? (() => {
