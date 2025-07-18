@@ -138,8 +138,8 @@ export const WidgetStyleConfig = ({
     };
 
     return (
-        <Card className='w-full max-w-2xl'>
-            <CardHeader>
+        <Card className='w-full max-w-2xl max-h-[90vh] flex flex-col'>
+            <CardHeader className='flex-shrink-0'>
                 <CardTitle className='flex items-center gap-2'>
                     <Palette className='h-5 w-5' />
                     Widget Style
@@ -148,7 +148,7 @@ export const WidgetStyleConfig = ({
                     Customize the appearance of your widget
                 </CardDescription>
             </CardHeader>
-            <CardContent className='space-y-4'>
+            <CardContent className='space-y-4 overflow-y-auto flex-1'>
                 <div className='space-y-2'>
                     <Label className='text-sm font-medium'>Preview</Label>
                     <div
