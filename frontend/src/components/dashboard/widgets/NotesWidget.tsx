@@ -11,7 +11,7 @@ import {
     getWidgetIconStyles,
     getWidgetItemColors,
     getWidgetStyles,
-} from '@/lib/utils/widgetStyles';
+} from '@/lib/utils/widget-styles';
 import {
     Filter,
     GripVertical,

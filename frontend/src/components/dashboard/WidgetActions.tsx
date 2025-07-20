@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Widget } from '@/generated/types';
 import { useDeleteWidgetMutation } from '@/generated/Widgets.generated';
-import { getWidgetIconStyles } from '@/lib/utils/widgetStyles';
+import { getWidgetIconStyles } from '@/lib/utils/widget-styles';
 import { Edit2, Palette, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
