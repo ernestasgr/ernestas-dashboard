@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Grid3X3, Plus } from 'lucide-react';
-import { CoordinateGrid } from './CoordinateGrid';
+import { CoordinateGrid } from './grid/CoordinateGrid';
 
 interface EmptyDashboardStateProps {
     showCoordinates: boolean;

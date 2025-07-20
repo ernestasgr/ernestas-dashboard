@@ -22,8 +22,8 @@ import {
 } from '@/generated/Widgets.generated';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useWidgetForm } from './hooks/useWidgetForm';
-import { useWidgetValidation } from './hooks/useWidgetValidation';
+import { useWidgetForm } from '../hooks/useWidgetForm';
+import { useWidgetValidation } from '../hooks/useWidgetValidation';
 import { WidgetBasicFields } from './WidgetBasicFields';
 import { WidgetConfigFields } from './WidgetConfigFields';
 import { WidgetPositionFields } from './WidgetPositionFields';

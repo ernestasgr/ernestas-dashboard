@@ -3,14 +3,14 @@
 import { Widget } from '@/generated/types';
 import { useState } from 'react';
 import GridLayout from 'react-grid-layout';
+import { DashboardHeader } from '../DashboardHeader';
+import { EmptyDashboardState } from '../EmptyDashboardState';
+import { useWidgetLayout } from '../hooks/useWidgetLayout';
+import { WidgetForm } from '../widgets/WidgetForm';
+import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import { CoordinateGrid } from './CoordinateGrid';
-import { DashboardHeader } from './DashboardHeader';
-import { EmptyDashboardState } from './EmptyDashboardState';
-import { useWidgetLayout } from './hooks/useWidgetLayout';
-import { WidgetForm } from './WidgetForm';
-import { WidgetRenderer } from './widgets/WidgetRenderer';
 
-const MyGrid = () => {
+const Grid = () => {
     const [showWidgetForm, setShowWidgetForm] = useState(false);
     const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
     const [showCoordinates, setShowCoordinates] = useState(false);
@@ -146,4 +146,4 @@ const MyGrid = () => {
     );
 };
 
-export default MyGrid;
+export default Grid;

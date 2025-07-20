@@ -8,7 +8,7 @@ import { MockedProvider } from '@apollo/client/testing';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import TestGrid from './TestGrid';
+import TestGrid from './Grid';
 
 interface GridLayoutItem {
     i: string;

@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMeQuery } from '@/generated/Auth.generated';
 import { useEventStore } from '@/lib/stores/use-event-store';
 import { useEffect } from 'react';
-import MyGrid from '../../components/dashboard/TestGrid';
+import Grid from '../../components/dashboard/grid/Grid';
 
 export default function Dashboard() {
     const { loading, error, refetch } = useMeQuery();
@@ -50,7 +50,7 @@ export default function Dashboard() {
 
     return (
         <div data-testid='dashboard-heading'>
-            <MyGrid />
+            <Grid />
         </div>
     );
 }

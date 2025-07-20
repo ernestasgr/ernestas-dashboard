@@ -1,10 +1,10 @@
 import { Widget } from '@/generated/types';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ClockWidget } from './ClockWidget';
-import { NotesWidget } from './NotesWidget';
-import { TaskWidget } from './TaskWidget';
-import { WeatherWidget } from './WeatherWidget';
+import { ClockWidget } from './clock/ClockWidget';
+import { NotesWidget } from './notes/NotesWidget';
+import { TaskWidget } from './tasks/TaskWidget';
+import { WeatherWidget } from './weather/WeatherWidget';
 import { WidgetStyleConfig } from './WidgetStyleConfig';
 
 interface WidgetRendererProps {

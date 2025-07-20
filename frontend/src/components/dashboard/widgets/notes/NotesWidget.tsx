@@ -24,8 +24,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { toast } from 'sonner';
+import { useNoteLayout } from '../../hooks/useNoteLayout';
 import { WidgetActions } from '../WidgetActions';
-import { useNoteLayout } from '../hooks/useNoteLayout';
 import { NoteCard } from './NoteCard';
 import { NoteModal } from './NoteModal';
 
