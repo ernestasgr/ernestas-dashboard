@@ -7,7 +7,7 @@ import {
     getWidgetIconStyles,
     getWidgetItemColors,
     getWidgetStyles,
-} from '@/lib/utils/widgetStyles';
+} from '@/lib/utils/widget-styles';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';

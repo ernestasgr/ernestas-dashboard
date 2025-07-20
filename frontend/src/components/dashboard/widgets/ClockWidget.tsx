@@ -5,7 +5,7 @@ import {
     getWidgetClasses,
     getWidgetIconStyles,
     getWidgetStyles,
-} from '@/lib/utils/widgetStyles';
+} from '@/lib/utils/widget-styles';
 import { Clock, GripVertical } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
