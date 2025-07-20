@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WidgetRenderer } from './WidgetRenderer';
 
-vi.mock('./ClockWidget', () => ({
+vi.mock('./clock/ClockWidget', () => ({
     ClockWidget: ({
         widget,
         onEdit,
@@ -47,7 +47,7 @@ vi.mock('./ClockWidget', () => ({
     ),
 }));
 
-vi.mock('./WeatherWidget', () => ({
+vi.mock('./weather/WeatherWidget', () => ({
     WeatherWidget: ({
         widget,
         onEdit,
@@ -94,7 +94,7 @@ vi.mock('./WeatherWidget', () => ({
     ),
 }));
 
-vi.mock('./NotesWidget', () => ({
+vi.mock('./notes/NotesWidget', () => ({
     NotesWidget: ({
         widget,
         onEdit,
@@ -138,7 +138,7 @@ vi.mock('./NotesWidget', () => ({
     ),
 }));
 
-vi.mock('./TaskWidget', () => ({
+vi.mock('./tasks/TaskWidget', () => ({
     TaskWidget: ({
         widget,
         onEdit,
