@@ -33,7 +33,7 @@ vi.mock('react-grid-layout', () => ({
 }));
 
 const useWidgetLayoutMock = vi.fn();
-vi.mock('./hooks/useWidgetLayout', () => ({
+vi.mock('../hooks/useWidgetLayout', () => ({
     useWidgetLayout: (): ReturnType<typeof useWidgetLayoutMock> =>
         useWidgetLayoutMock(),
 }));
@@ -47,7 +47,7 @@ vi.mock('./CoordinateGrid', () => ({
     ),
 }));
 
-vi.mock('./DashboardHeader', () => ({
+vi.mock('../DashboardHeader', () => ({
     DashboardHeader: ({
         onToggleCoordinates,
         onAddWidget,
@@ -69,7 +69,7 @@ vi.mock('./DashboardHeader', () => ({
     ),
 }));
 
-vi.mock('./EmptyDashboardState', () => ({
+vi.mock('../EmptyDashboardState', () => ({
     EmptyDashboardState: ({
         onAddWidget,
         onToggleCoordinates,
@@ -98,7 +98,7 @@ vi.mock('./EmptyDashboardState', () => ({
     ),
 }));
 
-vi.mock('./WidgetForm', () => ({
+vi.mock('../widgets/WidgetForm', () => ({
     WidgetForm: ({
         open,
         widget,
@@ -131,7 +131,7 @@ vi.mock('./WidgetForm', () => ({
     ),
 }));
 
-vi.mock('./widgets/WidgetRenderer', () => ({
+vi.mock('../widgets/WidgetRenderer', () => ({
     WidgetRenderer: ({
         widget,
         onEdit,
