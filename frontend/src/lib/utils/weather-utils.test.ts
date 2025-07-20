@@ -96,7 +96,7 @@ describe('weatherUtils', () => {
         });
 
         it('should add wind info for breezy conditions', () => {
-            const description = getWeatherDescription(condition, 50, 20, 32);
+            const description = getWeatherDescription(condition, 50, 15, 24);
             expect(description).toContain('Breezy');
         });
     });
