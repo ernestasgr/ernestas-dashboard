@@ -1,3 +1,4 @@
+import { useNoteForm } from '@/components/dashboard/hooks/useNote';
 import type { Note } from '@/components/dashboard/hooks/useNotes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { Textarea } from '@/components/ui/textarea';
+import { NoteFormData } from '@/lib/schemas/form-schemas';
 import { WidgetItemColors } from '@/lib/utils/widget-styling/types';
 import { Edit3, Eye, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Controller } from 'react-hook-form';
 
 interface NoteModalProps {
     note?: Note | null;
@@ -31,34 +34,14 @@ export const NoteModal = ({
     onClose,
     onSave,
 }: NoteModalProps) => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [labels, setLabels] = useState<string[]>([]);
+    const { form, isEditing } = useNoteForm({ note, widgetId, isOpen });
+    const { handleSubmit, control, watch, setValue } = form;
+
     const [newLabel, setNewLabel] = useState('');
     const [isPreviewMode, setIsPreviewMode] = useState(false);
-    const [hasInitialized, setHasInitialized] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [originalNote, setOriginalNote] = useState<Note | null>(null);
 
-    useEffect(() => {
-        if (isOpen && !hasInitialized) {
-            const isEdit = Boolean(note);
-            setIsEditMode(isEdit);
-            setOriginalNote(note ?? null);
-            setTitle(note?.title ?? '');
-            setContent(note?.content ?? '');
-            setLabels(note?.labels ?? []);
-            setNewLabel('');
-            setIsPreviewMode(false);
-            setHasInitialized(true);
-        }
-
-        if (!isOpen) {
-            setHasInitialized(false);
-            setIsEditMode(false);
-            setOriginalNote(null);
-        }
-    }, [isOpen, note, hasInitialized]);
+    const watchedContent = watch('content');
+    const watchedLabels = watch('labels');
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -78,29 +61,39 @@ export const NoteModal = ({
 
     if (!isOpen) return null;
 
-    const handleSave = () => {
+    const onSubmit = (data: NoteFormData) => {
         onSave(
             {
-                widgetId,
-                title: title.trim() || 'Untitled Note',
-                content,
-                labels,
+                widgetId: data.widgetId,
+                title: data.title.trim() || 'Untitled Note',
+                content: data.content,
+                labels: data.labels,
             },
-            originalNote,
+            note,
         );
         onClose();
     };
 
+    const handleFormSubmit = () => {
+        void handleSubmit(onSubmit)();
+    };
+
     const addLabel = () => {
         const trimmedLabel = newLabel.trim();
-        if (trimmedLabel && !labels.includes(trimmedLabel)) {
-            setLabels([...labels, trimmedLabel]);
+        if (trimmedLabel && !watchedLabels.includes(trimmedLabel)) {
+            setValue('labels', [...watchedLabels, trimmedLabel], {
+                shouldValidate: true,
+            });
             setNewLabel('');
         }
     };
 
     const removeLabel = (labelToRemove: string) => {
-        setLabels(labels.filter((label) => label !== labelToRemove));
+        setValue(
+            'labels',
+            watchedLabels.filter((label) => label !== labelToRemove),
+            { shouldValidate: true },
+        );
     };
 
     return (
@@ -135,7 +128,7 @@ export const NoteModal = ({
                             color: widgetColors?.primaryText ?? '#1F2937',
                         }}
                     >
-                        {isEditMode ? 'Edit Note' : 'Create Note'}
+                        {isEditing ? 'Edit Note' : 'Create Note'}
                     </h2>
                     <Button
                         variant='ghost'
@@ -162,20 +155,25 @@ export const NoteModal = ({
                             >
                                 Title
                             </Label>
-                            <Input
-                                id='note-title'
-                                value={title}
-                                onChange={(e) => {
-                                    setTitle(e.target.value);
-                                }}
-                                placeholder='Enter note title...'
-                                className='mt-1'
-                                style={{
-                                    borderColor:
-                                        widgetColors?.border ?? '#E5E7EB',
-                                    color:
-                                        widgetColors?.primaryText ?? '#1F2937',
-                                }}
+                            <Controller
+                                name='title'
+                                control={control}
+                                render={({ field }) => (
+                                    <Input
+                                        {...field}
+                                        id='note-title'
+                                        placeholder='Enter note title...'
+                                        className='mt-1'
+                                        style={{
+                                            borderColor:
+                                                widgetColors?.border ??
+                                                '#E5E7EB',
+                                            color:
+                                                widgetColors?.primaryText ??
+                                                '#1F2937',
+                                        }}
+                                    />
+                                )}
                             />
                         </div>
 
@@ -229,9 +227,9 @@ export const NoteModal = ({
                                             widgetColors?.border ?? '#E5E7EB',
                                     }}
                                 >
-                                    {content.trim() ? (
+                                    {watchedContent.trim() ? (
                                         <MarkdownRenderer
-                                            content={content}
+                                            content={watchedContent}
                                             widgetColors={widgetColors}
                                             variant='modal'
                                             className='prose prose-sm max-w-none'
@@ -250,27 +248,37 @@ export const NoteModal = ({
                                     )}
                                 </div>
                             ) : (
-                                <Textarea
-                                    id='note-content'
-                                    value={content}
-                                    onChange={(e) => {
-                                        if (
-                                            e.target.value.length <= maxLength
-                                        ) {
-                                            setContent(e.target.value);
-                                        }
-                                    }}
-                                    placeholder='Enter note content...'
-                                    rows={6}
-                                    className='mt-1 max-h-64 min-h-[8rem] resize-y'
-                                    style={{
-                                        borderColor:
-                                            widgetColors?.border ?? '#E5E7EB',
-                                        color:
-                                            widgetColors?.primaryText ??
-                                            '#1F2937',
-                                    }}
-                                    maxLength={maxLength}
+                                <Controller
+                                    name='content'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Textarea
+                                            {...field}
+                                            id='note-content'
+                                            onChange={(e) => {
+                                                if (
+                                                    e.target.value.length <=
+                                                    maxLength
+                                                ) {
+                                                    field.onChange(
+                                                        e.target.value,
+                                                    );
+                                                }
+                                            }}
+                                            placeholder='Enter note content...'
+                                            rows={6}
+                                            className='mt-1 max-h-64 min-h-[8rem] resize-y'
+                                            style={{
+                                                borderColor:
+                                                    widgetColors?.border ??
+                                                    '#E5E7EB',
+                                                color:
+                                                    widgetColors?.primaryText ??
+                                                    '#1F2937',
+                                            }}
+                                            maxLength={maxLength}
+                                        />
+                                    )}
                                 />
                             )}
 
@@ -282,7 +290,7 @@ export const NoteModal = ({
                                         '#6B7280',
                                 }}
                             >
-                                {content.length}/{maxLength} characters
+                                {watchedContent.length}/{maxLength} characters
                             </div>
                         </div>
 
@@ -296,7 +304,7 @@ export const NoteModal = ({
                                 Labels
                             </Label>
                             <div className='mt-1 flex flex-wrap gap-2'>
-                                {labels.map((label) => (
+                                {watchedLabels.map((label: string) => (
                                     <Badge
                                         key={label}
                                         variant='secondary'
@@ -387,7 +395,7 @@ export const NoteModal = ({
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleSave}
+                        onClick={handleFormSubmit}
                         className='w-full sm:w-auto'
                         style={{
                             backgroundColor: widgetColors?.accent ?? '#3B82F6',
@@ -395,7 +403,7 @@ export const NoteModal = ({
                             color: '#FFFFFF',
                         }}
                     >
-                        {isEditMode ? 'Update' : 'Create'} Note
+                        {isEditing ? 'Update' : 'Create'} Note
                     </Button>
                 </div>
             </div>

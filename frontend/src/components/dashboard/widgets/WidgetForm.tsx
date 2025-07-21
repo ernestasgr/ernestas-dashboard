@@ -9,7 +9,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { ErrorDisplay } from '@/components/ui/error-display';
 import { useMeQuery } from '@/generated/Auth.generated';
 import {
     CreateWidgetInput,
@@ -20,10 +19,10 @@ import {
     useCreateWidgetMutation,
     useUpdateWidgetMutation,
 } from '@/generated/Widgets.generated';
-import { useEffect, useState } from 'react';
+import { WidgetFormData } from '@/lib/schemas/form-schemas';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useWidgetForm } from '../hooks/useWidgetForm';
-import { useWidgetValidation } from '../hooks/useWidgetValidation';
 import { WidgetBasicFields } from './WidgetBasicFields';
 import { WidgetConfigFields } from './WidgetConfigFields';
 import { WidgetPositionFields } from './WidgetPositionFields';
@@ -48,21 +47,21 @@ export function WidgetForm({
     const [updateWidget, { loading: updating }] = useUpdateWidgetMutation();
     const isEditing = !!widget;
     const loading = creating || updating;
-    const [configHasErrors, setConfigHasErrors] = useState(false);
+
+    const { form, validateConfig, watchedType } = useWidgetForm({
+        widget,
+        open,
+        isEditing,
+    });
 
     const {
-        formData,
-        updateField,
-        updateConfigField,
-        updatePositionField,
-        handleTypeChange,
-        resetForm,
-    } = useWidgetForm({ widget, open });
-
-    const { errors, hasErrors, validateForm, clearErrors } =
-        useWidgetValidation({
-            isEditing,
-        });
+        handleSubmit,
+        formState: { isValid },
+        clearErrors,
+        reset,
+        watch,
+        setValue,
+    } = form;
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -82,30 +81,25 @@ export function WidgetForm({
         };
     }, [open, onOpenChange]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const onSubmit = handleSubmit(async (data: WidgetFormData) => {
         if (!meData?.me.email) return;
 
-        const isValid = validateForm({
-            ...formData,
-            id: widget?.id,
-        });
-
-        if (!isValid || configHasErrors) {
+        const isConfigValid = validateConfig(watchedType, data.config);
+        if (!isConfigValid) {
+            toast.error('Please fix configuration errors');
             return;
         }
 
         try {
-            if (isEditing) {
+            if (isEditing && data.id) {
                 const input: UpdateWidgetInput = {
-                    id: widget.id,
-                    title: formData.title || undefined,
-                    x: formData.x,
-                    y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    config: formData.config,
+                    id: data.id,
+                    title: data.title ?? undefined,
+                    x: data.x,
+                    y: data.y,
+                    width: data.width,
+                    height: data.height,
+                    config: data.config,
                 };
 
                 const result = await updateWidget({ variables: { input } });
@@ -115,13 +109,13 @@ export function WidgetForm({
                 }
             } else {
                 const input: CreateWidgetInput = {
-                    type: formData.type,
-                    title: formData.title || undefined,
-                    x: formData.x,
-                    y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    config: formData.config,
+                    type: data.type,
+                    title: data.title ?? undefined,
+                    x: data.x,
+                    y: data.y,
+                    width: data.width,
+                    height: data.height,
+                    config: data.config,
                 };
 
                 const result = await createWidget({
@@ -137,7 +131,7 @@ export function WidgetForm({
                 }
             }
             onOpenChange(false);
-            resetForm();
+            reset();
             clearErrors();
         } catch (error) {
             console.error('Error saving widget:', error);
@@ -147,7 +141,7 @@ export function WidgetForm({
                     : 'Failed to create widget',
             );
         }
-    };
+    });
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className='flex max-h-[95vh] flex-col sm:max-h-[90vh] sm:max-w-[500px]'>
@@ -164,49 +158,30 @@ export function WidgetForm({
 
                 <form
                     onSubmit={(e) => {
-                        void handleSubmit(e);
+                        e.preventDefault();
+                        void onSubmit();
                     }}
                     className='flex min-h-0 flex-1 flex-col space-y-6'
                 >
                     <div className='flex-1 overflow-y-auto pr-1 sm:pr-2'>
                         <div className='space-y-4 pb-2'>
                             <WidgetBasicFields
-                                title={formData.title}
-                                type={formData.type}
+                                form={form}
                                 isEditing={isEditing}
-                                onTitleChange={(title) => {
-                                    updateField('title', title);
-                                }}
-                                onTypeChange={handleTypeChange}
                             />
-                            <WidgetPositionFields
-                                x={formData.x}
-                                y={formData.y}
-                                width={formData.width}
-                                height={formData.height}
-                                onPositionChange={updatePositionField}
-                            />
+                            <WidgetPositionFields form={form} />
                             <WidgetConfigFields
-                                type={formData.type}
-                                config={formData.config}
-                                onConfigUpdate={updateConfigField}
-                                onValidationChange={setConfigHasErrors}
+                                type={watchedType}
+                                config={watch('config')}
+                                onConfigUpdate={(field, value) => {
+                                    const currentConfig = watch('config');
+                                    setValue('config', {
+                                        ...currentConfig,
+                                        [field]: value,
+                                    });
+                                }}
                             />
                         </div>
-
-                        {hasErrors && (
-                            <div className='mt-4 space-y-2'>
-                                {Object.entries(errors).map(
-                                    ([field, fieldErrors]) => (
-                                        <ErrorDisplay
-                                            key={field}
-                                            errors={fieldErrors}
-                                            className='mt-2'
-                                        />
-                                    ),
-                                )}
-                            </div>
-                        )}
                     </div>
 
                     <DialogFooter className='flex-shrink-0 flex-col gap-2 border-t pt-4 sm:flex-row sm:gap-0'>
@@ -222,9 +197,9 @@ export function WidgetForm({
                         </Button>
                         <Button
                             type='submit'
-                            disabled={loading || hasErrors || configHasErrors}
+                            disabled={loading || !isValid}
                             className={`w-full sm:w-auto ${
-                                loading || hasErrors || configHasErrors
+                                loading || !isValid
                                     ? 'cursor-not-allowed'
                                     : 'cursor-pointer'
                             }`}

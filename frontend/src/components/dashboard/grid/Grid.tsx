@@ -1,6 +1,7 @@
 'use client';
 
 import { Widget } from '@/generated/types';
+import { cleanupNotesWidgetStore } from '@/lib/stores/notes-store';
 import { useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import { DashboardHeader } from '../DashboardHeader';
@@ -29,7 +30,8 @@ const Grid = () => {
         setShowWidgetForm(true);
     };
 
-    const handleDeleteWidget = () => {
+    const handleDeleteWidget = (widgetId: string) => {
+        cleanupNotesWidgetStore(widgetId);
         void refetch();
     };
 

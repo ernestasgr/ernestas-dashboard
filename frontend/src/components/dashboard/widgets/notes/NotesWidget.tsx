@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/types';
+import { useNotesWidgetStore } from '@/lib/stores/notes-store';
 import {
     getWidgetClasses,
     getWidgetIconStyles,
@@ -20,7 +21,7 @@ import {
     StickyNote,
 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { toast } from 'sonner';
@@ -44,6 +45,30 @@ export const NotesWidget = ({
 }: NotesWidgetProps) => {
     const config = widget.config as NotesConfig | null;
     const searchParams = useSearchParams();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const {
+        isCreateModalOpen,
+        isViewModalOpen,
+        selectedNote,
+        editingNote,
+        viewModalTransition,
+        labelFilter,
+        showFilters,
+        containerWidth,
+        isSyncing,
+        openCreateModal,
+        closeCreateModal,
+        openEditModal,
+        openViewModal,
+        closeViewModal,
+        clearSelectedNote,
+        setLabelFilter,
+        toggleFilters,
+        setContainerWidth,
+        setSyncing,
+    } = useNotesWidgetStore(widget.id);
+
     const {
         createNote,
         updateNote,
@@ -58,18 +83,6 @@ export const NotesWidget = ({
         loading,
         error,
     } = useNotes(widget.id);
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-    const [viewNoteModal, setViewNoteModal] = useState(false);
-    const [viewNoteModalTransition, setViewNoteModalTransition] = useState<
-        'closed' | 'opening' | 'open' | 'closing'
-    >('closed');
-    const [labelFilter, setLabelFilter] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
-    const [containerWidth, setContainerWidth] = useState(400);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
 
     const filteredNotes = useMemo(() => {
         const visibleLabels = config?.visibleLabels as string[] | undefined;
@@ -87,14 +100,6 @@ export const NotesWidget = ({
         },
     });
 
-    // Recalculate width when notes change to ensure proper grid sizing
-    useEffect(() => {
-        if (containerRef.current) {
-            const width = containerRef.current.offsetWidth - 16;
-            setContainerWidth(width);
-        }
-    }, [filteredNotes.length, showGrid]);
-
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40';
     const dynamicStyles = getWidgetStyles(widget);
@@ -102,25 +107,18 @@ export const NotesWidget = ({
     const widgetItemColors = getWidgetItemColors(widget);
     const finalClasses = getWidgetClasses(widget, baseClasses);
 
+    // Handle URL-based note opening
     useEffect(() => {
         const noteId = searchParams.get('noteId');
         if (noteId) {
             const note = getNoteById(noteId);
             if (note) {
-                setSelectedNote(note);
-                setViewNoteModalTransition('opening');
-                setViewNoteModal(true);
-
-                requestAnimationFrame(() => {
-                    setTimeout(() => {
-                        setViewNoteModalTransition('open');
-                    }, 10);
-                });
+                openViewModal(note);
             }
         }
-    }, [searchParams, getNoteById]);
+    }, [searchParams, getNoteById, openViewModal]);
 
-    // Enable auto-sync when config is available
+    // Handle auto-sync configuration
     useEffect(() => {
         if (
             config?.enableObsidianSync &&
@@ -144,148 +142,108 @@ export const NotesWidget = ({
         disableAutoSync,
     ]);
 
+    // Handle escape key for view modal
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && viewNoteModal) {
+            if (event.key === 'Escape' && isViewModalOpen) {
                 closeViewModal();
             }
         };
 
-        if (viewNoteModal) {
+        if (isViewModalOpen) {
             document.addEventListener('keydown', handleKeyDown);
         }
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [viewNoteModal]);
+    }, [isViewModalOpen, closeViewModal]);
 
-    const handleCreateNote = (
-        noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
-    ) => {
-        const obsidianConfig =
-            config?.enableObsidianSync &&
+    // Update container width when notes change
+    useEffect(() => {
+        if (containerRef.current) {
+            const width = containerRef.current.offsetWidth - 16;
+            setContainerWidth(width);
+        }
+    }, [filteredNotes.length, showGrid, setContainerWidth]);
+
+    // Helper function to get Obsidian config
+    const getObsidianConfig = () => {
+        return config?.enableObsidianSync &&
             config.obsidianApiUrl &&
             config.obsidianAuthKey
-                ? {
-                      apiUrl: config.obsidianApiUrl,
-                      authKey: config.obsidianAuthKey,
-                  }
-                : undefined;
-
-        void createNote(noteData, obsidianConfig)
-            .then(() => {
-                toast.success('Note created successfully');
-            })
-            .catch((error: unknown) => {
-                console.error('Failed to create note:', error);
-                toast.error('Failed to create note');
-            });
+            ? {
+                  apiUrl: config.obsidianApiUrl,
+                  authKey: config.obsidianAuthKey,
+              }
+            : undefined;
     };
 
-    const handleUpdateNote = (
+    // Note CRUD handlers
+    const handleCreateNote = async (
+        noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
+    ) => {
+        try {
+            await createNote(noteData, getObsidianConfig());
+            toast.success('Note created successfully');
+        } catch (error: unknown) {
+            console.error('Failed to create note:', error);
+            toast.error('Failed to create note');
+        }
+    };
+
+    const handleUpdateNote = async (
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
         noteId: string,
     ) => {
-        const obsidianConfig =
-            config?.enableObsidianSync &&
-            config.obsidianApiUrl &&
-            config.obsidianAuthKey
-                ? {
-                      apiUrl: config.obsidianApiUrl,
-                      authKey: config.obsidianAuthKey,
-                  }
-                : undefined;
-
-        void updateNote(noteId, noteData, obsidianConfig)
-            .then(() => {
-                toast.success('Note updated successfully');
-            })
-            .catch((error: unknown) => {
-                console.error('Failed to update note:', error);
-                toast.error('Failed to update note');
-            });
+        try {
+            await updateNote(noteId, noteData, getObsidianConfig());
+            toast.success('Note updated successfully');
+        } catch (error: unknown) {
+            console.error('Failed to update note:', error);
+            toast.error('Failed to update note');
+        }
     };
 
-    const handleDeleteNote = (noteId: string) => {
-        const obsidianConfig =
-            config?.enableObsidianSync &&
-            config.obsidianApiUrl &&
-            config.obsidianAuthKey
-                ? {
-                      apiUrl: config.obsidianApiUrl,
-                      authKey: config.obsidianAuthKey,
-                  }
-                : undefined;
-
-        void deleteNote(noteId, obsidianConfig)
-            .then(() => {
-                toast.success('Note deleted successfully');
-            })
-            .catch((error: unknown) => {
-                console.error('Failed to delete note:', error);
-                toast.error('Failed to delete note');
-            });
+    const handleDeleteNote = async (noteId: string) => {
+        try {
+            await deleteNote(noteId, getObsidianConfig());
+            toast.success('Note deleted successfully');
+        } catch (error: unknown) {
+            console.error('Failed to delete note:', error);
+            toast.error('Failed to delete note');
+        }
     };
 
     const handleNoteModalSave = (
         noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>,
         existingNote?: Note | null,
     ) => {
-        if (existingNote) {
-            handleUpdateNote(noteData, existingNote.id);
+        // Use editingNote if existingNote is not provided
+        const noteToUpdate = existingNote ?? editingNote;
+
+        if (noteToUpdate) {
+            void handleUpdateNote(noteData, noteToUpdate.id);
         } else {
-            handleCreateNote(noteData);
+            void handleCreateNote(noteData);
         }
-    };
 
-    const handleEditNote = (note: Note) => {
-        setSelectedNote(note);
-        setModalOpen(true);
-    };
-
-    const handleViewNote = (note: Note) => {
-        setSelectedNote(note);
-        setViewNoteModalTransition('opening');
-        setViewNoteModal(true);
-
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                setViewNoteModalTransition('open');
-            }, 10);
-        });
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('noteId', note.id);
-        window.history.pushState({}, '', url.toString());
-    };
-
-    const closeViewModal = () => {
-        setViewNoteModalTransition('closing');
-
-        setTimeout(() => {
-            setViewNoteModal(false);
-            setSelectedNote(null);
-            setViewNoteModalTransition('closed');
-        }, 250);
-
-        const url = new URL(window.location.href);
-        url.searchParams.delete('noteId');
-        window.history.pushState({}, '', url.toString());
+        clearSelectedNote();
     };
 
     const handleObsidianSync = async () => {
-        if (!config?.obsidianApiUrl || !config.obsidianAuthKey) {
+        const obsidianConfig = getObsidianConfig();
+        if (!obsidianConfig) {
             console.warn('Obsidian API URL and Auth Key are required for sync');
             toast.error('Obsidian API URL and Auth Key are required for sync');
             return;
         }
 
-        setIsSyncing(true);
+        setSyncing(true);
         try {
             await syncObsidianVault(
-                config.obsidianApiUrl,
-                config.obsidianAuthKey,
+                obsidianConfig.apiUrl,
+                obsidianConfig.authKey,
             );
             console.log('Obsidian vault synced successfully');
             toast.success('Obsidian vault synced successfully');
@@ -293,8 +251,25 @@ export const NotesWidget = ({
             console.error('Failed to sync Obsidian vault:', error);
             toast.error('Failed to sync Obsidian vault');
         } finally {
-            setIsSyncing(false);
+            setSyncing(false);
         }
+    };
+
+    // Event handlers using store actions
+    const handleEditNote = (note: Note) => {
+        openEditModal(note);
+    };
+
+    const handleViewNote = (note: Note) => {
+        openViewModal(note);
+    };
+
+    const handleCloseViewModal = () => {
+        closeViewModal();
+    };
+
+    const handleDeleteNoteWrapper = (noteId: string) => {
+        void handleDeleteNote(noteId);
     };
 
     const layout = getCurrentLayout();
@@ -341,6 +316,7 @@ export const NotesWidget = ({
                 <GripVertical className='h-5 w-5' style={foregroundStyles} />
             </div>
             <div className='flex h-full flex-col p-4'>
+                {/* Header */}
                 <div className='mb-4 flex items-center justify-between'>
                     <div className='flex items-center space-x-3'>
                         <div
@@ -367,7 +343,7 @@ export const NotesWidget = ({
                         >
                             {widget.title}
                         </h3>
-                    </div>{' '}
+                    </div>
                     <div className='flex items-center space-x-1'>
                         {config?.enableObsidianSync &&
                             config.obsidianApiUrl &&
@@ -390,9 +366,7 @@ export const NotesWidget = ({
                         <Button
                             variant='ghost'
                             size='sm'
-                            onClick={() => {
-                                setShowFilters(!showFilters);
-                            }}
+                            onClick={toggleFilters}
                             className='h-8 w-8 p-0'
                         >
                             <Filter className='h-4 w-4' />
@@ -400,16 +374,14 @@ export const NotesWidget = ({
                         <Button
                             variant='ghost'
                             size='sm'
-                            onClick={() => {
-                                setSelectedNote(null);
-                                setModalOpen(true);
-                            }}
+                            onClick={openCreateModal}
                             className='h-8 w-8 p-0'
                         >
                             <Plus className='h-4 w-4' />
                         </Button>
                     </div>
                 </div>
+
                 {showFilters && (
                     <div className='mb-3'>
                         <Input
@@ -422,6 +394,7 @@ export const NotesWidget = ({
                         />
                     </div>
                 )}
+
                 <div className='flex-1 overflow-y-auto'>
                     {filteredNotes.length === 0 ? (
                         <div className='flex h-full items-center justify-center text-center'>
@@ -466,7 +439,9 @@ export const NotesWidget = ({
                                             <NoteCard
                                                 note={note}
                                                 onEdit={handleEditNote}
-                                                onDelete={handleDeleteNote}
+                                                onDelete={
+                                                    handleDeleteNoteWrapper
+                                                }
                                                 onOpen={handleViewNote}
                                                 isDraggable={true}
                                                 className='note-card'
@@ -484,7 +459,7 @@ export const NotesWidget = ({
                                     key={note.id}
                                     note={note}
                                     onEdit={handleEditNote}
-                                    onDelete={handleDeleteNote}
+                                    onDelete={handleDeleteNoteWrapper}
                                     onOpen={handleViewNote}
                                     widgetColors={widgetItemColors}
                                 />
@@ -493,38 +468,40 @@ export const NotesWidget = ({
                     )}
                 </div>
             </div>
+
             <NoteModal
-                note={selectedNote}
+                note={editingNote}
                 widgetId={widget.id}
                 widgetColors={widgetItemColors}
                 maxLength={config?.maxLength ?? 500}
-                isOpen={modalOpen}
+                isOpen={isCreateModalOpen}
                 onClose={() => {
-                    setModalOpen(false);
-                    setSelectedNote(null);
+                    closeCreateModal();
+                    clearSelectedNote();
                 }}
                 onSave={handleNoteModalSave}
             />
-            {viewNoteModal && selectedNote && (
+
+            {isViewModalOpen && selectedNote && (
                 <div
                     className={`fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-4 ${
-                        viewNoteModalTransition === 'open'
+                        viewModalTransition === 'open'
                             ? 'backdrop-enter'
-                            : viewNoteModalTransition === 'closing'
+                            : viewModalTransition === 'closing'
                               ? 'backdrop-exit'
                               : ''
                     }`}
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
-                            closeViewModal();
+                            handleCloseViewModal();
                         }
                     }}
                 >
                     <div
                         className={`flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${
-                            viewNoteModalTransition === 'open'
+                            viewModalTransition === 'open'
                                 ? 'modal-enter'
-                                : viewNoteModalTransition === 'closing'
+                                : viewModalTransition === 'closing'
                                   ? 'modal-exit'
                                   : 'translate-y-8 scale-95 opacity-0'
                         }`}
@@ -540,7 +517,7 @@ export const NotesWidget = ({
                     >
                         <div
                             className={`flex flex-shrink-0 items-center justify-between border-b p-6 pb-4 ${
-                                viewNoteModalTransition === 'open'
+                                viewModalTransition === 'open'
                                     ? 'modal-content-enter'
                                     : ''
                             }`}
@@ -564,7 +541,7 @@ export const NotesWidget = ({
                                     variant='outline'
                                     size='sm'
                                     onClick={() => {
-                                        closeViewModal();
+                                        handleCloseViewModal();
                                         handleEditNote(selectedNote);
                                     }}
                                 >
@@ -573,7 +550,7 @@ export const NotesWidget = ({
                                 <Button
                                     variant='ghost'
                                     size='sm'
-                                    onClick={closeViewModal}
+                                    onClick={handleCloseViewModal}
                                 >
                                     Close
                                 </Button>
@@ -581,7 +558,7 @@ export const NotesWidget = ({
                         </div>
                         <div
                             className={`min-h-0 flex-1 overflow-y-auto p-6 pt-4 ${
-                                viewNoteModalTransition === 'open'
+                                viewModalTransition === 'open'
                                     ? 'modal-content-enter'
                                     : ''
                             }`}
