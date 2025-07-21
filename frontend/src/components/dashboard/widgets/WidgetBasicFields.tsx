@@ -9,6 +9,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { WidgetFormData } from '@/lib/schemas/form-schemas';
+import { Controller, UseFormReturn } from 'react-hook-form';
 
 const WIDGET_TYPES = [
     { value: 'clock', label: 'Clock' },
@@ -18,52 +20,66 @@ const WIDGET_TYPES = [
 ];
 
 interface WidgetBasicFieldsProps {
-    title: string;
-    type: string;
+    form: UseFormReturn<WidgetFormData>;
     isEditing: boolean;
-    onTitleChange: (title: string) => void;
-    onTypeChange: (type: string) => void;
 }
 
-export function WidgetBasicFields({
-    title,
-    type,
-    isEditing,
-    onTitleChange,
-    onTypeChange,
-}: WidgetBasicFieldsProps) {
+export function WidgetBasicFields({ form, isEditing }: WidgetBasicFieldsProps) {
+    const {
+        control,
+        formState: { errors },
+    } = form;
+
     return (
         <>
             <div className='space-y-2'>
                 <Label htmlFor='title'>Title</Label>
-                <Input
-                    id='title'
-                    value={title}
-                    onChange={(e) => {
-                        onTitleChange(e.target.value);
-                    }}
-                    placeholder='Widget title'
+                <Controller
+                    name='title'
+                    control={control}
+                    render={({ field }) => (
+                        <Input
+                            {...field}
+                            id='title'
+                            placeholder='Widget title'
+                            value={field.value ?? ''}
+                        />
+                    )}
                 />
+                {errors.title && (
+                    <p className='text-destructive text-sm'>
+                        {errors.title.message}
+                    </p>
+                )}
             </div>
 
             {!isEditing && (
                 <div className='space-y-2'>
                     <Label htmlFor='type'>Type</Label>
-                    <Select value={type} onValueChange={onTypeChange}>
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {WIDGET_TYPES.map((widgetType) => (
-                                <SelectItem
-                                    key={widgetType.value}
-                                    value={widgetType.value}
-                                >
-                                    {widgetType.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Controller
+                        name='type'
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {WIDGET_TYPES.map((widgetType) => (
+                                        <SelectItem
+                                            key={widgetType.value}
+                                            value={widgetType.value}
+                                        >
+                                            {widgetType.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
                 </div>
             )}
         </>

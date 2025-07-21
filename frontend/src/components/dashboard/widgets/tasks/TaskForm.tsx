@@ -1,7 +1,10 @@
 'use client';
 
+import { useTaskForm } from '@/components/dashboard/hooks/useTaskForm';
+import { TaskFormData } from '@/lib/schemas/form-schemas';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { Controller } from 'react-hook-form';
 import { ItemColors } from './types';
 
 interface TaskFormProps {
@@ -10,33 +13,38 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ itemColors, onCreateTask }: TaskFormProps) => {
-    const [newTaskText, setNewTaskText] = useState('');
+    const { form, resetForm } = useTaskForm();
+    const { handleSubmit, control, watch } = form;
     const [isAddingTask, setIsAddingTask] = useState(false);
 
-    const handleAddTask = async () => {
-        if (!newTaskText.trim()) return;
+    const watchedText = watch('text');
 
+    const onSubmit = async (data: TaskFormData) => {
         try {
-            await onCreateTask(newTaskText.trim());
-            setNewTaskText('');
+            await onCreateTask(data.text.trim());
+            resetForm();
             setIsAddingTask(false);
         } catch (error) {
             console.error('Failed to create task:', error);
         }
     };
 
+    const handleFormSubmit = () => {
+        void handleSubmit(onSubmit)();
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
-            void handleAddTask();
+            handleFormSubmit();
         } else if (e.key === 'Escape') {
             setIsAddingTask(false);
-            setNewTaskText('');
+            resetForm();
         }
     };
 
     const handleCancel = () => {
         setIsAddingTask(false);
-        setNewTaskText('');
+        resetForm();
     };
 
     return (
@@ -46,25 +54,28 @@ export const TaskForm = ({ itemColors, onCreateTask }: TaskFormProps) => {
         >
             {isAddingTask ? (
                 <div className='flex items-center space-x-2'>
-                    <input
-                        type='text'
-                        value={newTaskText}
-                        onChange={(e) => {
-                            setNewTaskText(e.target.value);
-                        }}
-                        onKeyDown={handleKeyDown}
-                        placeholder='Enter task...'
-                        className='flex-1 rounded border px-2 py-1 text-sm'
-                        style={{
-                            borderColor: itemColors.border,
-                            backgroundColor: itemColors.lightBackground,
-                            color: itemColors.primaryText,
-                        }}
-                        autoFocus
+                    <Controller
+                        name='text'
+                        control={control}
+                        render={({ field }) => (
+                            <input
+                                {...field}
+                                type='text'
+                                onKeyDown={handleKeyDown}
+                                placeholder='Enter task...'
+                                className='flex-1 rounded border px-2 py-1 text-sm'
+                                style={{
+                                    borderColor: itemColors.border,
+                                    backgroundColor: itemColors.lightBackground,
+                                    color: itemColors.primaryText,
+                                }}
+                                autoFocus
+                            />
+                        )}
                     />
                     <button
-                        onClick={() => void handleAddTask()}
-                        disabled={!newTaskText.trim()}
+                        onClick={handleFormSubmit}
+                        disabled={!watchedText.trim()}
                         className='rounded px-2 py-1 text-xs hover:opacity-80 disabled:opacity-50'
                         style={{
                             backgroundColor: itemColors.accent,

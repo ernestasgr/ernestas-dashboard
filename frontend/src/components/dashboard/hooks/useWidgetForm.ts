@@ -1,5 +1,19 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+
 import { Widget } from '@/generated/types';
-import { useEffect, useState } from 'react';
+import {
+    WidgetFormData,
+    createConfigSchema,
+    widgetFormSchema,
+} from '@/lib/schemas/form-schemas';
+
+interface UseWidgetFormProps {
+    widget?: Widget | null;
+    open: boolean;
+    isEditing: boolean;
+}
 
 const DEFAULT_CONFIGS = {
     clock: { timezone: 'UTC', format: '24h' },
@@ -9,55 +23,12 @@ const DEFAULT_CONFIGS = {
         categories: ['personal', 'work', 'urgent'],
         defaultCategory: 'personal',
     },
-};
+} as const;
 
-interface UseWidgetFormProps {
-    widget?: Widget | null;
-    open: boolean;
-}
-
-export function useWidgetForm({ widget, open }: UseWidgetFormProps) {
-    const [formData, setFormData] = useState<{
-        type: string;
-        title: string;
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-        config: Record<string, unknown>;
-    }>({
-        type: 'clock',
-        title: '',
-        x: 0,
-        y: 0,
-        width: 3,
-        height: 4,
-        config: DEFAULT_CONFIGS.clock as Record<string, unknown>,
-    });
-
-    useEffect(() => {
-        if (open) {
-            if (widget) {
-                setFormData({
-                    type: widget.type,
-                    title: widget.title ?? '',
-                    x: widget.x,
-                    y: widget.y,
-                    width: widget.width,
-                    height: widget.height,
-                    config: (widget.config ??
-                        DEFAULT_CONFIGS[
-                            widget.type as keyof typeof DEFAULT_CONFIGS
-                        ]) as Record<string, unknown>,
-                });
-            } else {
-                resetForm();
-            }
-        }
-    }, [open, widget]);
-
-    const resetForm = () => {
-        setFormData({
+export function useWidgetForm({ widget, open, isEditing }: UseWidgetFormProps) {
+    const form = useForm<WidgetFormData>({
+        resolver: zodResolver(widgetFormSchema),
+        defaultValues: {
             type: 'clock',
             title: '',
             x: 0,
@@ -65,52 +36,92 @@ export function useWidgetForm({ widget, open }: UseWidgetFormProps) {
             width: 3,
             height: 4,
             config: DEFAULT_CONFIGS.clock,
-        });
-    };
+        },
+        mode: 'onChange',
+    });
 
-    const updateField = (field: keyof typeof formData, value: unknown) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
+    const { reset, setValue, watch, clearErrors, setError } = form;
+    const watchedType = watch('type');
 
-    const updateConfigField = (field: string, value: unknown) => {
-        setFormData((prev) => ({
-            ...prev,
-            config: {
-                ...prev.config,
-                [field]: value,
-            },
-        }));
-    };
+    useEffect(() => {
+        if (open) {
+            if (widget && isEditing) {
+                reset({
+                    id: widget.id,
+                    type: widget.type as
+                        | 'clock'
+                        | 'weather'
+                        | 'notes'
+                        | 'tasks',
+                    title: widget.title ?? '',
+                    x: widget.x,
+                    y: widget.y,
+                    width: widget.width,
+                    height: widget.height,
+                    config: widget.config
+                        ? (widget.config as unknown as Record<string, unknown>)
+                        : {},
+                });
+            } else {
+                reset({
+                    type: 'clock',
+                    title: '',
+                    x: 0,
+                    y: 0,
+                    width: 3,
+                    height: 4,
+                    config: DEFAULT_CONFIGS.clock,
+                });
+            }
+        }
+    }, [open, widget, isEditing, reset]);
 
-    const updatePositionField = (
-        field: 'x' | 'y' | 'width' | 'height',
-        value: number,
-    ) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
+    // Handle type change - reset config when widget type changes
+    useEffect(() => {
+        if (open && !isEditing) {
+            const configMap = DEFAULT_CONFIGS as Record<
+                string,
+                Record<string, unknown>
+            >;
+            const newConfig = configMap[watchedType];
+            setValue('config', newConfig);
+            clearErrors('config');
+        }
+    }, [watchedType, setValue, clearErrors, open, isEditing]);
 
-    const handleTypeChange = (newType: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            type: newType,
-            config: DEFAULT_CONFIGS[
-                newType as keyof typeof DEFAULT_CONFIGS
-            ] as Record<string, unknown>,
-        }));
+    // Validate config separately since it's dynamic based on type
+    const validateConfig = (type: string, config: Record<string, unknown>) => {
+        try {
+            const configSchema = createConfigSchema(type);
+            const result = configSchema.safeParse(config);
+
+            if (!result.success) {
+                const errors = result.error.errors
+                    .map((err) => `${err.path.join('.')}: ${err.message}`)
+                    .join(', ');
+
+                setError('config', {
+                    type: 'validation',
+                    message: errors,
+                });
+                return false;
+            }
+
+            clearErrors('config');
+            return true;
+        } catch (error) {
+            console.error('Config validation error:', error);
+            setError('config', {
+                type: 'validation',
+                message: 'Invalid configuration',
+            });
+            return false;
+        }
     };
 
     return {
-        formData,
-        updateField,
-        updateConfigField,
-        updatePositionField,
-        handleTypeChange,
-        resetForm,
+        form,
+        validateConfig,
+        watchedType,
     };
 }
