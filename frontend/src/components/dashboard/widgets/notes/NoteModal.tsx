@@ -1,4 +1,4 @@
-import { useNoteForm } from '@/components/dashboard/hooks/useNote';
+import { useNoteForm } from '@/components/dashboard/hooks/useNoteForm';
 import type { Note } from '@/components/dashboard/hooks/useNotes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
