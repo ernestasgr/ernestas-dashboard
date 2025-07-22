@@ -63,7 +63,7 @@ export const TaskForm = ({ itemColors, onCreateTask }: TaskFormProps) => {
                                 type='text'
                                 onKeyDown={handleKeyDown}
                                 placeholder='Enter task...'
-                                className='flex-1 rounded border px-2 py-1 text-sm'
+                                className='flex-1 rounded border px-3 py-2 text-sm'
                                 style={{
                                     borderColor: itemColors.border,
                                     backgroundColor: itemColors.lightBackground,
