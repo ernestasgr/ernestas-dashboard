@@ -1,11 +1,11 @@
 'use client';
 
-import { ClockConfig, Widget } from '@/generated/types';
 import {
-    getWidgetClasses,
-    getWidgetIconStyles,
-    getWidgetStyles,
-} from '@/lib/utils/widget-styles';
+    applyTextColor,
+    mergeIconStyles,
+    useWidgetStyling,
+} from '@/components/dashboard/hooks/useWidgetStyling';
+import { ClockConfig, Widget } from '@/generated/types';
 import { Clock, GripVertical } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -47,12 +47,14 @@ export const ClockWidget = ({
     };
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-blue-900/20 dark:via-blue-800/30 dark:to-blue-700/40';
-    const dynamicStyles = getWidgetStyles(widget);
-    const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
-    const finalClasses = getWidgetClasses(widget, baseClasses);
+
+    const styling = useWidgetStyling(widget, baseClasses);
 
     return (
-        <div className={finalClasses} style={dynamicStyles}>
+        <div
+            className={styling.containerClasses}
+            style={styling.containerStyles}
+        >
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
@@ -60,45 +62,40 @@ export const ClockWidget = ({
                 onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical className='h-5 w-5' style={foregroundStyles} />
+                <GripVertical
+                    className='h-5 w-5'
+                    style={styling.iconStyles.foreground}
+                />
             </div>
             <div className='flex h-full flex-col items-center justify-center p-6'>
                 <div
                     className='mb-3 flex items-center justify-center rounded-full p-2'
-                    style={backgroundStyles}
+                    style={styling.iconStyles.background}
                 >
                     <Clock
                         className='h-8 w-8'
-                        style={{
-                            ...foregroundStyles,
-                            ...(widget.textColor
-                                ? { color: widget.textColor }
-                                : {}),
-                        }}
+                        style={mergeIconStyles(
+                            styling.iconStyles.foreground,
+                            styling.textColor,
+                        )}
                     />
                 </div>
                 <div className='text-center'>
                     <h3
                         className='mb-2 text-lg font-semibold'
-                        style={
-                            widget.textColor ? { color: widget.textColor } : {}
-                        }
+                        style={applyTextColor(styling.textColor)}
                     >
                         {widget.title}
                     </h3>
                     <div
                         className='text-4xl font-bold'
-                        style={
-                            widget.textColor ? { color: widget.textColor } : {}
-                        }
+                        style={applyTextColor(styling.textColor)}
                     >
                         {formatTime(time)}
                     </div>
                     <div
                         className='mt-2 text-sm font-medium'
-                        style={
-                            widget.textColor ? { color: widget.textColor } : {}
-                        }
+                        style={applyTextColor(styling.textColor)}
                     >
                         {time.toLocaleDateString()}
                     </div>

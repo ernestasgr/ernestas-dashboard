@@ -7,12 +7,7 @@ import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/types';
 import { useNotesWidgetStore } from '@/lib/stores/notes-store';
-import {
-    getWidgetClasses,
-    getWidgetIconStyles,
-    getWidgetItemColors,
-    getWidgetStyles,
-} from '@/lib/utils/widget-styles';
+import { useWidgetStyling, applyTextColor, mergeIconStyles } from '@/components/dashboard/hooks/useWidgetStyling';
 import {
     Filter,
     GripVertical,
@@ -102,10 +97,9 @@ export const NotesWidget = ({
 
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-yellow-900/20 dark:via-yellow-800/30 dark:to-yellow-700/40';
-    const dynamicStyles = getWidgetStyles(widget);
-    const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
-    const widgetItemColors = getWidgetItemColors(widget);
-    const finalClasses = getWidgetClasses(widget, baseClasses);
+    
+    const styling = useWidgetStyling(widget, baseClasses);
+    const widgetItemColors = styling.itemColors;
 
     // Handle URL-based note opening
     useEffect(() => {
@@ -276,7 +270,7 @@ export const NotesWidget = ({
 
     if (loading) {
         return (
-            <div className={finalClasses} style={dynamicStyles}>
+            <div className={styling.containerClasses} style={styling.containerStyles}>
                 <div className='flex h-full items-center justify-center'>
                     <div className='text-center'>
                         <StickyNote className='mx-auto h-8 w-8 animate-pulse text-gray-400' />
@@ -291,7 +285,7 @@ export const NotesWidget = ({
 
     if (error) {
         return (
-            <div className={finalClasses} style={dynamicStyles}>
+            <div className={styling.containerClasses} style={styling.containerStyles}>
                 <div className='flex h-full items-center justify-center'>
                     <div className='text-center'>
                         <StickyNote className='mx-auto h-8 w-8 text-red-400' />
@@ -305,7 +299,7 @@ export const NotesWidget = ({
     }
 
     return (
-        <div className={finalClasses} style={dynamicStyles}>
+        <div className={styling.containerClasses} style={styling.containerStyles}>
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
@@ -313,7 +307,7 @@ export const NotesWidget = ({
                 onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical className='h-5 w-5' style={foregroundStyles} />
+                <GripVertical className='h-5 w-5' style={styling.iconStyles.foreground} />
             </div>
             <div className='flex h-full flex-col p-4'>
                 {/* Header */}
@@ -321,25 +315,16 @@ export const NotesWidget = ({
                     <div className='flex items-center space-x-3'>
                         <div
                             className='flex items-center justify-center rounded-full p-2'
-                            style={backgroundStyles}
+                            style={styling.iconStyles.background}
                         >
                             <StickyNote
                                 className='h-5 w-5'
-                                style={{
-                                    ...foregroundStyles,
-                                    ...(widget.textColor
-                                        ? { color: widget.textColor }
-                                        : {}),
-                                }}
+                                style={mergeIconStyles(styling.iconStyles.foreground, styling.textColor)}
                             />
                         </div>
                         <h3
                             className='text-lg font-semibold'
-                            style={
-                                widget.textColor
-                                    ? { color: widget.textColor }
-                                    : {}
-                            }
+                            style={applyTextColor(styling.textColor)}
                         >
                             {widget.title}
                         </h3>

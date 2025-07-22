@@ -2,12 +2,7 @@
 
 import { useTasks } from '@/components/dashboard/hooks/useTasks';
 import { TasksConfig, Widget } from '@/generated/types';
-import {
-    getWidgetClasses,
-    getWidgetIconStyles,
-    getWidgetItemColors,
-    getWidgetStyles,
-} from '@/lib/utils/widget-styles';
+import { useWidgetStyling, applyTextColor, mergeIconStyles } from '@/components/dashboard/hooks/useWidgetStyling';
 import { CheckSquare, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 import { WidgetActions } from '../WidgetActions';
@@ -102,13 +97,12 @@ export const TaskWidget = ({
 
     const baseClasses =
         'group relative h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl dark:border-slate-700 dark:from-purple-900/20 dark:via-purple-800/30 dark:to-purple-700/40';
-    const dynamicStyles = getWidgetStyles(widget);
-    const { foregroundStyles, backgroundStyles } = getWidgetIconStyles(widget);
-    const itemColors: ItemColors = getWidgetItemColors(widget);
-    const finalClasses = getWidgetClasses(widget, baseClasses);
+    
+    const styling = useWidgetStyling(widget, baseClasses);
+    const itemColors: ItemColors = styling.itemColors;
 
     return (
-        <div className={finalClasses} style={dynamicStyles}>
+        <div className={styling.containerClasses} style={styling.containerStyles}>
             <WidgetActions
                 widget={widget}
                 onEdit={onEdit}
@@ -116,29 +110,22 @@ export const TaskWidget = ({
                 onStyleEdit={onStyleEdit}
             />
             <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                <GripVertical className='h-5 w-5' style={foregroundStyles} />
+                <GripVertical className='h-5 w-5' style={styling.iconStyles.foreground} />
             </div>
             <div className='flex h-full flex-col p-6'>
                 <div className='mb-4 flex items-center space-x-3'>
                     <div
                         className='flex items-center justify-center rounded-full p-2'
-                        style={backgroundStyles}
+                        style={styling.iconStyles.background}
                     >
                         <CheckSquare
                             className='h-6 w-6'
-                            style={{
-                                ...foregroundStyles,
-                                ...(widget.textColor
-                                    ? { color: widget.textColor }
-                                    : {}),
-                            }}
+                            style={mergeIconStyles(styling.iconStyles.foreground, styling.textColor)}
                         />
                     </div>
                     <h3
                         className='text-lg font-semibold'
-                        style={
-                            widget.textColor ? { color: widget.textColor } : {}
-                        }
+                        style={applyTextColor(styling.textColor)}
                     >
                         {widget.title}
                     </h3>
