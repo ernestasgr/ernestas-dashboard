@@ -8,10 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.graphql.ResponseError;
 import org.springframework.graphql.server.WebGraphQlRequest;
 import org.springframework.graphql.server.WebGraphQlResponse;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +29,7 @@ class ResponseContextInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new ResponseContextInterceptor();
+        interceptor = new ResponseContextInterceptor("dev", "localhost");
         chain = mock(ResponseContextInterceptor.Chain.class);
         request = mock(WebGraphQlRequest.class);
         response = mock(WebGraphQlResponse.class);
@@ -51,7 +53,7 @@ class ResponseContextInterceptorTest {
     }
 
     @Test
-    void shouldSetCookiesIfOperationNameContainsRefresh() {
+    void shouldSetCookiesIfOperationNameContainsRefreshAndNoErrors() {
         when(request.getOperationName()).thenReturn("MutationRefreshToken");
         when(chain.next(request)).thenReturn(Mono.just(response));
 
@@ -63,6 +65,7 @@ class ResponseContextInterceptorTest {
         var executionInput = mock(graphql.ExecutionInput.class);
         when(response.getExecutionInput()).thenReturn(executionInput);
         when(executionInput.getGraphQLContext()).thenReturn(context);
+        when(response.getErrors()).thenReturn(Collections.emptyList());
 
         HttpHeaders headers = new HttpHeaders();
         when(response.getResponseHeaders()).thenReturn(headers);
@@ -73,5 +76,55 @@ class ResponseContextInterceptorTest {
 
         assertCookieContains(headers, "accessToken=access-token-value");
         assertCookieContains(headers, "refreshToken=refresh-token-value");
+        assertCookieContains(headers, "Path=/");
+        assertCookieContains(headers, "HttpOnly");
+        assertCookieContains(headers, "Domain=localhost");
+    }
+
+    @Test
+    void shouldNotSetCookiesIfOperationHasErrors() {
+        when(request.getOperationName()).thenReturn("MutationRefreshToken");
+        when(chain.next(request)).thenReturn(Mono.just(response));
+
+        graphql.GraphQLContext context = graphql.GraphQLContext.newContext()
+                .of("accessToken", "access-token-value")
+                .of("refreshToken", "refresh-token-value")
+                .build();
+
+        var executionInput = mock(graphql.ExecutionInput.class);
+        when(response.getExecutionInput()).thenReturn(executionInput);
+        when(executionInput.getGraphQLContext()).thenReturn(context);
+        when(response.getErrors()).thenReturn(Collections.singletonList(mock(ResponseError.class)));
+
+        HttpHeaders headers = new HttpHeaders();
+        when(response.getResponseHeaders()).thenReturn(headers);
+
+        Mono<WebGraphQlResponse> result = interceptor.intercept(request, chain);
+
+        result.block();
+
+        assertTrue(headers.isEmpty(), "No cookies should be set when there are errors");
+    }
+
+    @Test
+    void shouldNotSetCookiesIfTokensAreMissing() {
+        when(request.getOperationName()).thenReturn("MutationRefreshToken");
+        when(chain.next(request)).thenReturn(Mono.just(response));
+
+        graphql.GraphQLContext context = graphql.GraphQLContext.newContext().build();
+
+        var executionInput = mock(graphql.ExecutionInput.class);
+        when(response.getExecutionInput()).thenReturn(executionInput);
+        when(executionInput.getGraphQLContext()).thenReturn(context);
+        when(response.getErrors()).thenReturn(Collections.emptyList());
+
+        HttpHeaders headers = new HttpHeaders();
+        when(response.getResponseHeaders()).thenReturn(headers);
+
+        Mono<WebGraphQlResponse> result = interceptor.intercept(request, chain);
+
+        result.block();
+
+        assertTrue(headers.isEmpty(), "No cookies should be set when tokens are missing");
     }
 }
