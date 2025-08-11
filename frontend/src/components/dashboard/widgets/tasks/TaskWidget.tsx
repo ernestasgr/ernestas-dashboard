@@ -111,12 +111,12 @@ const TaskContent = () => {
     };
 
     return (
-        <div className='flex h-full flex-col min-h-0'>
-            <div className='mb-4 flex items-center space-x-3 flex-shrink-0'>
+        <div className='flex h-full min-h-0 flex-col'>
+            <div className='mb-4 flex flex-shrink-0 items-center space-x-3'>
                 <BaseWidget.Icon icon={CheckSquare} />
                 <BaseWidget.Title>{widget.title}</BaseWidget.Title>
             </div>
-            <div className='flex-1 space-y-3 overflow-y-auto min-h-0'>
+            <div className='min-h-0 flex-1 space-y-3 overflow-y-auto'>
                 <TaskList
                     tasks={widgetTasks}
                     itemColors={itemColors}
@@ -157,7 +157,7 @@ export const TaskWidget = ({
             onDelete={onDelete}
             onStyleEdit={onStyleEdit}
         >
-            <BaseWidget.Content className='flex h-full flex-col p-6 overflow-hidden'>
+            <BaseWidget.Content className='flex h-full flex-col overflow-hidden p-6'>
                 <TaskContent />
             </BaseWidget.Content>
         </BaseWidget>

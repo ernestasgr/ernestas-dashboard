@@ -14,26 +14,11 @@ import {
     TasksFilterInput,
     UpdateTaskInput,
 } from '@/generated/types';
+import { Task as StoreTask, useTasksStore } from '@/lib/stores/tasks-store';
 import { ApolloError } from '@apollo/client';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-export interface Task {
-    id: string;
-    text: string;
-    completed: boolean;
-    category: string;
-    userId: string;
-    widgetId?: string;
-    createdAt: Date;
-    updatedAt: Date;
-    priority: number;
-    dueDate?: Date;
-    description?: string;
-    parentTaskId?: number;
-    displayOrder: number;
-    subTasks?: Task[];
-    level?: number; // For hierarchy display
-}
+export type Task = StoreTask;
 
 export interface UseTasksReturn {
     tasks: Task[];
@@ -89,6 +74,12 @@ const convertTask = (taskType: TaskType): Task => ({
 });
 
 export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
+    const categories = useTasksStore((s) => s.categories);
+    const hierarchy = useTasksStore((s) => s.hierarchy);
+    const setCategories = useTasksStore((s) => s.setCategories);
+    const setHierarchy = useTasksStore((s) => s.setHierarchy);
+    const reorderTaskLocal = useTasksStore((s) => s.reorderTaskLocal);
+
     const {
         data: categoriesData,
         loading: categoriesLoading,
@@ -113,27 +104,30 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
         fetchPolicy: 'cache-and-network',
     });
 
-    // Extract all tasks from hierarchy (flattened) for search/filter operations
+    useEffect(() => {
+        if (categoriesData?.taskCategories) {
+            setCategories(categoriesData.taskCategories);
+        }
+    }, [categoriesData?.taskCategories, setCategories]);
+
+    useEffect(() => {
+        if (hierarchyData?.taskHierarchy) {
+            const items = hierarchyData.taskHierarchy.map(convertTask);
+            setHierarchy(items);
+        }
+    }, [hierarchyData?.taskHierarchy, setHierarchy]);
+
     const tasks = useMemo(() => {
-        const flattenTasks = (tasks: Task[]): Task[] => {
-            const result: Task[] = [];
-            for (const task of tasks) {
-                result.push(task);
-                if (task.subTasks) {
-                    result.push(...flattenTasks(task.subTasks));
-                }
+        const flatten = (items: Task[]): Task[] => {
+            const out: Task[] = [];
+            for (const t of items) {
+                out.push(t);
+                if (t.subTasks?.length) out.push(...flatten(t.subTasks));
             }
-            return result;
+            return out;
         };
-
-        const hierarchyTasks =
-            hierarchyData?.taskHierarchy.map(convertTask) ?? [];
-        return flattenTasks(hierarchyTasks);
-    }, [hierarchyData?.taskHierarchy]);
-
-    const categories = useMemo(() => {
-        return categoriesData?.taskCategories ?? [];
-    }, [categoriesData?.taskCategories]);
+        return flatten(hierarchy);
+    }, [hierarchy]);
 
     const createTask = useCallback(
         async (
@@ -236,6 +230,7 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 newParentTaskId,
             };
 
+            reorderTaskLocal(taskId, newDisplayOrder, newParentTaskId);
             await reorderTaskMutation({
                 variables: { input },
                 onCompleted: () => {
@@ -243,13 +238,11 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 },
             });
         },
-        [reorderTaskMutation, refetchHierarchy],
+        [reorderTaskMutation, refetchHierarchy, reorderTaskLocal],
     );
 
     const getTaskById = useCallback(
-        (id: string) => {
-            return tasks.find((task) => task.id === id);
-        },
+        (id: string) => tasks.find((t) => t.id === id),
         [tasks],
     );
 
@@ -261,35 +254,32 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
             searchFilter?: string,
         ) => {
             let filtered = tasks;
-
             if (widgetId !== undefined) {
-                filtered = filtered.filter(
-                    (task) => task.widgetId === widgetId,
-                );
+                filtered = filtered.filter((t) => t.widgetId === widgetId);
             }
-
             if (categoryFilter) {
                 filtered = filtered.filter(
-                    (task) => task.category === categoryFilter,
+                    (t) => t.category === categoryFilter,
                 );
             }
-
             if (completedFilter !== undefined) {
                 filtered = filtered.filter(
-                    (task) => task.completed === completedFilter,
+                    (t) => t.completed === completedFilter,
                 );
             }
-
             if (searchFilter) {
-                const search = searchFilter.toLowerCase();
+                const escaped = searchFilter.replace(
+                    /[.*+?^${}()|[\]\\]/g,
+                    '\\$&',
+                );
+                const re = new RegExp(escaped, 'i');
                 filtered = filtered.filter(
-                    (task) =>
-                        task.text.toLowerCase().includes(search) ||
-                        task.category.toLowerCase().includes(search) ||
-                        task.description?.toLowerCase().includes(search),
+                    (t) =>
+                        re.test(t.text) ||
+                        re.test(t.category) ||
+                        (t.description ? re.test(t.description) : false),
                 );
             }
-
             return filtered.sort(
                 (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
             );
@@ -299,20 +289,10 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
 
     const getTaskHierarchy = useCallback(
         (widgetId?: string) => {
-            if (!hierarchyData?.taskHierarchy) return [];
-
-            let filtered = hierarchyData.taskHierarchy.map(convertTask);
-
-            if (widgetId) {
-                // Filter root tasks by widgetId, keeping hierarchy intact
-                filtered = filtered.filter(
-                    (task) => task.widgetId === widgetId,
-                );
-            }
-
-            return filtered;
+            if (!widgetId) return hierarchy;
+            return hierarchy.filter((t) => t.widgetId === widgetId);
         },
-        [hierarchyData],
+        [hierarchy],
     );
 
     return {

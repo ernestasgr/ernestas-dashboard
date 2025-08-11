@@ -241,8 +241,8 @@ export const WeatherWidget = ({
             {!isLoading && weatherData && (
                 <WeatherRefreshAction onRefresh={handleRefresh} />
             )}
-            <BaseWidget.Content className='flex h-full items-stretch justify-center p-6 overflow-hidden'>
-                <div className='flex flex-1 items-center min-h-0'>
+            <BaseWidget.Content className='flex h-full items-stretch justify-center overflow-hidden p-6'>
+                <div className='flex min-h-0 flex-1 items-center'>
                     {renderContent()}
                 </div>
             </BaseWidget.Content>

@@ -81,7 +81,7 @@ export const ClockWidget = ({
             onDelete={onDelete}
             onStyleEdit={onStyleEdit}
         >
-            <BaseWidget.Content className='flex h-full items-center justify-center p-6 overflow-hidden'>
+            <BaseWidget.Content className='flex h-full items-center justify-center overflow-hidden p-6'>
                 <div className='min-h-0'>
                     <ClockContent />
                 </div>

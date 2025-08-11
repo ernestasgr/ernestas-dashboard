@@ -275,10 +275,11 @@ const startGateway = async () => {
 								.split(",")
 								.map((cookie) => cookie.trim())
 								.forEach((cookie) => {
-									context.res.append(
-										"Set-Cookie",
-										`${cookie}; HttpOnly; SameSite=Lax; Domain=${env.DOMAIN}`
-									);
+									// context.res.append(
+									// 	"Set-Cookie",
+									// 	`${cookie}; HttpOnly; SameSite=Lax; Domain=${env.DOMAIN}`
+									// );
+									context.res.append("Set-Cookie", cookie);
 								});
 							requestLogger.debug(
 								"Set cookies forwarded to client",
