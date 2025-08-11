@@ -20,8 +20,9 @@ import {
     useUpdateWidgetMutation,
 } from '@/generated/Widgets.generated';
 import { WidgetFormData } from '@/lib/schemas/form-schemas';
+import { useUIStore } from '@/lib/stores/ui-store';
+import { useWidgetStore } from '@/lib/stores/widget-store';
 import { useEffect } from 'react';
-import { toast } from 'sonner';
 import { useWidgetForm } from '../hooks/useWidgetForm';
 import { WidgetBasicFields } from './WidgetBasicFields';
 import { WidgetConfigFields } from './WidgetConfigFields';
@@ -53,6 +54,9 @@ export function WidgetForm({
         open,
         isEditing,
     });
+
+    const upsertWidget = useWidgetStore((s) => s.upsertWidget);
+    const notify = useUIStore((s) => s.notify);
 
     const {
         handleSubmit,
@@ -86,7 +90,10 @@ export function WidgetForm({
 
         const isConfigValid = validateConfig(watchedType, data.config);
         if (!isConfigValid) {
-            toast.error('Please fix configuration errors');
+            notify({
+                type: 'error',
+                message: 'Please fix configuration errors',
+            });
             return;
         }
 
@@ -104,8 +111,12 @@ export function WidgetForm({
 
                 const result = await updateWidget({ variables: { input } });
                 if (result.data?.updateWidget && onWidgetUpdated) {
+                    upsertWidget(result.data.updateWidget);
                     onWidgetUpdated(result.data.updateWidget);
-                    toast.success('Widget updated successfully');
+                    notify({
+                        type: 'success',
+                        message: 'Widget updated successfully',
+                    });
                 }
             } else {
                 const input: CreateWidgetInput = {
@@ -125,9 +136,13 @@ export function WidgetForm({
                     },
                 });
 
-                if (result.data?.createWidget && onWidgetCreated) {
-                    onWidgetCreated(result.data.createWidget);
-                    toast.success('Widget created successfully');
+                if (result.data?.createWidget) {
+                    upsertWidget(result.data.createWidget);
+                    onWidgetCreated?.(result.data.createWidget);
+                    notify({
+                        type: 'success',
+                        message: 'Widget created successfully',
+                    });
                 }
             }
             onOpenChange(false);
@@ -135,11 +150,12 @@ export function WidgetForm({
             clearErrors();
         } catch (error) {
             console.error('Error saving widget:', error);
-            toast.error(
-                isEditing
+            notify({
+                type: 'error',
+                message: isEditing
                     ? 'Failed to update widget'
                     : 'Failed to create widget',
-            );
+            });
         }
     });
     return (

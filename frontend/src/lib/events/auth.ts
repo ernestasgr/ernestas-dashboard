@@ -1,11 +1,11 @@
-const listeners: (() => void)[] = [];
+import { useEventStore } from '@/lib/stores/use-event-store';
 
 export function onAuthFailure(cb: () => void) {
-    listeners.push(cb);
+    return useEventStore.getState().subscribe('auth:failure', () => {
+        cb();
+    });
 }
 
 export function triggerAuthFailure() {
-    listeners.forEach((cb) => {
-        cb();
-    });
+    useEventStore.getState().trigger('auth:failure');
 }

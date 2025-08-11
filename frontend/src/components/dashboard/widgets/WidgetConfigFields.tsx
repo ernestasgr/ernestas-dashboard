@@ -12,13 +12,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useTestObsidianConnectionMutation } from '@/generated/Notes.generated';
+import { useUIStore } from '@/lib/stores/ui-store';
 import {
     validateWidgetConfig,
     WidgetType,
 } from '@/lib/validation/widget-schemas';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 interface WidgetConfigFieldsProps {
     type: string;
@@ -37,6 +37,7 @@ export function WidgetConfigFields({
     const [isTestingConnection, setIsTestingConnection] = useState(false);
     const [testObsidianConnectionMutation] =
         useTestObsidianConnectionMutation();
+    const notify = useUIStore((s) => s.notify);
 
     useEffect(() => {
         const validation = validateWidgetConfig(type as WidgetType, config);
@@ -51,7 +52,10 @@ export function WidgetConfigFields({
 
     const testObsidianConnection = async (apiUrl: string, authKey: string) => {
         if (!apiUrl || !authKey) {
-            toast.error('API URL and Auth Key are required');
+            notify({
+                type: 'error',
+                message: 'API URL and Auth Key are required',
+            });
             return;
         }
 
@@ -67,19 +71,23 @@ export function WidgetConfigFields({
             });
 
             if (result.data?.testObsidianConnection) {
-                toast.success(
-                    'Connection successful! Obsidian API is working.',
-                );
+                notify({
+                    type: 'success',
+                    message: 'Connection successful! Obsidian API is working.',
+                });
             } else {
-                toast.error(
-                    'Connection failed: Unable to connect to Obsidian API',
-                );
+                notify({
+                    type: 'error',
+                    message:
+                        'Connection failed: Unable to connect to Obsidian API',
+                });
             }
         } catch (error) {
             console.error('Connection test failed:', error);
-            toast.error(
-                `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            );
+            notify({
+                type: 'error',
+                message: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            });
         } finally {
             setIsTestingConnection(false);
         }

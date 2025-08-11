@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Widget } from '@/generated/types';
 import { useUpdateWidgetMutation } from '@/generated/Widgets.generated';
+import { useUIStore } from '@/lib/stores/ui-store';
+import { useWidgetStore } from '@/lib/stores/widget-store';
 import {
     WIDGET_BACKGROUND_PRESETS,
     WIDGET_COLOR_PRESETS,
@@ -22,7 +24,6 @@ import {
 } from '@/lib/utils/widget-styling';
 import { Image, Palette, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface WidgetStyleConfigProps {
     widget: Widget;
@@ -34,6 +35,8 @@ export const WidgetStyleConfig = ({
     onClose,
 }: WidgetStyleConfigProps) => {
     const [updateWidget] = useUpdateWidgetMutation();
+    const upsertWidget = useWidgetStore((s) => s.upsertWidget);
+    const notify = useUIStore((s) => s.notify);
     const [backgroundColor, setBackgroundColor] = useState(
         widget.backgroundColor ?? '',
     );
@@ -44,7 +47,7 @@ export const WidgetStyleConfig = ({
     );
     const handleSave = async () => {
         try {
-            await updateWidget({
+            const result = await updateWidget({
                 variables: {
                     input: {
                         id: widget.id,
@@ -55,16 +58,22 @@ export const WidgetStyleConfig = ({
                     },
                 },
             });
-            toast.success('Widget style updated successfully!');
+            if (result.data?.updateWidget) {
+                upsertWidget(result.data.updateWidget);
+            }
+            notify({
+                type: 'success',
+                message: 'Widget style updated successfully!',
+            });
             onClose();
         } catch (error) {
             console.error('Failed to update widget style:', error);
-            toast.error('Failed to update widget style');
+            notify({ type: 'error', message: 'Failed to update widget style' });
         }
     };
     const handleReset = async () => {
         try {
-            await updateWidget({
+            const result = await updateWidget({
                 variables: {
                     input: {
                         id: widget.id,
@@ -75,15 +84,21 @@ export const WidgetStyleConfig = ({
                     },
                 },
             });
+            if (result.data?.updateWidget) {
+                upsertWidget(result.data.updateWidget);
+            }
             setBackgroundColor('');
             setTextColor('');
             setIconColor('');
             setBackgroundImage('');
-            toast.success('Widget style reset to defaults!');
+            notify({
+                type: 'success',
+                message: 'Widget style reset to defaults!',
+            });
             onClose();
         } catch (error) {
             console.error('Failed to reset widget style:', error);
-            toast.error('Failed to reset widget style');
+            notify({ type: 'error', message: 'Failed to reset widget style' });
         }
     };
 

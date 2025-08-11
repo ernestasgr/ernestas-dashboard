@@ -2,12 +2,17 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMeQuery } from '@/generated/Auth.generated';
+import { useAuthStore, useSyncAuthFromMe } from '@/lib/stores/auth-store';
 import { useEventStore } from '@/lib/stores/use-event-store';
 import { useEffect } from 'react';
 import Grid from '../../components/dashboard/grid/Grid';
 
 export default function Dashboard() {
-    const { loading, error, refetch } = useMeQuery();
+    const { loading: gqlLoading, error: gqlError, refetch } = useMeQuery();
+    useSyncAuthFromMe();
+    const loading = useAuthStore((s) => s.loading) || gqlLoading;
+    const error =
+        useAuthStore((s) => s.error) ?? (gqlError ? gqlError.message : null);
     const setEventListener = useEventStore((s) => s.subscribe);
 
     useEffect(() => {
@@ -42,7 +47,7 @@ export default function Dashboard() {
                     Error
                 </h1>
                 <p className='mt-4 text-red-500' data-testid='error-message'>
-                    {error.message || 'An unexpected error occurred.'}
+                    {error || 'An unexpected error occurred.'}
                 </p>
             </div>
         );

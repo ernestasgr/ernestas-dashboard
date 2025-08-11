@@ -2,7 +2,8 @@
 
 import { Widget } from '@/generated/types';
 import { cleanupNotesWidgetStore } from '@/lib/stores/notes-store';
-import { useState } from 'react';
+import { useWidgetStore } from '@/lib/stores/widget-store';
+import { useEffect, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 import { DashboardHeader } from '../DashboardHeader';
 import { EmptyDashboardState } from '../EmptyDashboardState';
@@ -16,14 +17,13 @@ const Grid = () => {
     const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
     const [showCoordinates, setShowCoordinates] = useState(false);
 
-    const {
-        windowWidth,
-        widgetsData,
-        loading,
-        error,
-        refetch,
-        handleLayoutChange,
-    } = useWidgetLayout();
+    const { windowWidth, widgetsData, loading, error, handleLayoutChange } =
+        useWidgetLayout();
+
+    const setWidgets = useWidgetStore((s) => s.setWidgets);
+    const widgets = useWidgetStore((s) => s.widgets);
+    const layoutMap = useWidgetStore((s) => s.layout);
+    const setDragging = useWidgetStore((s) => s.setDragging);
 
     const handleEditWidget = (widget: Widget) => {
         setEditingWidget(widget);
@@ -32,15 +32,13 @@ const Grid = () => {
 
     const handleDeleteWidget = (widgetId: string) => {
         cleanupNotesWidgetStore(widgetId);
-        void refetch();
     };
 
     const handleWidgetCreated = () => {
-        void refetch();
+        // Store will be updated by form via upsert; no refetch needed
     };
 
     const handleWidgetUpdated = () => {
-        void refetch();
         setEditingWidget(null);
     };
 
@@ -51,6 +49,16 @@ const Grid = () => {
 
     const handleToggleCoordinates = () => {
         setShowCoordinates(!showCoordinates);
+    };
+
+    useEffect(() => {
+        if (widgetsData?.widgets) {
+            setWidgets(widgetsData.widgets as Widget[]);
+        }
+    }, [widgetsData?.widgets, setWidgets]);
+
+    const onLayoutChange = (layout: GridLayout.Layout[]) => {
+        handleLayoutChange(layout);
     };
 
     if (loading) {
@@ -70,7 +78,7 @@ const Grid = () => {
             </div>
         );
     }
-    if (!widgetsData?.widgets || widgetsData.widgets.length === 0) {
+    if (widgets.length === 0) {
         return (
             <>
                 <EmptyDashboardState
@@ -91,13 +99,14 @@ const Grid = () => {
         );
     }
 
-    const layout = widgetsData.widgets.map((widget) => ({
-        i: widget.id,
-        x: widget.x,
-        y: widget.y,
-        w: widget.width,
-        h: widget.height,
-    }));
+    const layout = widgets.map((widget) => {
+        const l = layoutMap[widget.id];
+        const x = l === undefined ? widget.x : l.x;
+        const y = l === undefined ? widget.y : l.y;
+        const w = l === undefined ? widget.width : l.width;
+        const h = l === undefined ? widget.height : l.height;
+        return { i: widget.id, x, y, w, h } as GridLayout.Layout;
+    });
 
     return (
         <div className='mb-16 w-full p-4'>
@@ -110,7 +119,7 @@ const Grid = () => {
                 <CoordinateGrid
                     showCoordinates={showCoordinates}
                     windowWidth={windowWidth}
-                    widgets={widgetsData.widgets}
+                    widgets={widgets}
                 />
                 <GridLayout
                     className='layout'
@@ -123,9 +132,21 @@ const Grid = () => {
                     isDraggable={true}
                     isResizable={true}
                     draggableHandle='.drag-handle'
-                    onLayoutChange={handleLayoutChange}
+                    onLayoutChange={onLayoutChange}
+                    onDragStart={() => {
+                        setDragging(true);
+                    }}
+                    onDragStop={() => {
+                        setDragging(false);
+                    }}
+                    onResizeStart={() => {
+                        setDragging(true);
+                    }}
+                    onResizeStop={() => {
+                        setDragging(false);
+                    }}
                 >
-                    {widgetsData.widgets.map((widget) => (
+                    {widgets.map((widget) => (
                         <div key={widget.id} className='relative z-10'>
                             <WidgetRenderer
                                 widget={widget}

@@ -1,12 +1,18 @@
 'use client';
 
 import { useMeQuery } from '@/generated/Auth.generated';
+import { useAuthStore, useSyncAuthFromMe } from '@/lib/stores/auth-store';
 import { useEventStore } from '@/lib/stores/use-event-store';
 import { useEffect } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 const WelcomeMessage: React.FC = () => {
-    const { data, loading, error, refetch } = useMeQuery();
+    const { loading: gqlLoading, error: gqlError, refetch } = useMeQuery();
+    useSyncAuthFromMe();
+    const me = useAuthStore((s) => s.me);
+    const loading = useAuthStore((s) => s.loading) || gqlLoading;
+    const error =
+        useAuthStore((s) => s.error) ?? (gqlError ? gqlError.message : null);
     const setEventListener = useEventStore((s) => s.subscribe);
 
     useEffect(() => {
@@ -41,13 +47,13 @@ const WelcomeMessage: React.FC = () => {
                     Error
                 </h1>
                 <p className='mt-4 text-red-500' data-testid='error-message'>
-                    {error.message || 'An unexpected error occurred.'}
+                    {error || 'An unexpected error occurred.'}
                 </p>
             </div>
         );
     }
 
-    if (data?.me.__typename === 'AuthPayload') {
+    if (me) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
                 <h1
@@ -57,7 +63,7 @@ const WelcomeMessage: React.FC = () => {
                     Dashboard
                 </h1>
                 <p className='mt-4' data-testid='welcome-message'>
-                    Welcome to the dashboard {data.me.name ?? data.me.email}!
+                    Welcome to the dashboard {me.name ?? me.email}!
                 </p>
             </div>
         );

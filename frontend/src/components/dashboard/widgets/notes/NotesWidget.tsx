@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/types';
 import { useNotesWidgetStore } from '@/lib/stores/notes-store';
+import { useUIStore } from '@/lib/stores/ui-store';
 import { Filter, Plus, RefreshCw, StickyNote } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
-import { toast } from 'sonner';
 import { useNoteLayout } from '../../hooks/useNoteLayout';
 import { BaseWidget, useWidgetContext } from '../BaseWidget';
 import { NoteCard } from './NoteCard';
@@ -31,6 +31,7 @@ const NotesContent = () => {
     const searchParams = useSearchParams();
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetItemColors = styling.itemColors;
+    const notify = useUIStore((s) => s.notify);
 
     const {
         isCreateModalOpen,
@@ -77,7 +78,7 @@ const NotesContent = () => {
     const gridColumns = config?.gridColumns ?? 3;
     const showGrid = config?.showGrid ?? true;
 
-    const { handleLayoutChange, getCurrentLayout } = useNoteLayout({
+    const { handleLayoutChange } = useNoteLayout({
         notes: filteredNotes,
         gridColumns,
         onUpdateNoteLayout: (noteId, layout) => {
@@ -163,10 +164,10 @@ const NotesContent = () => {
     ) => {
         try {
             await createNote(noteData, getObsidianConfig());
-            toast.success('Note created successfully');
+            notify({ type: 'success', message: 'Note created successfully' });
         } catch (error: unknown) {
             console.error('Failed to create note:', error);
-            toast.error('Failed to create note');
+            notify({ type: 'error', message: 'Failed to create note' });
         }
     };
 
@@ -176,20 +177,20 @@ const NotesContent = () => {
     ) => {
         try {
             await updateNote(noteId, noteData, getObsidianConfig());
-            toast.success('Note updated successfully');
+            notify({ type: 'success', message: 'Note updated successfully' });
         } catch (error: unknown) {
             console.error('Failed to update note:', error);
-            toast.error('Failed to update note');
+            notify({ type: 'error', message: 'Failed to update note' });
         }
     };
 
     const handleDeleteNote = async (noteId: string) => {
         try {
             await deleteNote(noteId, getObsidianConfig());
-            toast.success('Note deleted successfully');
+            notify({ type: 'success', message: 'Note deleted successfully' });
         } catch (error: unknown) {
             console.error('Failed to delete note:', error);
-            toast.error('Failed to delete note');
+            notify({ type: 'error', message: 'Failed to delete note' });
         }
     };
 
@@ -213,7 +214,10 @@ const NotesContent = () => {
         const obsidianConfig = getObsidianConfig();
         if (!obsidianConfig) {
             console.warn('Obsidian API URL and Auth Key are required for sync');
-            toast.error('Obsidian API URL and Auth Key are required for sync');
+            notify({
+                type: 'error',
+                message: 'Obsidian API URL and Auth Key are required for sync',
+            });
             return;
         }
 
@@ -224,10 +228,13 @@ const NotesContent = () => {
                 obsidianConfig.authKey,
             );
             console.log('Obsidian vault synced successfully');
-            toast.success('Obsidian vault synced successfully');
+            notify({
+                type: 'success',
+                message: 'Obsidian vault synced successfully',
+            });
         } catch (error) {
             console.error('Failed to sync Obsidian vault:', error);
-            toast.error('Failed to sync Obsidian vault');
+            notify({ type: 'error', message: 'Failed to sync Obsidian vault' });
         } finally {
             setSyncing(false);
         }
@@ -250,7 +257,18 @@ const NotesContent = () => {
         void handleDeleteNote(noteId);
     };
 
-    const layout = getCurrentLayout();
+    const layoutMap = useNotesWidgetStore(widget.id).layout;
+    const layout = filteredNotes.map((note, index) => {
+        const l:
+            | { x: number; y: number; width: number; height: number }
+            | undefined = layoutMap[note.id];
+        const x = l === undefined ? (note.x ?? index % gridColumns) : l.x;
+        const y =
+            l === undefined ? (note.y ?? Math.floor(index / gridColumns)) : l.y;
+        const w = l === undefined ? (note.width ?? 1) : l.width;
+        const h = l === undefined ? (note.height ?? 4) : l.height;
+        return { i: note.id, x, y, w, h } as GridLayout.Layout;
+    });
 
     if (loading) {
         return (

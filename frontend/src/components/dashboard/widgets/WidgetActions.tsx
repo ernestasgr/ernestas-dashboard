@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/dialog';
 import { Widget } from '@/generated/types';
 import { useDeleteWidgetMutation } from '@/generated/Widgets.generated';
+import { useUIStore } from '@/lib/stores/ui-store';
+import { useWidgetStore } from '@/lib/stores/widget-store';
 import { getWidgetIconStyles } from '@/lib/utils/widget-styles';
 import { Edit2, Palette, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface WidgetActionsProps {
     widget: Widget;
@@ -31,6 +32,8 @@ export function WidgetActions({
 }: WidgetActionsProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [deleteWidget, { loading: deleting }] = useDeleteWidgetMutation();
+    const removeWidget = useWidgetStore((s) => s.removeWidget);
+    const notify = useUIStore((s) => s.notify);
 
     const { backgroundStyles } = getWidgetIconStyles(widget);
 
@@ -41,13 +44,17 @@ export function WidgetActions({
             });
 
             if (result.data?.deleteWidget) {
+                removeWidget(widget.id);
                 onDelete(widget.id);
                 setShowDeleteDialog(false);
-                toast.success('Widget deleted successfully');
+                notify({
+                    type: 'success',
+                    message: 'Widget deleted successfully',
+                });
             }
         } catch (error) {
             console.error('Error deleting widget:', error);
-            toast.error('Failed to delete widget');
+            notify({ type: 'error', message: 'Failed to delete widget' });
         }
     };
 

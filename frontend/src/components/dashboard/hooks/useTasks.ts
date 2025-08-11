@@ -79,6 +79,9 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
     const setCategories = useTasksStore((s) => s.setCategories);
     const setHierarchy = useTasksStore((s) => s.setHierarchy);
     const reorderTaskLocal = useTasksStore((s) => s.reorderTaskLocal);
+    const upsertTaskLocal = useTasksStore((s) => s.upsertTask);
+    const removeTaskLocal = useTasksStore((s) => s.removeTask);
+    const toggleCompleteLocal = useTasksStore((s) => s.toggleCompleteLocal);
 
     const {
         data: categoriesData,
@@ -147,14 +150,18 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 displayOrder: taskData.displayOrder,
             };
 
-            await createTaskMutation({
+            const result = await createTaskMutation({
                 variables: { input },
                 onCompleted: () => {
                     void refetchHierarchy();
                 },
             });
+            if (result.data?.createTask) {
+                const created = convertTask(result.data.createTask);
+                upsertTaskLocal(created);
+            }
         },
-        [createTaskMutation, refetchHierarchy],
+        [createTaskMutation, refetchHierarchy, upsertTaskLocal],
     );
 
     const updateTask = useCallback(
@@ -184,18 +191,22 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 }),
             };
 
-            await updateTaskMutation({
+            const result = await updateTaskMutation({
                 variables: { input },
                 onCompleted: () => {
                     void refetchHierarchy();
                 },
             });
+            if (result.data?.updateTask) {
+                upsertTaskLocal(convertTask(result.data.updateTask));
+            }
         },
-        [updateTaskMutation, refetchHierarchy],
+        [updateTaskMutation, refetchHierarchy, upsertTaskLocal],
     );
 
     const toggleTaskCompletion = useCallback(
         async (id: string) => {
+            toggleCompleteLocal(id);
             await toggleTaskCompletionMutation({
                 variables: { id: parseInt(id, 10) },
                 onCompleted: () => {
@@ -203,11 +214,12 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 },
             });
         },
-        [toggleTaskCompletionMutation, refetchHierarchy],
+        [toggleTaskCompletionMutation, refetchHierarchy, toggleCompleteLocal],
     );
 
     const deleteTask = useCallback(
         async (id: string) => {
+            removeTaskLocal(id);
             await deleteTaskMutation({
                 variables: { id: parseInt(id, 10) },
                 onCompleted: () => {
@@ -215,7 +227,7 @@ export const useTasks = (filter?: TasksFilterInput): UseTasksReturn => {
                 },
             });
         },
-        [deleteTaskMutation, refetchHierarchy],
+        [deleteTaskMutation, refetchHierarchy, removeTaskLocal],
     );
 
     const reorderTask = useCallback(

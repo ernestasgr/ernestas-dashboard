@@ -3,6 +3,9 @@ import {
     useGetWidgetsQuery,
     useUpdateWidgetLayoutMutation,
 } from '@/generated/Widgets.generated';
+import { appEvents } from '@/lib/events/app-events';
+import { createWidgetLayoutService } from '@/lib/services/widget-layout-service';
+import { useWidgetStore } from '@/lib/stores/widget-store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import GridLayout from 'react-grid-layout';
 
@@ -11,6 +14,8 @@ export const useWidgetLayout = () => {
     const [, setPreviousLayout] = useState<GridLayout.Layout[]>([]);
     const layoutUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedLayoutRef = useRef<GridLayout.Layout[]>([]);
+    const serviceRef = useRef(createWidgetLayoutService());
+    const updateLayoutLocal = useWidgetStore((s) => s.updateLayoutLocal);
 
     const { data: meData } = useMeQuery();
     const [updateWidgetLayout] = useUpdateWidgetLayoutMutation();
@@ -48,90 +53,80 @@ export const useWidgetLayout = () => {
             }));
             setPreviousLayout(layout);
             lastSavedLayoutRef.current = layout;
+            serviceRef.current.setInitialLayout(layout);
         }
     }, [widgetsData?.widgets]);
 
     useEffect(() => {
+        const to = layoutUpdateTimeoutRef.current;
         return () => {
-            if (layoutUpdateTimeoutRef.current) {
-                clearTimeout(layoutUpdateTimeoutRef.current);
-            }
+            if (to) clearTimeout(to);
         };
     }, []);
 
     const debouncedUpdateLayout = useCallback(
         (layout: GridLayout.Layout[]) => {
-            if (layoutUpdateTimeoutRef.current) {
-                clearTimeout(layoutUpdateTimeoutRef.current);
-            }
-
-            layoutUpdateTimeoutRef.current = setTimeout(() => {
-                const changedItems = layout.filter((item) => {
-                    const prevItem = lastSavedLayoutRef.current.find(
-                        (prev) => prev.i === item.i,
-                    );
-                    return (
-                        !prevItem ||
-                        prevItem.x !== item.x ||
-                        prevItem.y !== item.y ||
-                        prevItem.w !== item.w ||
-                        prevItem.h !== item.h
-                    );
-                });
-
-                if (changedItems.length > 0) {
-                    changedItems.forEach((item) => {
-                        const currentWidget = widgetsData?.widgets.find(
-                            (widget) => widget.id === item.i,
-                        );
-
-                        updateWidgetLayout({
-                            variables: {
-                                input: {
-                                    id: item.i,
-                                    x: item.x,
-                                    y: item.y,
-                                    width: item.w,
-                                    height: item.h,
-                                },
-                            },
-                            optimisticResponse: currentWidget
-                                ? {
-                                      updateWidgetLayout: {
-                                          __typename: 'Widget' as const,
-                                          id: item.i,
-                                          type: currentWidget.type,
-                                          title: currentWidget.title,
-                                          x: item.x,
-                                          y: item.y,
-                                          width: item.w,
-                                          height: item.h,
-                                          backgroundColor:
-                                              currentWidget.backgroundColor,
-                                          textColor: currentWidget.textColor,
-                                          iconColor: currentWidget.iconColor,
-                                          backgroundImage:
-                                              currentWidget.backgroundImage,
-                                          config: currentWidget.config,
-                                      },
-                                  }
-                                : undefined,
-                        }).catch((error: unknown) => {
-                            console.error(
-                                'Error updating widget layout:',
-                                error,
-                            );
-                        });
+            serviceRef.current.scheduleSave(layout, async (changed) => {
+                for (const item of changed) {
+                    appEvents.emit('widget:layout:changed', {
+                        id: item.i,
+                        x: item.x,
+                        y: item.y,
+                        width: item.w,
+                        height: item.h,
                     });
 
-                    lastSavedLayoutRef.current = layout;
+                    const currentWidget = widgetsData?.widgets.find(
+                        (w) => w.id === item.i,
+                    );
+                    await updateWidgetLayout({
+                        variables: {
+                            input: {
+                                id: item.i,
+                                x: item.x,
+                                y: item.y,
+                                width: item.w,
+                                height: item.h,
+                            },
+                        },
+                        optimisticResponse: currentWidget
+                            ? {
+                                  updateWidgetLayout: {
+                                      __typename: 'Widget' as const,
+                                      id: item.i,
+                                      type: currentWidget.type,
+                                      title: currentWidget.title,
+                                      x: item.x,
+                                      y: item.y,
+                                      width: item.w,
+                                      height: item.h,
+                                      backgroundColor:
+                                          currentWidget.backgroundColor,
+                                      textColor: currentWidget.textColor,
+                                      iconColor: currentWidget.iconColor,
+                                      backgroundImage:
+                                          currentWidget.backgroundImage,
+                                      config: currentWidget.config,
+                                  },
+                              }
+                            : undefined,
+                    });
                 }
-            }, 300);
+                lastSavedLayoutRef.current = layout;
+            });
         },
         [updateWidgetLayout, widgetsData?.widgets],
     );
 
     const handleLayoutChange = (layout: GridLayout.Layout[]) => {
+        for (const item of layout) {
+            updateLayoutLocal(item.i, {
+                x: item.x,
+                y: item.y,
+                width: item.w,
+                height: item.h,
+            });
+        }
         debouncedUpdateLayout(layout);
     };
 

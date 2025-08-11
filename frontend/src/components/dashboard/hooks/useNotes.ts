@@ -20,8 +20,9 @@ import {
     UpdateNoteInput,
     UpdateNoteLayoutInput,
 } from '@/generated/types';
+import { useNotesWidgetStore } from '@/lib/stores/notes-store';
 import { ApolloError } from '@apollo/client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export interface Note {
     id: string;
@@ -116,15 +117,24 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
     const [testObsidianConnectionMutation] =
         useTestObsidianConnectionMutation();
 
-    const [autoSyncConfig, setAutoSyncConfig] = useState<{
-        apiUrl: string;
-        authKey: string;
-    } | null>(null);
-    const [hasAutoSynced, setHasAutoSynced] = useState(false);
+    const {
+        setNotes,
+        upsertNote,
+        removeNote,
+        updateNoteLayoutLocal,
+        notes,
+        autoSyncConfig,
+        hasAutoSynced,
+        enableAutoSync: enableAutoSyncInStore,
+        disableAutoSync: disableAutoSyncInStore,
+        markAutoSynced,
+    } = useNotesWidgetStore(widgetId);
 
-    const notes = useMemo(() => {
-        return data?.notes.map(convertNote) ?? [];
-    }, [data?.notes]);
+    useEffect(() => {
+        if (data?.notes) {
+            setNotes(data.notes.map(convertNote));
+        }
+    }, [data?.notes, setNotes]);
 
     const createNote = useCallback(
         async (
@@ -149,12 +159,17 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                     obsidianAuthKey: syncConfig.authKey,
                 };
 
-                await createNoteWithObsidianSyncMutation({
+                const result = await createNoteWithObsidianSyncMutation({
                     variables: { input },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.createNoteWithObsidianSync) {
+                    upsertNote(
+                        convertNote(result.data.createNoteWithObsidianSync),
+                    );
+                }
             } else {
                 const input: CreateNoteInput = {
                     title: noteData.title,
@@ -167,12 +182,15 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                     height: noteData.height,
                 };
 
-                await createNoteMutation({
+                const result = await createNoteMutation({
                     variables: { input },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.createNote) {
+                    upsertNote(convertNote(result.data.createNote));
+                }
             }
         },
         [
@@ -180,6 +198,7 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
             createNoteWithObsidianSyncMutation,
             refetch,
             autoSyncConfig,
+            upsertNote,
         ],
     );
 
@@ -222,12 +241,17 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                     obsidianAuthKey: syncConfig.authKey,
                 };
 
-                await updateNoteWithObsidianSyncMutation({
+                const result = await updateNoteWithObsidianSyncMutation({
                     variables: { input },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.updateNoteWithObsidianSync) {
+                    upsertNote(
+                        convertNote(result.data.updateNoteWithObsidianSync),
+                    );
+                }
             } else {
                 const input: UpdateNoteInput = {
                     id,
@@ -250,12 +274,15 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                     }),
                 };
 
-                await updateNoteMutation({
+                const result = await updateNoteMutation({
                     variables: { input },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.updateNote) {
+                    upsertNote(convertNote(result.data.updateNote));
+                }
             }
         },
         [
@@ -263,6 +290,7 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
             updateNoteWithObsidianSyncMutation,
             refetch,
             autoSyncConfig,
+            upsertNote,
         ],
     );
     const updateNoteLayout = useCallback(
@@ -277,6 +305,13 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                 width: layout.width,
                 height: layout.height,
             };
+
+            updateNoteLayoutLocal(id, {
+                x: layout.x,
+                y: layout.y,
+                width: layout.width,
+                height: layout.height,
+            });
 
             await updateNoteLayoutMutation({
                 variables: { input },
@@ -300,7 +335,7 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                 },
             });
         },
-        [updateNoteLayoutMutation, widgetId],
+        [updateNoteLayoutMutation, widgetId, updateNoteLayoutLocal],
     );
 
     const deleteNote = useCallback(
@@ -319,19 +354,25 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
                     obsidianAuthKey: syncConfig.authKey,
                 };
 
-                await deleteNoteWithObsidianSyncMutation({
+                const result = await deleteNoteWithObsidianSyncMutation({
                     variables: { input },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.deleteNoteWithObsidianSync) {
+                    removeNote(id);
+                }
             } else {
-                await deleteNoteMutation({
+                const result = await deleteNoteMutation({
                     variables: { id },
                     onCompleted: () => {
                         void refetch();
                     },
                 });
+                if (result.data?.deleteNote) {
+                    removeNote(id);
+                }
             }
         },
         [
@@ -339,6 +380,7 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
             deleteNoteWithObsidianSyncMutation,
             refetch,
             autoSyncConfig,
+            removeNote,
         ],
     );
 
@@ -431,35 +473,41 @@ export const useNotes = (widgetId: string): UseNotesReturn => {
         [testObsidianConnectionMutation],
     );
 
-    const enableAutoSync = useCallback((apiUrl: string, authKey: string) => {
-        setAutoSyncConfig({ apiUrl, authKey });
-        setHasAutoSynced(false);
-    }, []);
+    const enableAutoSync = useCallback(
+        (apiUrl: string, authKey: string) => {
+            enableAutoSyncInStore(apiUrl, authKey);
+        },
+        [enableAutoSyncInStore],
+    );
 
     const disableAutoSync = useCallback(() => {
-        setAutoSyncConfig(null);
-        setHasAutoSynced(false);
-    }, []);
+        disableAutoSyncInStore();
+    }, [disableAutoSyncInStore]);
 
     const isAutoSyncEnabled = autoSyncConfig !== null;
 
     useEffect(() => {
         if (autoSyncConfig && !hasAutoSynced && !loading) {
-            const performAutoSync = async () => {
+            const run = async () => {
                 try {
                     await syncObsidianVault(
                         autoSyncConfig.apiUrl,
                         autoSyncConfig.authKey,
                     );
-                    setHasAutoSynced(true);
+                    markAutoSynced();
                 } catch (error) {
                     console.error('Auto-sync failed:', error);
                 }
             };
-
-            void performAutoSync();
+            void run();
         }
-    }, [autoSyncConfig, hasAutoSynced, loading, syncObsidianVault]);
+    }, [
+        autoSyncConfig,
+        hasAutoSynced,
+        loading,
+        syncObsidianVault,
+        markAutoSynced,
+    ]);
 
     return {
         notes,

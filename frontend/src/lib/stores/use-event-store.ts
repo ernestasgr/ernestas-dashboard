@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
-type EventListener = () => void;
+export type EventCallback<Payload = unknown> = (payload?: Payload) => void;
 
-interface EventStore {
-    listeners: Record<string, Set<EventListener>>;
-    subscribe: (event: string, fn: EventListener) => () => void;
-    trigger: (event: string) => void;
+export interface EventStore {
+    listeners: Partial<Record<string, Set<EventCallback>>>;
+    subscribe: (event: string, fn: EventCallback) => () => void;
+    trigger: (event: string, payload?: unknown) => void;
     clear: (event: string) => void;
 }
 
@@ -27,7 +27,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
         return () => {
             set((state) => {
                 const current =
-                    state.listeners[event] ?? new Set<EventListener>();
+                    state.listeners[event] ?? new Set<EventCallback>();
                 const next = new Set(current);
                 next.delete(fn);
                 if (next.size === 0) {
@@ -45,10 +45,16 @@ export const useEventStore = create<EventStore>((set, get) => ({
         };
     },
 
-    trigger: (event) => {
+    trigger: (event, payload) => {
         const listeners = get().listeners[event];
+        if (!(listeners && listeners.size > 0)) return;
         listeners.forEach((fn) => {
-            fn();
+            try {
+                fn(payload);
+            } catch (err) {
+                // Isolate listener errors so one faulty listener doesn't break others
+                console.error(`[event:${event}] listener error:`, err);
+            }
         });
     },
 
@@ -60,3 +66,24 @@ export const useEventStore = create<EventStore>((set, get) => ({
         });
     },
 }));
+
+export function createTypedEventHelpers<
+    Events extends Record<string, unknown>,
+>() {
+    return {
+        on<K extends keyof Events & string>(
+            event: K,
+            fn: (payload: Events[K]) => void,
+        ) {
+            return useEventStore
+                .getState()
+                .subscribe(event, fn as unknown as EventCallback);
+        },
+        emit<K extends keyof Events & string>(event: K, payload: Events[K]) {
+            useEventStore.getState().trigger(event, payload);
+        },
+        clear(event: keyof Events & string) {
+            useEventStore.getState().clear(event);
+        },
+    };
+}

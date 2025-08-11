@@ -2,7 +2,16 @@ import type { Note } from '@/components/dashboard/hooks/useNotes';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 
+interface LayoutEntry {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 interface NotesWidgetState {
+    notes: Note[];
+    layout: Partial<Record<string, LayoutEntry>>;
     isCreateModalOpen: boolean;
     isViewModalOpen: boolean;
     selectedNote: Note | null;
@@ -15,9 +24,16 @@ interface NotesWidgetState {
     containerWidth: number;
 
     isSyncing: boolean;
+
+    autoSyncConfig: { apiUrl: string; authKey: string } | null;
+    hasAutoSynced: boolean;
 }
 
 interface NotesWidgetActions {
+    setNotes: (notes: Note[]) => void;
+    upsertNote: (note: Note) => void;
+    removeNote: (id: string) => void;
+    updateNoteLayoutLocal: (id: string, layout: LayoutEntry) => void;
     openCreateModal: () => void;
     closeCreateModal: () => void;
     openEditModal: (note: Note) => void;
@@ -32,6 +48,10 @@ interface NotesWidgetActions {
 
     setSyncing: (syncing: boolean) => void;
 
+    enableAutoSync: (apiUrl: string, authKey: string) => void;
+    disableAutoSync: () => void;
+    markAutoSynced: () => void;
+
     reset: () => void;
 }
 
@@ -40,6 +60,8 @@ type NotesWidgetStore = NotesWidgetState & NotesWidgetActions;
 const createNotesWidgetStore = () =>
     create<NotesWidgetStore>()(
         subscribeWithSelector((set) => ({
+            notes: [],
+            layout: {},
             isCreateModalOpen: false,
             isViewModalOpen: false,
             selectedNote: null,
@@ -49,6 +71,67 @@ const createNotesWidgetStore = () =>
             showFilters: false,
             containerWidth: 400,
             isSyncing: false,
+            autoSyncConfig: null,
+            hasAutoSynced: false,
+
+            setNotes: (notes: Note[]) => {
+                set((state) => {
+                    const nextLayout = { ...state.layout };
+                    for (const n of notes) {
+                        if (
+                            typeof n.x === 'number' &&
+                            typeof n.y === 'number' &&
+                            typeof n.width === 'number' &&
+                            typeof n.height === 'number'
+                        ) {
+                            nextLayout[n.id] = {
+                                x: n.x,
+                                y: n.y,
+                                width: n.width,
+                                height: n.height,
+                            };
+                        }
+                    }
+                    return { notes, layout: nextLayout };
+                });
+            },
+
+            upsertNote: (note: Note) => {
+                set((state) => {
+                    const idx = state.notes.findIndex((n) => n.id === note.id);
+                    const notes = [...state.notes];
+                    if (idx === -1) notes.push(note);
+                    else notes[idx] = note;
+                    const layout = { ...state.layout };
+                    if (
+                        typeof note.x === 'number' &&
+                        typeof note.y === 'number' &&
+                        typeof note.width === 'number' &&
+                        typeof note.height === 'number'
+                    ) {
+                        layout[note.id] = {
+                            x: note.x,
+                            y: note.y,
+                            width: note.width,
+                            height: note.height,
+                        };
+                    }
+                    return { notes, layout };
+                });
+            },
+
+            removeNote: (id: string) => {
+                set((state) => {
+                    const notes = state.notes.filter((n) => n.id !== id);
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { [id]: _, ...rest } = state.layout;
+                    return { notes, layout: rest };
+                });
+            },
+
+            updateNoteLayoutLocal: (id, layout) => {
+                set((state) => ({ layout: { ...state.layout, [id]: layout } }));
+            },
 
             openCreateModal: () => {
                 console.log('[NotesStore] openCreateModal');
@@ -143,9 +226,26 @@ const createNotesWidgetStore = () =>
                 set({ isSyncing: syncing });
             },
 
+            enableAutoSync: (apiUrl, authKey) => {
+                console.log('[NotesStore] enableAutoSync');
+                set({
+                    autoSyncConfig: { apiUrl, authKey },
+                    hasAutoSynced: false,
+                });
+            },
+            disableAutoSync: () => {
+                console.log('[NotesStore] disableAutoSync');
+                set({ autoSyncConfig: null, hasAutoSynced: false });
+            },
+            markAutoSynced: () => {
+                set({ hasAutoSynced: true });
+            },
+
             reset: () => {
                 console.log('[NotesStore] reset');
                 set({
+                    notes: [],
+                    layout: {},
                     isCreateModalOpen: false,
                     isViewModalOpen: false,
                     selectedNote: null,
@@ -184,4 +284,12 @@ export const getRegisteredWidgetIds = () => {
     const ids = Object.keys(storeRegistry);
     console.log('[NotesStore] Registered widget IDs:', ids);
     return ids;
+};
+
+// Testing/utility: access the underlying zustand store instance (non-hook)
+export const getNotesWidgetStoreInstance = (widgetId: string) => {
+    if (!(widgetId in storeRegistry)) {
+        storeRegistry[widgetId] = createNotesWidgetStore();
+    }
+    return storeRegistry[widgetId];
 };

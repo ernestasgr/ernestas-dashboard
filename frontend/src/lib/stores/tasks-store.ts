@@ -23,6 +23,9 @@ export interface TasksStoreState {
     hierarchy: Task[];
     loading: boolean;
     error?: string | null;
+    lastError?: string | null;
+    pendingMutationId?: string | null;
+    rollbackSnapshot?: Task[] | null;
 }
 
 export interface TasksStoreActions {
@@ -157,6 +160,9 @@ export const useTasksStore = create<TasksStore>()(
         hierarchy: [],
         loading: false,
         error: null,
+        lastError: null,
+        pendingMutationId: null,
+        rollbackSnapshot: null,
 
         setCategories: (categories) => {
             set({ categories });
@@ -176,8 +182,12 @@ export const useTasksStore = create<TasksStore>()(
             if (!byId) {
                 // Insert as root if parentTaskId is not set, otherwise insert into parent's subTasks
                 set((state) => {
+                    const rollback = state.hierarchy;
                     if (task.parentTaskId == null) {
-                        return { hierarchy: [...state.hierarchy, task] };
+                        return {
+                            hierarchy: [...state.hierarchy, task],
+                            rollbackSnapshot: rollback,
+                        };
                     }
                     // insert under parent
                     let parent: Task | undefined = undefined;
@@ -188,7 +198,11 @@ export const useTasksStore = create<TasksStore>()(
                             break;
                         }
                     }
-                    if (!parent) return { hierarchy: [...state.hierarchy] };
+                    if (!parent)
+                        return {
+                            hierarchy: [...state.hierarchy],
+                            rollbackSnapshot: rollback,
+                        };
                     const updated = updateTaskTree(
                         state.hierarchy,
                         (t) => t.id === parent.id,
@@ -197,11 +211,12 @@ export const useTasksStore = create<TasksStore>()(
                             subTasks: [...(t.subTasks ?? []), task],
                         }),
                     );
-                    return { hierarchy: updated };
+                    return { hierarchy: updated, rollbackSnapshot: rollback };
                 });
             } else {
                 // Replace existing task data in-place
                 set((state) => ({
+                    rollbackSnapshot: state.hierarchy,
                     hierarchy: updateTaskTree(
                         state.hierarchy,
                         (t) => t.id === task.id,
@@ -213,12 +228,14 @@ export const useTasksStore = create<TasksStore>()(
 
         removeTask: (id) => {
             set((state) => ({
+                rollbackSnapshot: state.hierarchy,
                 hierarchy: removeFromTree(state.hierarchy, id),
             }));
         },
 
         toggleCompleteLocal: (id) => {
             set((state) => ({
+                rollbackSnapshot: state.hierarchy,
                 hierarchy: updateTaskTree(
                     state.hierarchy,
                     (t) => t.id === id,
@@ -257,7 +274,7 @@ export const useTasksStore = create<TasksStore>()(
                     updatedNode,
                 );
                 const sorted = sortTreeByDisplayOrder(withInserted);
-                return { hierarchy: sorted };
+                return { rollbackSnapshot: state.hierarchy, hierarchy: sorted };
             });
         },
 
@@ -314,7 +331,15 @@ export const useTasksStore = create<TasksStore>()(
         },
 
         reset: () => {
-            set({ categories: [], hierarchy: [], loading: false, error: null });
+            set({
+                categories: [],
+                hierarchy: [],
+                loading: false,
+                error: null,
+                lastError: null,
+                pendingMutationId: null,
+                rollbackSnapshot: null,
+            });
         },
     })),
 );

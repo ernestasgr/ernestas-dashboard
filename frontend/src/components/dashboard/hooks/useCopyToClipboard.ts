@@ -1,5 +1,5 @@
+import { useUIStore } from '@/lib/stores/ui-store';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
 interface UseCopyToClipboardOptions {
     successMessage?: string;
@@ -12,19 +12,20 @@ export const useCopyToClipboard = (options?: UseCopyToClipboardOptions) => {
         errorMessage = 'Failed to copy to clipboard',
     } = options ?? {};
 
+    const notify = useUIStore((s) => s.notify);
     const copyToClipboard = useCallback(
         async (text: string): Promise<boolean> => {
             try {
                 await navigator.clipboard.writeText(text);
-                toast.success(successMessage);
+                notify({ type: 'success', message: successMessage });
                 return true;
             } catch (error) {
                 console.error('Failed to copy to clipboard:', error);
-                toast.error(errorMessage);
+                notify({ type: 'error', message: errorMessage });
                 return false;
             }
         },
-        [successMessage, errorMessage],
+        [successMessage, errorMessage, notify],
     );
 
     return { copyToClipboard };
