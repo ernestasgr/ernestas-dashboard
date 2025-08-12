@@ -27,11 +27,8 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <div className='flex min-h-screen flex-col items-center justify-center'>
-                <Skeleton
-                    className='mb-4 h-8 w-60'
-                    data-testid='skeleton-title'
-                />
+            <div className='flex min-h-screen flex-col items-center justify-center gap-3'>
+                <Skeleton className='h-8 w-60' data-testid='skeleton-title' />
                 <Skeleton
                     className='h-6 w-80'
                     data-testid='skeleton-subtitle'
@@ -43,10 +40,16 @@ export default function Dashboard() {
     if (error) {
         return (
             <div className='flex min-h-screen flex-col items-center justify-center'>
-                <h1 className='text-3xl font-bold' data-testid='error-heading'>
-                    Error
+                <h1
+                    className='text-3xl font-semibold'
+                    data-testid='error-heading'
+                >
+                    Something went wrong
                 </h1>
-                <p className='mt-4 text-red-500' data-testid='error-message'>
+                <p
+                    className='text-muted-foreground mt-2'
+                    data-testid='error-message'
+                >
                     {error || 'An unexpected error occurred.'}
                 </p>
             </div>
@@ -54,7 +57,10 @@ export default function Dashboard() {
     }
 
     return (
-        <div data-testid='dashboard-heading'>
+        <div
+            data-testid='dashboard-heading'
+            className='flex min-h-dvh w-full flex-col p-3'
+        >
             <Grid />
         </div>
     );

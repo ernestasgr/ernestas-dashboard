@@ -64,7 +64,8 @@ export function WidgetActions({
                 <div className='flex space-x-1'>
                     <Button
                         size='icon'
-                        className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
+                        variant='outline'
+                        className='bg-background/80 supports-[backdrop-filter]:bg-background/60 h-7 w-7 cursor-pointer shadow-sm backdrop-blur transition-all duration-200 hover:scale-[1.03]'
                         onClick={() => {
                             onEdit(widget);
                         }}
@@ -75,12 +76,13 @@ export function WidgetActions({
                                 : {}),
                         }}
                     >
-                        <Edit2 className='h-3 w-3' />
+                        <Edit2 className='h-3.5 w-3.5' />
                     </Button>
                     {onStyleEdit && (
                         <Button
                             size='icon'
-                            className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
+                            variant='outline'
+                            className='bg-background/80 supports-[backdrop-filter]:bg-background/60 h-7 w-7 cursor-pointer shadow-sm backdrop-blur transition-all duration-200 hover:scale-[1.03]'
                             onClick={() => {
                                 onStyleEdit(widget);
                             }}
@@ -91,12 +93,13 @@ export function WidgetActions({
                                     : {}),
                             }}
                         >
-                            <Palette className='h-3 w-3' />
+                            <Palette className='h-3.5 w-3.5' />
                         </Button>
                     )}
                     <Button
                         size='icon'
-                        className='h-6 w-6 cursor-pointer shadow-lg transition-all duration-200 hover:scale-110 hover:brightness-75'
+                        variant='outline'
+                        className='bg-background/80 supports-[backdrop-filter]:bg-background/60 h-7 w-7 cursor-pointer shadow-sm backdrop-blur transition-all duration-200 hover:scale-[1.03]'
                         onClick={() => {
                             setShowDeleteDialog(true);
                         }}
@@ -107,7 +110,7 @@ export function WidgetActions({
                                 : {}),
                         }}
                     >
-                        <Trash2 className='h-3 w-3' />
+                        <Trash2 className='h-3.5 w-3.5' />
                     </Button>
                 </div>
             </div>

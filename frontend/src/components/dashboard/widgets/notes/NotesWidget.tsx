@@ -309,12 +309,12 @@ const NotesContent = () => {
                             config.obsidianApiUrl &&
                             config.obsidianAuthKey && (
                                 <Button
-                                    variant='ghost'
-                                    size='sm'
+                                    variant='outline'
+                                    size='icon'
                                     onClick={() => {
                                         void handleObsidianSync();
                                     }}
-                                    className='h-8 w-8 p-0'
+                                    className='bg-background/70 supports-[backdrop-filter]:bg-background/60 h-8 w-8 backdrop-blur'
                                     disabled={isSyncing}
                                     title='Sync with Obsidian'
                                 >
@@ -324,18 +324,18 @@ const NotesContent = () => {
                                 </Button>
                             )}
                         <Button
-                            variant='ghost'
-                            size='sm'
+                            variant='outline'
+                            size='icon'
                             onClick={toggleFilters}
-                            className='h-8 w-8 p-0'
+                            className='bg-background/70 supports-[backdrop-filter]:bg-background/60 h-8 w-8 backdrop-blur'
                         >
                             <Filter className='h-4 w-4' />
                         </Button>
                         <Button
-                            variant='ghost'
-                            size='sm'
+                            variant='outline'
+                            size='icon'
                             onClick={openCreateModal}
-                            className='h-8 w-8 p-0'
+                            className='bg-background/70 supports-[backdrop-filter]:bg-background/60 h-8 w-8 backdrop-blur'
                         >
                             <Plus className='h-4 w-4' />
                         </Button>
@@ -360,8 +360,8 @@ const NotesContent = () => {
                 {filteredNotes.length === 0 ? (
                     <div className='flex h-full items-center justify-center text-center'>
                         <div>
-                            <StickyNote className='mx-auto h-12 w-12 text-gray-400' />
-                            <p className='mt-2 text-sm text-gray-500'>
+                            <StickyNote className='text-muted-foreground mx-auto h-12 w-12' />
+                            <p className='text-muted-foreground mt-2 text-sm'>
                                 No notes yet. Click the + button to create one!
                             </p>
                         </div>
@@ -377,8 +377,8 @@ const NotesContent = () => {
                             cols={gridColumns}
                             rowHeight={80}
                             width={containerWidth}
-                            margin={[8, 8]}
-                            containerPadding={[0, 0]}
+                            margin={[10, 10]}
+                            containerPadding={[2, 2]}
                             isDraggable={true}
                             isResizable={true}
                             useCSSTransforms={true}
@@ -411,7 +411,7 @@ const NotesContent = () => {
                         </GridLayout>
                     </div>
                 ) : (
-                    <div className='h-full space-y-3 overflow-y-auto'>
+                    <div className='h-full space-y-3.5 overflow-y-auto px-1'>
                         {filteredNotes.map((note) => (
                             <NoteCard
                                 key={note.id}

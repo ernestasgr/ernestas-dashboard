@@ -235,7 +235,7 @@ export const TaskList = ({
             if (tasks.length === 0) return null;
 
             return (
-                <div className='space-y-1'>
+                <div className='space-y-1.5'>
                     {tasks.map((task, index) => (
                         <div
                             key={task.id}
@@ -507,7 +507,9 @@ export const TaskList = ({
     if (loading) {
         return (
             <div className='flex items-center justify-center py-8'>
-                <div className='text-sm opacity-70'>Loading tasks...</div>
+                <div className='text-muted-foreground text-sm'>
+                    Loading tasks...
+                </div>
             </div>
         );
     }
@@ -515,7 +517,9 @@ export const TaskList = ({
     if (tasks.length === 0) {
         return (
             <div className='flex items-center justify-center py-8'>
-                <div className='text-sm opacity-70'>No tasks yet</div>
+                <div className='text-muted-foreground text-sm'>
+                    No tasks yet
+                </div>
             </div>
         );
     }
@@ -544,7 +548,7 @@ export const TaskList = ({
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className='space-y-1'>
+            <div className='space-y-1.5'>
                 {flatTasks.map((task) => {
                     const draggedTasksIds = activeTaskId
                         ? getTaskWithSubtasks(activeTaskId).map((t) => t.id)

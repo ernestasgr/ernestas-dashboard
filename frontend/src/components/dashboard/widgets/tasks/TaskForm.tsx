@@ -76,7 +76,7 @@ export const TaskForm = ({ itemColors, onCreateTask }: TaskFormProps) => {
                     <button
                         onClick={handleFormSubmit}
                         disabled={!watchedText.trim()}
-                        className='rounded px-2 py-1 text-xs hover:opacity-80 disabled:opacity-50'
+                        className='rounded px-2 py-1 text-xs transition-opacity hover:opacity-90 disabled:opacity-50'
                         style={{
                             backgroundColor: itemColors.accent,
                             color: 'white',
@@ -86,7 +86,7 @@ export const TaskForm = ({ itemColors, onCreateTask }: TaskFormProps) => {
                     </button>
                     <button
                         onClick={handleCancel}
-                        className='rounded px-2 py-1 text-xs hover:opacity-80'
+                        className='rounded px-2 py-1 text-xs transition-opacity hover:opacity-80'
                         style={{
                             color: itemColors.secondaryText,
                         }}

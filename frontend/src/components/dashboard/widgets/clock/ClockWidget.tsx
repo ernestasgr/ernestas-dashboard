@@ -44,17 +44,17 @@ const ClockContent = () => {
                 <BaseWidget.Icon icon={Clock} className='h-8 w-8' />
             </div>
             <div className='text-center'>
-                <BaseWidget.Title className='mb-2 text-lg font-semibold'>
+                <BaseWidget.Title className='mb-1 text-base font-medium'>
                     {widget.title}
                 </BaseWidget.Title>
                 <div
-                    className='text-4xl font-bold'
+                    className='text-5xl font-semibold tracking-tight'
                     style={{ color: styling.textColor ?? undefined }}
                 >
                     {formatTime(time)}
                 </div>
                 <div
-                    className='mt-2 text-sm font-medium'
+                    className='mt-1 text-sm opacity-80'
                     style={{ color: styling.textColor ?? undefined }}
                 >
                     {time.toLocaleDateString()}

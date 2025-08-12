@@ -104,7 +104,7 @@ export const TaskContent = ({
     return (
         <div className='task-item flex h-full flex-col'>
             <div
-                className={`group/task flex w-full items-center rounded-md transition-all hover:shadow-sm ${
+                className={`group/task flex w-full items-center rounded-md transition-colors ${
                     task.completed ? 'opacity-70' : ''
                 } ${isPotentialParent && isDragActive ? 'relative' : ''}`}
                 style={{
@@ -170,7 +170,7 @@ export const TaskContent = ({
                     onClick={() => {
                         if (!isOverlay) void onToggle(task.id);
                     }}
-                    className={`mr-2 flex h-4 w-4 items-center justify-center rounded border-2 transition-all ${
+                    className={`mr-2 flex h-4 w-4 items-center justify-center rounded border transition-colors ${
                         task.completed
                             ? 'border-green-500 bg-green-500'
                             : 'border-gray-300 hover:border-gray-400'
@@ -192,7 +192,7 @@ export const TaskContent = ({
 
                 <div className='min-w-0 flex-1'>
                     <span
-                        className={`block truncate text-sm ${
+                        className={`block truncate text-sm leading-5 ${
                             task.completed ? 'line-through' : ''
                         }`}
                         style={{

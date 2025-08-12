@@ -221,7 +221,7 @@ export const NoteModal = ({
                                     className='max-h-64 min-h-[12rem] overflow-y-auto rounded-md border p-3'
                                     style={{
                                         backgroundColor:
-                                            widgetColors?.darkBackground ??
+                                            widgetColors?.lightBackground ??
                                             '#F9FAFB',
                                         borderColor:
                                             widgetColors?.border ?? '#E5E7EB',

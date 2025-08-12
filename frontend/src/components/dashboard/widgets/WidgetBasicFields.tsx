@@ -51,6 +51,11 @@ export function WidgetBasicFields({ form, isEditing }: WidgetBasicFieldsProps) {
                         {errors.title.message}
                     </p>
                 )}
+                {!errors.title && (
+                    <p className='text-muted-foreground text-xs'>
+                        Give your widget a short, descriptive title
+                    </p>
+                )}
             </div>
 
             {!isEditing && (
@@ -65,7 +70,7 @@ export function WidgetBasicFields({ form, isEditing }: WidgetBasicFieldsProps) {
                                 onValueChange={field.onChange}
                             >
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder='Choose a widget type' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {WIDGET_TYPES.map((widgetType) => (

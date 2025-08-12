@@ -54,7 +54,7 @@ export const NoteCard = ({
 
     return (
         <div
-            className={`group relative flex h-full flex-col rounded-lg border p-4 shadow-sm transition-all hover:shadow-md ${className}`}
+            className={`group relative flex h-full flex-col rounded-lg border p-4 shadow-sm transition-all hover:-translate-y-[1px] hover:shadow-md ${className}`}
             style={cardStyles}
         >
             <div className='relative mb-2 flex items-start justify-between'>

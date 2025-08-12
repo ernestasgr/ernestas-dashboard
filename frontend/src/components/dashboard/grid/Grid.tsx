@@ -109,20 +109,22 @@ const Grid = () => {
     });
 
     return (
-        <div className='mb-16 w-full p-4'>
+        <div className='flex min-h-0 w-full flex-1 flex-col'>
             <DashboardHeader
                 showCoordinates={showCoordinates}
                 onToggleCoordinates={handleToggleCoordinates}
                 onAddWidget={handleAddWidget}
             />
-            <div className={`relative ${showCoordinates ? 'pt-8 pl-10' : ''}`}>
+            <div
+                className={`relative min-h-0 max-w-full flex-1 overflow-y-auto ${showCoordinates ? 'pt-[30px] pl-[40px]' : ''}`}
+            >
                 <CoordinateGrid
                     showCoordinates={showCoordinates}
                     windowWidth={windowWidth}
                     widgets={widgets}
                 />
                 <GridLayout
-                    className='layout'
+                    className='layout max-w-full'
                     layout={layout}
                     cols={12}
                     rowHeight={60}
@@ -147,7 +149,7 @@ const Grid = () => {
                     }}
                 >
                     {widgets.map((widget) => (
-                        <div key={widget.id} className='relative z-10'>
+                        <div key={widget.id} className='relative z-10 min-w-0'>
                             <WidgetRenderer
                                 widget={widget}
                                 onEdit={handleEditWidget}

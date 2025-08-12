@@ -56,7 +56,7 @@ const BaseWidget = ({
     return (
         <WidgetContext.Provider value={contextValue}>
             <div
-                className={styling.containerClasses}
+                className={`${styling.containerClasses} group transition-shadow duration-200 hover:shadow-md`}
                 style={styling.containerStyles}
             >
                 <WidgetActions
@@ -65,7 +65,10 @@ const BaseWidget = ({
                     onDelete={onDelete}
                     onStyleEdit={onStyleEdit}
                 />
-                <div className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                <div
+                    className='drag-handle absolute top-2 right-2 cursor-move opacity-0 transition-opacity duration-200 group-hover:opacity-100'
+                    aria-label='Drag widget'
+                >
                     <GripVertical
                         className='h-5 w-5'
                         style={styling.iconStyles.foreground}

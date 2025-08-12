@@ -129,7 +129,7 @@ export function WidgetConfigFields({
                         }}
                     >
                         <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder='Select time format' />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value='12h'>12 Hour</SelectItem>
@@ -177,7 +177,7 @@ export function WidgetConfigFields({
                         }}
                     >
                         <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder='Choose units' />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value='metric'>Celsius</SelectItem>
@@ -326,7 +326,7 @@ export function WidgetConfigFields({
                                     }}
                                     placeholder='http://localhost:27123'
                                 />
-                                <p className='text-xs text-gray-500'>
+                                <p className='text-muted-foreground text-xs'>
                                     Make sure the Obsidian Local REST API plugin
                                     is installed and running
                                 </p>
@@ -348,7 +348,7 @@ export function WidgetConfigFields({
                                     }}
                                     placeholder='Enter your API key'
                                 />
-                                <p className='text-xs text-gray-500'>
+                                <p className='text-muted-foreground text-xs'>
                                     Found in Obsidian → Settings → Local REST
                                     API → API Key
                                 </p>
@@ -401,7 +401,7 @@ export function WidgetConfigFields({
                                     }}
                                     placeholder='My Vault'
                                 />
-                                <p className='text-xs text-gray-500'>
+                                <p className='text-muted-foreground text-xs'>
                                     Leave empty to use the default vault
                                 </p>
                             </div>

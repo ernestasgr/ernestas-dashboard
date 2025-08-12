@@ -157,7 +157,7 @@ export const TaskWidget = ({
             onDelete={onDelete}
             onStyleEdit={onStyleEdit}
         >
-            <BaseWidget.Content className='flex h-full flex-col overflow-hidden p-6'>
+            <BaseWidget.Content className='flex h-full flex-col overflow-hidden p-5'>
                 <TaskContent />
             </BaseWidget.Content>
         </BaseWidget>

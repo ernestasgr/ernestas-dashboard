@@ -38,10 +38,13 @@ export default function RootLayout({
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
+                <div className='fixed inset-0 -z-10 bg-[radial-gradient(1200px_800px_at_50%_-200px,rgba(59,130,246,0.08),transparent)]' />
                 <ReactQueryProvider>
                     <ApolloWrapper>
                         <AuthRedirectListener />
-                        <main>{children}</main>
+                        <main className='flex min-h-dvh flex-col'>
+                            {children}
+                        </main>
                         <Toaster />
                     </ApolloWrapper>
                 </ReactQueryProvider>

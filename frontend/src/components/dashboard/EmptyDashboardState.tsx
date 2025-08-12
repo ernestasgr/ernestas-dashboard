@@ -42,8 +42,10 @@ export const EmptyDashboardState = ({
                     widgets={[]}
                 />
                 <div className='space-y-4 pt-20 text-center'>
-                    <div>No widgets available</div>
-                    <div className='text-sm text-slate-600'>
+                    <div className='text-foreground/90'>
+                        No widgets available
+                    </div>
+                    <div className='text-muted-foreground text-sm'>
                         {showCoordinates
                             ? 'Use the grid coordinates to position your first widget!'
                             : 'Toggle the grid to see coordinates for positioning.'}

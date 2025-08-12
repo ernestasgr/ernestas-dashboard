@@ -160,7 +160,7 @@ export function WidgetForm({
     });
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className='flex max-h-[95vh] flex-col sm:max-h-[90vh] sm:max-w-[500px]'>
+            <DialogContent className='supports-[backdrop-filter]:bg-background/80 flex max-h-[95vh] flex-col backdrop-blur sm:max-h-[90vh] sm:max-w-[500px]'>
                 <DialogHeader className='flex-shrink-0'>
                     <DialogTitle>
                         {isEditing ? 'Edit Widget' : 'Add New Widget'}

@@ -14,7 +14,9 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps) => {
     return (
         <div className='mb-4 flex items-center justify-between'>
-            <h2 className='text-2xl font-bold'>My Dashboard</h2>
+            <h2 className='text-2xl font-semibold tracking-tight'>
+                My Dashboard
+            </h2>
             <div className='flex items-center space-x-2'>
                 <Button
                     variant={showCoordinates ? 'default' : 'outline'}

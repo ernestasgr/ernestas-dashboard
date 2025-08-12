@@ -100,7 +100,7 @@ export const TaskItem = ({
                         backgroundColor: 'transparent',
                         ...getPotentialParentStyles(),
                     }}
-                    className={`task-item-wrapper group relative rounded-md border bg-transparent transition-all duration-200 ease-out hover:shadow-md ${
+                    className={`task-item-wrapper group relative rounded-md border bg-transparent transition-all duration-200 ease-out hover:border-gray-300 hover:shadow-sm ${
                         isPotentialParent && isDragActive
                             ? 'potential-parent-highlight'
                             : ''

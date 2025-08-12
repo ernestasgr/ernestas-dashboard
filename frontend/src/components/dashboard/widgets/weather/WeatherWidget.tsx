@@ -162,7 +162,7 @@ const WeatherRefreshAction = ({ onRefresh }: { onRefresh: () => void }) => {
         <BaseWidget.CustomActions>
             <button
                 onClick={onRefresh}
-                className='transition-all duration-200 hover:scale-110'
+                className='hover:bg-background/40 rounded-md p-1 transition-all duration-200 hover:scale-110'
                 title='Refresh weather data'
             >
                 <RefreshCw

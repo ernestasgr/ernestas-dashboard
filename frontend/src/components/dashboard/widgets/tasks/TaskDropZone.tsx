@@ -33,7 +33,7 @@ export const TaskDropZone = ({
 
         const baseStyles = {
             transition: 'all 200ms ease',
-            borderRadius: '4px',
+            borderRadius: '6px',
         };
 
         if (isOver) {
@@ -49,8 +49,8 @@ export const TaskDropZone = ({
                     return {
                         ...baseStyles,
                         borderLeft: `3px solid ${itemColors.accent}`,
-                        backgroundColor: `${itemColors.accent}15`,
-                        paddingLeft: '3px',
+                        backgroundColor: `${itemColors.accent}14`,
+                        paddingLeft: '5px',
                     };
                 case 'below':
                     return {
