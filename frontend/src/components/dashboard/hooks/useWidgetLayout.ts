@@ -58,62 +58,66 @@ export const useWidgetLayout = () => {
     }, [widgetsData?.widgets]);
 
     useEffect(() => {
-        const to = layoutUpdateTimeoutRef.current;
         return () => {
+            const to = layoutUpdateTimeoutRef.current;
             if (to) clearTimeout(to);
         };
     }, []);
 
     const debouncedUpdateLayout = useCallback(
         (layout: GridLayout.Layout[]) => {
-            serviceRef.current.scheduleSave(layout, async (changed) => {
-                for (const item of changed) {
-                    appEvents.emit('widget:layout:changed', {
-                        id: item.i,
-                        x: item.x,
-                        y: item.y,
-                        width: item.w,
-                        height: item.h,
-                    });
+            const to = serviceRef.current.scheduleSave(
+                layout,
+                async (changed) => {
+                    for (const item of changed) {
+                        appEvents.emit('widget:layout:changed', {
+                            id: item.i,
+                            x: item.x,
+                            y: item.y,
+                            width: item.w,
+                            height: item.h,
+                        });
 
-                    const currentWidget = widgetsData?.widgets.find(
-                        (w) => w.id === item.i,
-                    );
-                    await updateWidgetLayout({
-                        variables: {
-                            input: {
-                                id: item.i,
-                                x: item.x,
-                                y: item.y,
-                                width: item.w,
-                                height: item.h,
+                        const currentWidget = widgetsData?.widgets.find(
+                            (w) => w.id === item.i,
+                        );
+                        await updateWidgetLayout({
+                            variables: {
+                                input: {
+                                    id: item.i,
+                                    x: item.x,
+                                    y: item.y,
+                                    width: item.w,
+                                    height: item.h,
+                                },
                             },
-                        },
-                        optimisticResponse: currentWidget
-                            ? {
-                                  updateWidgetLayout: {
-                                      __typename: 'Widget' as const,
-                                      id: item.i,
-                                      type: currentWidget.type,
-                                      title: currentWidget.title,
-                                      x: item.x,
-                                      y: item.y,
-                                      width: item.w,
-                                      height: item.h,
-                                      backgroundColor:
-                                          currentWidget.backgroundColor,
-                                      textColor: currentWidget.textColor,
-                                      iconColor: currentWidget.iconColor,
-                                      backgroundImage:
-                                          currentWidget.backgroundImage,
-                                      config: currentWidget.config,
-                                  },
-                              }
-                            : undefined,
-                    });
-                }
-                lastSavedLayoutRef.current = layout;
-            });
+                            optimisticResponse: currentWidget
+                                ? {
+                                      updateWidgetLayout: {
+                                          __typename: 'Widget' as const,
+                                          id: item.i,
+                                          type: currentWidget.type,
+                                          title: currentWidget.title,
+                                          x: item.x,
+                                          y: item.y,
+                                          width: item.w,
+                                          height: item.h,
+                                          backgroundColor:
+                                              currentWidget.backgroundColor,
+                                          textColor: currentWidget.textColor,
+                                          iconColor: currentWidget.iconColor,
+                                          backgroundImage:
+                                              currentWidget.backgroundImage,
+                                          config: currentWidget.config,
+                                      },
+                                  }
+                                : undefined,
+                        });
+                    }
+                    lastSavedLayoutRef.current = layout;
+                },
+            );
+            layoutUpdateTimeoutRef.current = to as unknown as NodeJS.Timeout;
         },
         [updateWidgetLayout, widgetsData?.widgets],
     );

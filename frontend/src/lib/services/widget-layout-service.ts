@@ -8,7 +8,7 @@ export function createWidgetLayoutService() {
         nextLayout: GridLayout.Layout[],
         onChanged: (changed: GridLayout.Layout[]) => void | Promise<void>,
         delay = 300,
-    ) {
+    ): ReturnType<typeof setTimeout> | null {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => {
             const changed = nextLayout.filter((item) => {
@@ -25,6 +25,7 @@ export function createWidgetLayoutService() {
             void onChanged(changed);
             lastSaved = nextLayout;
         }, delay);
+        return timeout;
     }
 
     function setInitialLayout(layout: GridLayout.Layout[]) {

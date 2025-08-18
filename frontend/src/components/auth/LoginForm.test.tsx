@@ -11,13 +11,8 @@ vi.mock('@/lib/utils/auth-utils', () => ({
 describe('LoginForm', () => {
     it('renders login buttons for all providers', () => {
         render(<LoginForm />);
-        Object.values(OAUTH_PROVIDERS).forEach((provider) => {
-            expect(
-                screen.getByText(
-                    `Login with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
-                ),
-            ).toBeInTheDocument();
-        });
+        expect(screen.getByText('Login with Google')).toBeInTheDocument();
+        expect(screen.getByText('Login with GitHub')).toBeInTheDocument();
     });
 
     it('calls redirectToProviderLogin with the correct provider when a button is clicked', () => {
@@ -34,14 +29,8 @@ describe('LoginForm', () => {
         const googleButton = screen.getByText('Login with Google');
         fireEvent.click(googleButton);
 
-        Object.values(OAUTH_PROVIDERS).forEach((provider) => {
-            const button = screen.getByText(
-                provider === OAUTH_PROVIDERS.GOOGLE
-                    ? 'Redirecting...'
-                    : `Login with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`,
-            );
-            expect(button).toBeDisabled();
-        });
+        expect(screen.getByText('Redirecting...')).toBeDisabled();
+        expect(screen.getByText('Login with GitHub')).toBeDisabled();
     });
 
     it('shows "Redirecting..." text on the button when clicked', () => {

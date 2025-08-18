@@ -49,8 +49,8 @@ const LoginForm: React.FC = () => {
                             <Mail className='mr-2 h-4 w-4' />
                         )}
                         {loadingProvider === OAUTH_PROVIDERS.GOOGLE
-                            ? 'Redirecting…'
-                            : 'Continue with Google'}
+                            ? 'Redirecting...'
+                            : 'Login with Google'}
                     </Button>
                     <Button
                         type='button'
@@ -67,8 +67,8 @@ const LoginForm: React.FC = () => {
                             <LogIn className='mr-2 h-4 w-4' />
                         )}
                         {loadingProvider === OAUTH_PROVIDERS.GITHUB
-                            ? 'Redirecting…'
-                            : 'Continue with GitHub'}
+                            ? 'Redirecting...'
+                            : 'Login with GitHub'}
                     </Button>
                     <div className='text-muted-foreground flex items-center justify-center gap-2 pt-1 text-xs'>
                         <LogIn className='h-3.5 w-3.5' />

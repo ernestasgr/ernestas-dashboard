@@ -6,6 +6,10 @@ afterEach(() => {
     cleanup();
 });
 
+// Provide required env defaults for tests
+process.env.NEXT_PUBLIC_GATEWAY_DOMAIN =
+    process.env.NEXT_PUBLIC_GATEWAY_DOMAIN ?? 'http://localhost:4000';
+
 global.IntersectionObserver = vi.fn(() => ({
     disconnect: vi.fn(),
     observe: vi.fn(),

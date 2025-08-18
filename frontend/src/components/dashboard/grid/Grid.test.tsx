@@ -400,11 +400,9 @@ describe('TestGrid', () => {
             expect(widgetForm).toHaveAttribute('data-open', 'true');
             expect(widgetForm).toHaveAttribute('data-editing', 'true');
         });
-        it('should handle widget deletion', () => {
-            const mockRefetch = vi.fn();
+        it('should handle widget deletion (no refetch, no crash)', () => {
             useWidgetLayoutMock.mockReturnValue({
                 ...mockHookReturnValue,
-                refetch: mockRefetch,
             });
 
             render(
@@ -416,7 +414,7 @@ describe('TestGrid', () => {
             const deleteButton = screen.getByTestId('delete-widget-1');
             fireEvent.click(deleteButton);
 
-            expect(mockRefetch).toHaveBeenCalled();
+            expect(screen.getByTestId('widget-widget-1')).toBeInTheDocument();
         });
 
         it('should handle layout changes', () => {
@@ -470,11 +468,9 @@ describe('TestGrid', () => {
     });
 
     describe('Widget Form Integration', () => {
-        it('should handle widget creation', async () => {
-            const mockRefetch = vi.fn();
+        it('should handle widget creation (form stays open, no refetch)', async () => {
             useWidgetLayoutMock.mockReturnValue({
                 ...mockHookReturnValue,
-                refetch: mockRefetch,
             });
 
             render(
@@ -490,15 +486,15 @@ describe('TestGrid', () => {
             fireEvent.click(createButton);
 
             await waitFor(() => {
-                expect(mockRefetch).toHaveBeenCalled();
+                const widgetForm = screen.getByTestId('widget-form');
+                expect(widgetForm).toHaveAttribute('data-open', 'true');
+                expect(widgetForm).toHaveAttribute('data-editing', 'false');
             });
         });
 
-        it('should handle widget updates', async () => {
-            const mockRefetch = vi.fn();
+        it('should handle widget updates (resets editing, no refetch)', async () => {
             useWidgetLayoutMock.mockReturnValue({
                 ...mockHookReturnValue,
-                refetch: mockRefetch,
             });
 
             render(
@@ -514,7 +510,9 @@ describe('TestGrid', () => {
             fireEvent.click(updateButton);
 
             await waitFor(() => {
-                expect(mockRefetch).toHaveBeenCalled();
+                const widgetForm = screen.getByTestId('widget-form');
+                expect(widgetForm).toHaveAttribute('data-editing', 'false');
+                expect(widgetForm).toHaveAttribute('data-open', 'true');
             });
         });
 

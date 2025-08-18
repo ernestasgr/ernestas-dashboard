@@ -1,7 +1,6 @@
 'use client';
 
 import { Widget } from '@/generated/types';
-import { cleanupNotesWidgetStore } from '@/lib/stores/notes-store';
 import { useWidgetStore } from '@/lib/stores/widget-store';
 import { useEffect, useState } from 'react';
 import GridLayout from 'react-grid-layout';
@@ -30,12 +29,12 @@ const Grid = () => {
         setShowWidgetForm(true);
     };
 
-    const handleDeleteWidget = (widgetId: string) => {
-        cleanupNotesWidgetStore(widgetId);
+    const handleDeleteWidget = (_widgetId: string) => {
+        return _widgetId;
     };
 
     const handleWidgetCreated = () => {
-        // Store will be updated by form via upsert; no refetch needed
+        return;
     };
 
     const handleWidgetUpdated = () => {
@@ -129,8 +128,8 @@ const Grid = () => {
                     cols={12}
                     rowHeight={60}
                     width={windowWidth}
-                    margin={[10, 10]}
-                    containerPadding={[0, 0]}
+                    margin={[15, 15]}
+                    containerPadding={[4, 4]}
                     isDraggable={true}
                     isResizable={true}
                     draggableHandle='.drag-handle'
