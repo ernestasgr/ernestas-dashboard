@@ -3,7 +3,6 @@
 import { useTasks } from '@/components/dashboard/hooks/useTasks';
 import { TasksConfig, Widget } from '@/generated/types';
 import { CheckSquare } from 'lucide-react';
-import { useState } from 'react';
 import { BaseWidget, useWidgetContext } from '../BaseWidget';
 import { TaskForm } from './TaskForm';
 import { TaskList } from './TaskList';
@@ -19,9 +18,6 @@ interface TaskWidgetProps {
 const TaskContent = () => {
     const { widget, styling } = useWidgetContext();
     const config = widget.config as TasksConfig | null;
-    const [expandedStates, setExpandedStates] = useState<
-        Record<string, boolean>
-    >({});
 
     const {
         loading,
@@ -36,13 +32,6 @@ const TaskContent = () => {
 
     const widgetTasks = getTaskHierarchy(widget.id);
     const itemColors: ItemColors = styling.itemColors;
-
-    const handleToggleExpanded = (taskId: string) => {
-        setExpandedStates((prev) => ({
-            ...prev,
-            [taskId]: !(prev[taskId] ?? true),
-        }));
-    };
 
     const handleToggleTask = async (taskId: string) => {
         try {
@@ -121,11 +110,9 @@ const TaskContent = () => {
                     tasks={widgetTasks}
                     itemColors={itemColors}
                     loading={loading}
-                    expandedStates={expandedStates}
                     onToggleTask={handleToggleTask}
                     onDeleteTask={handleDeleteTask}
                     onCreateSubtask={handleCreateSubtask}
-                    onToggleExpanded={handleToggleExpanded}
                     onReorderTask={reorderTask}
                 />
 

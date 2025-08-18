@@ -21,6 +21,7 @@ export interface Task {
 export interface TasksStoreState {
     categories: string[];
     hierarchy: Task[];
+    expanded: Partial<Record<string, boolean>>;
     loading: boolean;
     error?: string | null;
     lastError?: string | null;
@@ -31,6 +32,7 @@ export interface TasksStoreState {
 export interface TasksStoreActions {
     setCategories: (categories: string[]) => void;
     setHierarchy: (hierarchy: Task[]) => void;
+    toggleExpanded: (taskId: string) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
 
@@ -158,6 +160,7 @@ export const useTasksStore = create<TasksStore>()(
     subscribeWithSelector((set, get) => ({
         categories: [],
         hierarchy: [],
+        expanded: {},
         loading: false,
         error: null,
         lastError: null,
@@ -169,6 +172,13 @@ export const useTasksStore = create<TasksStore>()(
         },
         setHierarchy: (hierarchy) => {
             set({ hierarchy });
+        },
+        toggleExpanded: (taskId) => {
+            set((state) => {
+                const current = state.expanded[taskId];
+                const next = current === undefined ? false : !current;
+                return { expanded: { ...state.expanded, [taskId]: next } };
+            });
         },
         setLoading: (loading) => {
             set({ loading });
@@ -334,6 +344,7 @@ export const useTasksStore = create<TasksStore>()(
             set({
                 categories: [],
                 hierarchy: [],
+                expanded: {},
                 loading: false,
                 error: null,
                 lastError: null,

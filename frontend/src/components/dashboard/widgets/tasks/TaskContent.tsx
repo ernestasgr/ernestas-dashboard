@@ -1,6 +1,7 @@
 'use client';
 
 import { Task } from '@/components/dashboard/hooks/useTasks';
+import { useTasksStore } from '@/lib/stores/tasks-store';
 import { DraggableAttributes } from '@dnd-kit/core';
 import { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 import {
@@ -25,12 +26,10 @@ interface FlatTask extends Task {
 interface TaskContentProps {
     task: FlatTask;
     itemColors: ItemColors;
-    expandedStates: Record<string, boolean>;
     isAddingSubtaskStates: Record<string, boolean>;
     onToggle: (taskId: string) => Promise<void>;
     onDelete: (taskId: string) => Promise<void>;
     onCreateSubtask: (parentId: string, text: string) => Promise<void>;
-    onToggleExpanded: (taskId: string) => void;
     onChangeLevel?: (taskId: string, newLevel: number) => Promise<void>;
     onSetAddingSubtask: (taskId: string, isAdding: boolean) => void;
     maxLevel?: number;
@@ -44,12 +43,10 @@ interface TaskContentProps {
 export const TaskContent = ({
     task,
     itemColors,
-    expandedStates,
     isAddingSubtaskStates,
     onToggle,
     onDelete,
     onCreateSubtask,
-    onToggleExpanded,
     onChangeLevel,
     onSetAddingSubtask,
     maxLevel = 5,
@@ -59,6 +56,8 @@ export const TaskContent = ({
     dragListeners,
     isOverlay = false,
 }: TaskContentProps) => {
+    const expandedStates = useTasksStore((s) => s.expanded);
+    const toggleExpanded = useTasksStore((s) => s.toggleExpanded);
     const [newSubtaskText, setNewSubtaskText] = useState('');
 
     const hasSubtasks = task.subTasks && task.subTasks.length > 0;
@@ -150,7 +149,7 @@ export const TaskContent = ({
                 {hasSubtasks ? (
                     <button
                         onClick={() => {
-                            if (!isOverlay) onToggleExpanded(task.id);
+                            if (!isOverlay) toggleExpanded(task.id);
                         }}
                         className='mr-2 flex h-4 w-4 items-center justify-center opacity-70 transition-opacity hover:opacity-100'
                         style={{ color: itemColors.secondaryText }}

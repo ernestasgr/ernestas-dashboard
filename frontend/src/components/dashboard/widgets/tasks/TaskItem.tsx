@@ -16,12 +16,10 @@ interface FlatTask extends Task {
 interface TaskItemProps {
     task: FlatTask;
     itemColors: ItemColors;
-    expandedStates: Record<string, boolean>;
     isAddingSubtaskStates: Record<string, boolean>;
     onToggle: (taskId: string) => Promise<void>;
     onDelete: (taskId: string) => Promise<void>;
     onCreateSubtask: (parentId: string, text: string) => Promise<void>;
-    onToggleExpanded: (taskId: string) => void;
     onChangeLevel?: (taskId: string, newLevel: number) => Promise<void>;
     onSetAddingSubtask: (taskId: string, isAdding: boolean) => void;
     maxLevel?: number;
@@ -34,12 +32,10 @@ interface TaskItemProps {
 export const TaskItem = ({
     task,
     itemColors,
-    expandedStates,
     isAddingSubtaskStates,
     onToggle,
     onDelete,
     onCreateSubtask,
-    onToggleExpanded,
     onChangeLevel,
     onSetAddingSubtask,
     maxLevel = 5,
@@ -110,12 +106,10 @@ export const TaskItem = ({
                         <TaskContent
                             task={task}
                             itemColors={itemColors}
-                            expandedStates={expandedStates}
                             isAddingSubtaskStates={isAddingSubtaskStates}
                             onToggle={onToggle}
                             onDelete={onDelete}
                             onCreateSubtask={onCreateSubtask}
-                            onToggleExpanded={onToggleExpanded}
                             onChangeLevel={onChangeLevel}
                             onSetAddingSubtask={onSetAddingSubtask}
                             maxLevel={maxLevel}

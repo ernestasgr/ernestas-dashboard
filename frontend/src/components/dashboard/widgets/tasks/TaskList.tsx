@@ -1,6 +1,7 @@
 'use client';
 
 import { Task } from '@/components/dashboard/hooks/useTasks';
+import { useTasksStore } from '@/lib/stores/tasks-store';
 import {
     DndContext,
     DragEndEvent,
@@ -28,11 +29,9 @@ interface TaskListProps {
     tasks: Task[];
     itemColors: ItemColors;
     loading: boolean;
-    expandedStates: Record<string, boolean>;
     onToggleTask: (taskId: string) => Promise<void>;
     onDeleteTask: (taskId: string) => Promise<void>;
     onCreateSubtask: (parentId: string, text: string) => Promise<void>;
-    onToggleExpanded: (taskId: string) => void;
     onReorderTask: (
         taskId: string,
         newDisplayOrder: number,
@@ -45,13 +44,12 @@ export const TaskList = ({
     tasks,
     itemColors,
     loading,
-    expandedStates,
     onToggleTask,
     onDeleteTask,
     onCreateSubtask,
-    onToggleExpanded,
     onReorderTask,
 }: TaskListProps) => {
+    const expandedStates = useTasksStore((s) => s.expanded);
     const [isAddingSubtaskStates, setIsAddingSubtaskStates] = useState<
         Record<string, boolean>
     >({});
@@ -251,12 +249,10 @@ export const TaskList = ({
                             <TaskContent
                                 task={task}
                                 itemColors={itemColors}
-                                expandedStates={expandedStates}
                                 isAddingSubtaskStates={isAddingSubtaskStates}
                                 onToggle={onToggleTask}
                                 onDelete={onDeleteTask}
                                 onCreateSubtask={onCreateSubtask}
-                                onToggleExpanded={onToggleExpanded}
                                 onChangeLevel={handleChangeLevel}
                                 onSetAddingSubtask={handleSetAddingSubtask}
                                 maxLevel={5}
@@ -271,12 +267,10 @@ export const TaskList = ({
         },
         [
             itemColors,
-            expandedStates,
             isAddingSubtaskStates,
             onToggleTask,
             onDeleteTask,
             onCreateSubtask,
-            onToggleExpanded,
             handleChangeLevel,
             handleSetAddingSubtask,
         ],
@@ -562,12 +556,10 @@ export const TaskList = ({
                             key={task.id}
                             task={task}
                             itemColors={itemColors}
-                            expandedStates={expandedStates}
                             isAddingSubtaskStates={isAddingSubtaskStates}
                             onToggle={onToggleTask}
                             onDelete={onDeleteTask}
                             onCreateSubtask={onCreateSubtask}
-                            onToggleExpanded={onToggleExpanded}
                             onChangeLevel={handleChangeLevel}
                             onSetAddingSubtask={handleSetAddingSubtask}
                             maxLevel={5}
