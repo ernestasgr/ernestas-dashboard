@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { NotesConfig, Widget } from '@/generated/types';
-import { useNotesWidgetStore } from '@/lib/stores/notes-store';
+import type { NotesWidgetState } from '@/lib/stores/notes-store';
+import { useNotesStore } from '@/lib/stores/notes-store';
 import { useUIStore } from '@/lib/stores/ui-store';
+import type { WidgetItemColors } from '@/lib/utils/widget-styling/types';
 import { Filter, Plus, RefreshCw, StickyNote } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useMemo as useReactMemo, useRef } from 'react';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { useNoteLayout } from '../../hooks/useNoteLayout';
@@ -25,42 +27,355 @@ interface NotesWidgetProps {
     onStyleEdit?: (widget: Widget) => void;
 }
 
+// Stable empty layout fallback to avoid creating new objects in selectors
+const EMPTY_LAYOUT: Readonly<
+    Record<string, { x: number; y: number; width: number; height: number }>
+> = Object.freeze({});
+
+// Sibling component that subscribes only to view-modal related state
+const NoteViewModal = ({
+    widgetId,
+    widgetItemColors,
+}: {
+    widgetId: string;
+    widgetItemColors: WidgetItemColors;
+}) => {
+    // Select only modal-related fields to avoid triggering list re-renders
+    const isViewModalOpen = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.isViewModalOpen ?? false;
+    });
+    const selectedNote = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.selectedNote ?? null;
+    });
+    const viewModalTransition = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.viewModalTransition ?? 'closed';
+    });
+
+    const closeViewModal_ = useNotesStore((s) => s.closeViewModal);
+    const openEditModal_ = useNotesStore((s) => s.openEditModal);
+
+    const closeViewModal = useReactMemo(() => {
+        return () => {
+            closeViewModal_(widgetId);
+        };
+    }, [closeViewModal_, widgetId]);
+    const openEditModal = useReactMemo(() => {
+        return (note: Note) => {
+            openEditModal_(widgetId, note);
+        };
+    }, [openEditModal_, widgetId]);
+
+    // Handle escape key for view modal only when open
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isViewModalOpen) {
+                closeViewModal();
+            }
+        };
+
+        if (isViewModalOpen) {
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isViewModalOpen, closeViewModal]);
+
+    if (!isViewModalOpen || !selectedNote) return null;
+
+    return (
+        <div
+            className={`fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-4 ${
+                viewModalTransition === 'open'
+                    ? 'backdrop-enter'
+                    : viewModalTransition === 'closing'
+                      ? 'backdrop-exit'
+                      : ''
+            }`}
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    closeViewModal();
+                }
+            }}
+        >
+            <div
+                className={`flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${
+                    viewModalTransition === 'open'
+                        ? 'modal-enter'
+                        : viewModalTransition === 'closing'
+                          ? 'modal-exit'
+                          : 'translate-y-8 scale-95 opacity-0'
+                }`}
+                style={{
+                    backgroundColor:
+                        widgetItemColors.lightBackground || '#FFFFFF',
+                    borderColor: widgetItemColors.border || '#E5E7EB',
+                    border: '1px solid',
+                }}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
+            >
+                <div
+                    className={`flex flex-shrink-0 items-center justify-between border-b p-6 pb-4 ${
+                        viewModalTransition === 'open'
+                            ? 'modal-content-enter'
+                            : ''
+                    }`}
+                    style={{
+                        borderColor: widgetItemColors.border || '#E5E7EB',
+                    }}
+                >
+                    <h2
+                        className='mr-4 truncate text-xl font-semibold'
+                        style={{
+                            color: widgetItemColors.primaryText || '#1F2937',
+                        }}
+                    >
+                        {selectedNote.title}
+                    </h2>
+                    <div className='flex flex-shrink-0 space-x-2'>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={() => {
+                                closeViewModal();
+                                openEditModal(selectedNote);
+                            }}
+                        >
+                            Edit
+                        </Button>
+                        <Button
+                            variant='ghost'
+                            size='sm'
+                            onClick={closeViewModal}
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </div>
+                <div
+                    className={`min-h-0 flex-1 overflow-y-auto p-6 pt-4 ${
+                        viewModalTransition === 'open'
+                            ? 'modal-content-enter'
+                            : ''
+                    }`}
+                >
+                    <div className='space-y-4'>
+                        <div className='prose prose-sm max-w-none'>
+                            <MarkdownRenderer
+                                content={selectedNote.content}
+                                widgetColors={widgetItemColors}
+                                variant='modal'
+                            />
+                        </div>
+                        {selectedNote.labels.length > 0 && (
+                            <div className='flex flex-wrap gap-2'>
+                                {selectedNote.labels.map((label) => (
+                                    <Badge
+                                        key={label}
+                                        variant='default'
+                                        style={{
+                                            backgroundColor: 'transparent',
+                                            color:
+                                                widgetItemColors.primaryText ||
+                                                '#1E40AF',
+                                            borderColor:
+                                                widgetItemColors.accent,
+                                        }}
+                                    >
+                                        {label}
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+                        <div
+                            className='text-sm'
+                            style={{
+                                color:
+                                    widgetItemColors.secondaryText || '#6B7280',
+                            }}
+                        >
+                            Created:{' '}
+                            {new Date(selectedNote.createdAt)
+                                .toISOString()
+                                .slice(0, 16)
+                                .replace('T', ' ')}{' '}
+                            {selectedNote.updatedAt >
+                                selectedNote.createdAt && (
+                                <>
+                                    • Updated:{' '}
+                                    {new Date(selectedNote.updatedAt)
+                                        .toISOString()
+                                        .slice(0, 16)
+                                        .replace('T', ' ')}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const NoteViewParamWatcher = ({ widgetId }: { widgetId: string }) => {
+    const searchParams = useSearchParams();
+    const notes = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.notes ?? [];
+    });
+    const openViewModal_ = useNotesStore((s) => s.openViewModal);
+    const isViewModalOpen = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.isViewModalOpen ?? false;
+    });
+    const selectedNoteId = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widgetId];
+        return slice?.selectedNote?.id ?? null;
+    });
+
+    useEffect(() => {
+        const noteId = searchParams.get('noteId');
+        if (!noteId) return;
+        const note = notes.find((n) => n.id === noteId);
+        if (!note) return;
+        // Guard: avoid redundant open if already open for the same note
+        if (isViewModalOpen && selectedNoteId === note.id) return;
+        openViewModal_(widgetId, note);
+    }, [
+        searchParams,
+        notes,
+        openViewModal_,
+        widgetId,
+        isViewModalOpen,
+        selectedNoteId,
+    ]);
+
+    return null;
+};
+
 const NotesContent = () => {
     const { widget, styling } = useWidgetContext();
     const config = widget.config as NotesConfig | null;
-    const searchParams = useSearchParams();
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetItemColors = styling.itemColors;
     const notify = useUIStore((s) => s.notify);
 
-    const {
-        isCreateModalOpen,
-        isViewModalOpen,
-        selectedNote,
-        editingNote,
-        viewModalTransition,
-        labelFilter,
-        showFilters,
-        containerWidth,
-        isSyncing,
-        openCreateModal,
-        closeCreateModal,
-        openEditModal,
-        openViewModal,
-        closeViewModal,
-        clearSelectedNote,
-        setLabelFilter,
-        toggleFilters,
-        setContainerWidth,
-        setSyncing,
-    } = useNotesWidgetStore(widget.id);
+    const isCreateModalOpen = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.isCreateModalOpen ?? false;
+    });
+    const editingNote = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.editingNote ?? null;
+    });
+    const labelFilter = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.labelFilter ?? '';
+    });
+    const showFilters = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.showFilters ?? false;
+    });
+    const containerWidth = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.containerWidth ?? 400;
+    });
+    const isSyncing = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.isSyncing ?? false;
+    });
+
+    const openCreateModal_ = useNotesStore((s) => s.openCreateModal);
+    const closeCreateModal_ = useNotesStore((s) => s.closeCreateModal);
+    const openEditModal_ = useNotesStore((s) => s.openEditModal);
+    const openViewModal_ = useNotesStore((s) => s.openViewModal);
+    const clearSelectedNote_ = useNotesStore((s) => s.clearSelectedNote);
+    const setLabelFilter_ = useNotesStore((s) => s.setLabelFilter);
+    const toggleFilters_ = useNotesStore((s) => s.toggleFilters);
+    const setContainerWidth_ = useNotesStore((s) => s.setContainerWidth);
+    const setSyncing_ = useNotesStore((s) => s.setSyncing);
+
+    const openCreateModal = useReactMemo(() => {
+        return () => {
+            openCreateModal_(widget.id);
+        };
+    }, [openCreateModal_, widget.id]);
+    const closeCreateModal = useReactMemo(() => {
+        return () => {
+            closeCreateModal_(widget.id);
+        };
+    }, [closeCreateModal_, widget.id]);
+    const openEditModal = useReactMemo(() => {
+        return (note: Note) => {
+            openEditModal_(widget.id, note);
+        };
+    }, [openEditModal_, widget.id]);
+    const openViewModal = useReactMemo(() => {
+        return (note: Note) => {
+            openViewModal_(widget.id, note);
+        };
+    }, [openViewModal_, widget.id]);
+    const clearSelectedNote = useReactMemo(() => {
+        return () => {
+            clearSelectedNote_(widget.id);
+        };
+    }, [clearSelectedNote_, widget.id]);
+    const setLabelFilter = useReactMemo(() => {
+        return (filter: string) => {
+            setLabelFilter_(widget.id, filter);
+        };
+    }, [setLabelFilter_, widget.id]);
+    const toggleFilters = useReactMemo(() => {
+        return () => {
+            toggleFilters_(widget.id);
+        };
+    }, [toggleFilters_, widget.id]);
+    const setContainerWidth = useReactMemo(() => {
+        return (w: number) => {
+            setContainerWidth_(widget.id, w);
+        };
+    }, [setContainerWidth_, widget.id]);
+    const setSyncing = useReactMemo(() => {
+        return (v: boolean) => {
+            setSyncing_(widget.id, v);
+        };
+    }, [setSyncing_, widget.id]);
 
     const {
         createNote,
         updateNote,
         updateNoteLayout,
         deleteNote,
-        getNoteById,
         getFilteredNotes,
         syncObsidianVault,
         enableAutoSync,
@@ -86,17 +401,6 @@ const NotesContent = () => {
         },
     });
 
-    // Handle URL-based note opening
-    useEffect(() => {
-        const noteId = searchParams.get('noteId');
-        if (noteId) {
-            const note = getNoteById(noteId);
-            if (note) {
-                openViewModal(note);
-            }
-        }
-    }, [searchParams, getNoteById, openViewModal]);
-
     // Handle auto-sync configuration
     useEffect(() => {
         if (
@@ -121,24 +425,6 @@ const NotesContent = () => {
         disableAutoSync,
     ]);
 
-    // Handle escape key for view modal
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && isViewModalOpen) {
-                closeViewModal();
-            }
-        };
-
-        if (isViewModalOpen) {
-            document.addEventListener('keydown', handleKeyDown);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isViewModalOpen, closeViewModal]);
-
-    // Update container width when notes change
     useEffect(() => {
         if (containerRef.current) {
             const width = containerRef.current.offsetWidth - 16;
@@ -249,15 +535,17 @@ const NotesContent = () => {
         openViewModal(note);
     };
 
-    const handleCloseViewModal = () => {
-        closeViewModal();
-    };
-
     const handleDeleteNoteWrapper = (noteId: string) => {
         void handleDeleteNote(noteId);
     };
 
-    const layoutMap = useNotesWidgetStore(widget.id).layout;
+    // Subscribe only to layout map; default to empty record when slice is missing
+    const layoutMap = useNotesStore((s) => {
+        const slice = (
+            s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
+        )[widget.id];
+        return slice?.layout ?? EMPTY_LAYOUT;
+    });
     const layout = filteredNotes.map((note, index) => {
         const l:
             | { x: number; y: number; width: number; height: number }
@@ -438,146 +726,11 @@ const NotesContent = () => {
                 }}
                 onSave={handleNoteModalSave}
             />
-
-            {isViewModalOpen && selectedNote && (
-                <div
-                    className={`fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-4 ${
-                        viewModalTransition === 'open'
-                            ? 'backdrop-enter'
-                            : viewModalTransition === 'closing'
-                              ? 'backdrop-exit'
-                              : ''
-                    }`}
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            handleCloseViewModal();
-                        }
-                    }}
-                >
-                    <div
-                        className={`flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${
-                            viewModalTransition === 'open'
-                                ? 'modal-enter'
-                                : viewModalTransition === 'closing'
-                                  ? 'modal-exit'
-                                  : 'translate-y-8 scale-95 opacity-0'
-                        }`}
-                        style={{
-                            backgroundColor:
-                                widgetItemColors.lightBackground || '#FFFFFF',
-                            borderColor: widgetItemColors.border || '#E5E7EB',
-                            border: '1px solid',
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                        }}
-                    >
-                        <div
-                            className={`flex flex-shrink-0 items-center justify-between border-b p-6 pb-4 ${
-                                viewModalTransition === 'open'
-                                    ? 'modal-content-enter'
-                                    : ''
-                            }`}
-                            style={{
-                                borderColor:
-                                    widgetItemColors.border || '#E5E7EB',
-                            }}
-                        >
-                            <h2
-                                className='mr-4 truncate text-xl font-semibold'
-                                style={{
-                                    color:
-                                        widgetItemColors.primaryText ||
-                                        '#1F2937',
-                                }}
-                            >
-                                {selectedNote.title}
-                            </h2>
-                            <div className='flex flex-shrink-0 space-x-2'>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => {
-                                        handleCloseViewModal();
-                                        handleEditNote(selectedNote);
-                                    }}
-                                >
-                                    Edit
-                                </Button>
-                                <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    onClick={handleCloseViewModal}
-                                >
-                                    Close
-                                </Button>
-                            </div>
-                        </div>
-                        <div
-                            className={`min-h-0 flex-1 overflow-y-auto p-6 pt-4 ${
-                                viewModalTransition === 'open'
-                                    ? 'modal-content-enter'
-                                    : ''
-                            }`}
-                        >
-                            <div className='space-y-4'>
-                                <div className='prose prose-sm max-w-none'>
-                                    <MarkdownRenderer
-                                        content={selectedNote.content}
-                                        widgetColors={widgetItemColors}
-                                        variant='modal'
-                                    />
-                                </div>
-                                {selectedNote.labels.length > 0 && (
-                                    <div className='flex flex-wrap gap-2'>
-                                        {selectedNote.labels.map((label) => (
-                                            <Badge
-                                                key={label}
-                                                variant='default'
-                                                style={{
-                                                    backgroundColor:
-                                                        'transparent',
-                                                    color:
-                                                        widgetItemColors.primaryText ||
-                                                        '#1E40AF',
-                                                    borderColor:
-                                                        widgetItemColors.accent,
-                                                }}
-                                            >
-                                                {label}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                )}
-                                <div
-                                    className='text-sm'
-                                    style={{
-                                        color:
-                                            widgetItemColors.secondaryText ||
-                                            '#6B7280',
-                                    }}
-                                >
-                                    Created:{' '}
-                                    {new Date(selectedNote.createdAt)
-                                        .toISOString()
-                                        .slice(0, 16)
-                                        .replace('T', ' ')}{' '}
-                                    {selectedNote.updatedAt >
-                                        selectedNote.createdAt && (
-                                        <>
-                                            • Updated:{' '}
-                                            {new Date(selectedNote.updatedAt)
-                                                .toISOString()
-                                                .slice(0, 16)
-                                                .replace('T', ' ')}
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <NoteViewParamWatcher widgetId={widget.id} />
+            <NoteViewModal
+                widgetId={widget.id}
+                widgetItemColors={widgetItemColors}
+            />
         </div>
     );
 };
