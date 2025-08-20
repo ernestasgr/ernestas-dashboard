@@ -32,6 +32,8 @@ const EMPTY_LAYOUT: Readonly<
     Record<string, { x: number; y: number; width: number; height: number }>
 > = Object.freeze({});
 
+const EMPTY_NOTES: readonly Note[] = Object.freeze([] as Note[]);
+
 // Sibling component that subscribes only to view-modal related state
 const NoteViewModal = ({
     widgetId,
@@ -235,7 +237,7 @@ const NoteViewParamWatcher = ({ widgetId }: { widgetId: string }) => {
         const slice = (
             s.notesByWidgetId as Record<string, NotesWidgetState | undefined>
         )[widgetId];
-        return slice?.notes ?? [];
+        return slice?.notes ?? EMPTY_NOTES;
     });
     const openViewModal_ = useNotesStore((s) => s.openViewModal);
     const isViewModalOpen = useNotesStore((s) => {
